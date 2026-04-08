@@ -9,7 +9,7 @@ import LockoutWarning from './LockOutWarning';
 import GoogleButton from './GoogleButton';
 
 function Login() {
-  const { login, loginAsAdmin, loginAsTechnician, register, getUserByEmail } = useUser();
+  const { login, loginAsAdmin, loginAsTechnician, register } = useUser();
   const navigate = useNavigate();
   
   const [user, setUser] = useState({
@@ -28,7 +28,8 @@ function Login() {
   const roles = [
     { id: 'customer', label: 'Customer', icon: '👤', redirectTo: '/home' },
     { id: 'technician', label: 'Technician', icon: '🔧', redirectTo: '/tech/dashboard' },
-    { id: 'admin', label: 'Admin', icon: '👨‍💼', redirectTo: '/admin/dashboard' }
+    { id: 'admin', label: 'Admin', icon: '👨‍💼', redirectTo: '/admin/dashboard' },
+    { id: 'superadmin', label: 'Super Admin', icon: '🛡️', redirectTo: '/superadmin/dashboard' }
   ];
 
   const getFailedAttempts = useCallback((email) => {
@@ -153,13 +154,8 @@ function Login() {
       alert('Please enter your email address first.');
       return;
     }
-    
-    const existingUser = getUserByEmail(user.email);
-    if (existingUser) {
-      alert(`Password reset link sent to:\n${user.email}\n\nDemo reset token: reset_${Date.now()}`);
-    } else {
-      alert('No account found with this email address.');
-    }
+
+    alert(`If an account exists for ${user.email}, a password reset link will be sent.`);
   };
 
   const authenticateUser = async () => {
@@ -214,6 +210,9 @@ function Login() {
           break;
         case 'technician':
           loggedInUser = await loginAsTechnician(user.email, user.password);
+          break;
+        case 'superadmin':
+          loggedInUser = await login(user.email, user.password, 'superadmin');
           break;
         default:
           loggedInUser = await login(user.email, user.password);
@@ -282,36 +281,33 @@ function Login() {
         address: ''
       };
       
-      const existingUser = getUserByEmail(googleEmail);
-      
-      if (existingUser) {
-        try {
-          let loggedInUser;
-          switch(user.role) {
-            case 'admin':
-              loggedInUser = await loginAsAdmin(googleEmail, googleUserData.password);
-              break;
-            case 'technician':
-              loggedInUser = await loginAsTechnician(googleEmail, googleUserData.password);
-              break;
-            default:
-              loggedInUser = await login(googleEmail, googleUserData.password);
-          }
-          const userWithRole = { ...loggedInUser, role: user.role };
-          localStorage.setItem('currentUser', JSON.stringify(userWithRole));
-          const selectedRoleConfig = roles.find(r => r.id === user.role);
-          navigate(selectedRoleConfig.redirectTo);
-        } catch (err) {
-          alert('Google login failed: ' + err.message);
+      try {
+        await register(googleUserData, user.role);
+      } catch (_registerError) {
+        // If account already exists, continue with login path.
+      }
+
+      try {
+        let loggedInUser;
+        switch(user.role) {
+          case 'admin':
+            loggedInUser = await loginAsAdmin(googleEmail, googleUserData.password);
+            break;
+          case 'technician':
+            loggedInUser = await loginAsTechnician(googleEmail, googleUserData.password);
+            break;
+          case 'superadmin':
+            loggedInUser = await login(googleEmail, googleUserData.password, 'superadmin');
+            break;
+          default:
+            loggedInUser = await login(googleEmail, googleUserData.password);
         }
-      } else {
-        try {
-          await register(googleUserData, user.role);
-          const selectedRoleConfig = roles.find(r => r.id === user.role);
-          navigate(selectedRoleConfig.redirectTo);
-        } catch (err) {
-          alert('Google registration failed: ' + err.message);
-        }
+        const userWithRole = { ...loggedInUser, role: user.role };
+        localStorage.setItem('currentUser', JSON.stringify(userWithRole));
+        const selectedRoleConfig = roles.find(r => r.id === user.role);
+        navigate(selectedRoleConfig.redirectTo);
+      } catch (err) {
+        alert('Google login failed: ' + err.message);
       }
       setGoogleLoading(false);
     }, 1000);
@@ -383,11 +379,8 @@ function Login() {
             <div className="tips-list">
               <span>• 3 login attempts before temporary lockout</span>
               <span>• Lockout duration increases with failed attempts</span>
-              <span>• Demo Accounts Available:</span>
-              <span>  - Customer: demo@example.com / demo123</span>
-              <span>  - Technician: tech@example.com / tech123</span>
-              <span>  - Admin: admin@example.com / admin123</span>
-              <span>  - Super Admin: superadmin@example.com / super123</span>
+              <span>• Admin and technician accounts are managed securely on the backend</span>
+              <span>• Contact your system administrator for account access</span>
             </div>
           </div>
         </div>

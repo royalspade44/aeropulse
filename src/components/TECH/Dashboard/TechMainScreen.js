@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from '../../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { apiRequest } from '../../../config/api';
 import './TechMainScreen.css';
 
 const TechMainScreen = () => {
@@ -9,6 +10,7 @@ const TechMainScreen = () => {
   const [tasks, setTasks] = useState([]);
   const [stats, setStats] = useState({
     pendingTasks: 0,
+    inProgressTasks: 0,
     completedToday: 0,
     totalTasks: 0
   });
@@ -18,51 +20,25 @@ const TechMainScreen = () => {
   }, []);
 
   const loadTasks = () => {
-    // Mock tasks data
-    const mockTasks = [
-      {
-        id: 'TSK-001',
-        title: 'AC Repair - Unit #123',
-        customer: 'John Doe',
-        address: '123 Main St',
-        status: 'pending',
-        priority: 'high',
-        scheduledDate: '2024-01-15',
-        timeSlot: '9:00 AM - 12:00 PM'
-      },
-      {
-        id: 'TSK-002',
-        title: 'Refrigerator Maintenance',
-        customer: 'Jane Smith',
-        address: '456 Oak Ave',
-        status: 'in-progress',
-        priority: 'medium',
-        scheduledDate: '2024-01-15',
-        timeSlot: '1:00 PM - 4:00 PM'
-      },
-      {
-        id: 'TSK-003',
-        title: 'Washing Machine Repair',
-        customer: 'Mike Johnson',
-        address: '789 Pine Rd',
-        status: 'pending',
-        priority: 'low',
-        scheduledDate: '2024-01-16',
-        timeSlot: '9:00 AM - 12:00 PM'
-      }
-    ];
-    setTasks(mockTasks);
-    
-    setStats({
-      pendingTasks: mockTasks.filter(t => t.status === 'pending').length,
-      completedToday: 1,
-      totalTasks: mockTasks.length
-    });
+    apiRequest('/dashboard/me')
+      .then((data) => {
+        setTasks(data.tasks || []);
+        setStats({
+          pendingTasks: data?.stats?.pendingTasks || 0,
+          inProgressTasks: data?.stats?.inProgressTasks || 0,
+          completedToday: data?.stats?.completedToday || 0,
+          totalTasks: data?.stats?.totalTasks || 0
+        });
+      })
+      .catch((error) => {
+        console.error('Failed to load technician dashboard:', error);
+        setTasks([]);
+      });
   };
 
   const handleLogout = () => {
     logout();
-    navigate('/tech/login');
+    navigate('/login');
   };
 
   const getStatusBadge = (status) => {
@@ -111,6 +87,14 @@ const TechMainScreen = () => {
         </div>
 
         <div className="stat-card">
+          <div className="stat-icon">🛠️</div>
+          <div className="stat-info">
+            <h3>In Progress</h3>
+            <p>{stats.inProgressTasks}</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
           <div className="stat-icon">✅</div>
           <div className="stat-info">
             <h3>Completed Today</h3>
@@ -150,7 +134,7 @@ const TechMainScreen = () => {
               <div className="task-actions">
                 <button 
                   className="view-btn"
-                  onClick={() => navigate(`/tech/tasks/${task.id}`)}
+                  onClick={() => navigate(`/tech/tasks/${task.taskCode || task.id}`)}
                 >
                   View Details
                 </button>
@@ -163,6 +147,15 @@ const TechMainScreen = () => {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="tasks-section">
+        <h2>Technician Notes</h2>
+        <div className="task-details">
+          <p><strong>Daily Goal:</strong> Complete at least 3 tasks with customer confirmation.</p>
+          <p><strong>Safety Reminder:</strong> Follow lockout-tagout checks before electrical servicing.</p>
+          <p><strong>Escalation:</strong> Report high-risk jobs to admin dispatcher immediately.</p>
         </div>
       </div>
     </div>

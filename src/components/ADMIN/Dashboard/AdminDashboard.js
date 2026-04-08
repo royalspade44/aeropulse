@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from '../../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { apiRequest } from '../../../config/api';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -16,25 +17,29 @@ const AdminDashboard = () => {
   });
 
   useEffect(() => {
-    // Load dashboard data
     loadDashboardData();
   }, []);
 
   const loadDashboardData = () => {
-    // Mock data for now
-    setStats({
-      totalSales: 15750,
-      totalOrders: 142,
-      lowStockItems: 8,
-      activeTechnicians: 5,
-      pendingTasks: 12,
-      totalCustomers: 89
-    });
+    apiRequest('/dashboard/me')
+      .then((data) => {
+        setStats({
+          totalSales: data?.stats?.totalSales || 0,
+          totalOrders: data?.stats?.totalOrders || 0,
+          lowStockItems: data?.stats?.lowStockItems || 0,
+          activeTechnicians: data?.stats?.activeTechnicians || 0,
+          pendingTasks: data?.stats?.pendingTasks || 0,
+          totalCustomers: data?.stats?.totalCustomers || 0
+        });
+      })
+      .catch((error) => {
+        console.error('Failed to load admin dashboard:', error);
+      });
   };
 
   const handleLogout = () => {
     logout();
-    navigate('/admin/login');
+    navigate('/login');
   };
 
   return (
@@ -128,6 +133,24 @@ const AdminDashboard = () => {
           <div className="activity-item">
             <span className="time">09:00 AM</span>
             <span>Technician John assigned to task #TSK-123</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="quick-actions">
+        <h2>Admin Oversight</h2>
+        <div className="activity-list">
+          <div className="activity-item">
+            <span className="time">Policy</span>
+            <span>Review technician SLAs and completion rates weekly.</span>
+          </div>
+          <div className="activity-item">
+            <span className="time">Finance</span>
+            <span>Validate sales and refund reports before end-of-day closeout.</span>
+          </div>
+          <div className="activity-item">
+            <span className="time">Inventory</span>
+            <span>Prioritize reorders for critical spare parts below threshold.</span>
           </div>
         </div>
       </div>

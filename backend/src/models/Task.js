@@ -1,0 +1,36 @@
+const mongoose = require("mongoose");
+
+const taskSchema = new mongoose.Schema(
+  {
+    taskCode: { type: String, required: true, unique: true },
+    title: { type: String, required: true },
+    customer: { type: String, required: true },
+    address: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ["pending", "in-progress", "completed"],
+      default: "pending",
+    },
+    priority: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      default: "medium",
+    },
+    scheduledDate: { type: String, required: true },
+    timeSlot: { type: String, required: true },
+    assignedRole: { type: String, default: "technician" },
+    completedAt: { type: Date, default: null },
+  },
+  { timestamps: true }
+);
+
+taskSchema.set("toJSON", {
+  transform: (_doc, ret) => {
+    ret.id = ret._id.toString();
+    delete ret._id;
+    delete ret.__v;
+    return ret;
+  },
+});
+
+module.exports = mongoose.model("Task", taskSchema);

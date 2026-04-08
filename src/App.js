@@ -11,7 +11,23 @@ import Contact from './components/contact/Contact';
 import Services from './components/services/Services';
 import Checkout from './components/checkout/Checkout';
 import MyOrders from './components/orders/MyOrders';
+import AdminDashboard from './components/ADMIN/Dashboard/AdminDashboard';
+import TechMainScreen from './components/TECH/Dashboard/TechMainScreen';
+import SuperAdminDashboard from './components/SUPERADMIN/Dashboard/SuperAdminDashboard';
 import './App.css';
+
+const getRoleHomePath = (role) => {
+  switch (role) {
+    case 'technician':
+      return '/tech/dashboard';
+    case 'admin':
+      return '/admin/dashboard';
+    case 'superadmin':
+      return '/superadmin/dashboard';
+    default:
+      return '/home';
+  }
+};
 
 // Protected Route wrapper component
 const ProtectedRoute = ({ children }) => {
@@ -24,20 +40,36 @@ const ProtectedRoute = ({ children }) => {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
+const RoleRoute = ({ allowedRoles, children }) => {
+  const { isAuthenticated, loading, userRole } = useUser();
+
+  if (loading) {
+    return <div className="loading-screen">Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return allowedRoles.includes(userRole)
+    ? children
+    : <Navigate to="/home" replace />;
+};
+
 // Public Route wrapper (redirects to home if already authenticated)
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useUser();
+  const { isAuthenticated, loading, userRole } = useUser();
   
   if (loading) {
     return <div className="loading-screen">Loading...</div>;
   }
   
-  return !isAuthenticated ? children : <Navigate to="/home" replace />;
+  return !isAuthenticated ? children : <Navigate to={getRoleHomePath(userRole)} replace />;
 };
 
 // Main App content with routes
 function AppContent() {
-  const { isAuthenticated, loading } = useUser();
+  const { isAuthenticated, loading, userRole } = useUser();
 
   if (loading) {
     return <div className="loading-screen">Loading...</div>;
@@ -50,7 +82,7 @@ function AppContent() {
         path="/" 
         element={
           isAuthenticated ? 
-            <Navigate to="/home" replace /> : 
+            <Navigate to={getRoleHomePath(userRole)} replace /> : 
             <Navigate to="/login" replace />
         } 
       />
@@ -146,12 +178,40 @@ function AppContent() {
           </ProtectedRoute>
         } 
       />
+
+      {/* Role-based dashboards */}
+      <Route
+        path="/admin/dashboard"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminDashboard />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/tech/dashboard"
+        element={
+          <RoleRoute allowedRoles={['technician']}>
+            <TechMainScreen />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/superadmin/dashboard"
+        element={
+          <RoleRoute allowedRoles={['superadmin']}>
+            <SuperAdminDashboard />
+          </RoleRoute>
+        }
+      />
       
       {/* Catch all - redirect to home or login based on auth */}
       <Route 
         path="*" 
         element={
-          <Navigate to={isAuthenticated ? "/home" : "/login"} replace />
+          <Navigate to={isAuthenticated ? getRoleHomePath(userRole) : "/login"} replace />
         } 
       />
     </Routes>
