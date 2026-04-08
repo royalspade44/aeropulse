@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 import { CartProvider } from './context/CartContext';
 import { UserProvider, useUser } from './context/UserContext';
 import Login from './components/login/Login';

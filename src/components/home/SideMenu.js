@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 
@@ -9,21 +9,21 @@ function SideMenu({ isOpen, onClose, activePage, onLogout }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState(activePage);
 
+  const menuItems = useMemo(() => ([
+    { id: 'myunit', label: 'My Unit', icon: '❄️', path: '/myunit', description: 'Manage your AC units' },
+    { id: 'services', label: 'Services', icon: '🔧', path: '/services', description: 'Book maintenance & repair' },
+    { id: 'shop', label: 'Shop', icon: '🛒', path: '/shop', description: 'Browse AC products' },
+    { id: 'settings', label: 'Settings', icon: '⚙️', path: '/settings', description: 'Account preferences' },
+    { id: 'contact', label: 'Contact', icon: '📞', path: '/contact', description: 'Get in touch with us' },
+  ]), []);
+
   // Update active menu item based on current path
   useEffect(() => {
     const menuItem = menuItems.find(item => item.path === location.pathname);
     if (menuItem) {
       setActiveMenuItem(menuItem.id);
     }
-  }, [location]);
-
-  const menuItems = [
-    { id: 'myunit', label: 'My Unit', icon: '❄️', path: '/myunit', description: 'Manage your AC units' },
-    { id: 'services', label: 'Services', icon: '🔧', path: '/services', description: 'Book maintenance & repair' },
-    { id: 'shop', label: 'Shop', icon: '🛒', path: '/shop', description: 'Browse AC products' },
-    { id: 'settings', label: 'Settings', icon: '⚙️', path: '/settings', description: 'Account preferences' },
-    { id: 'contact', label: 'Contact', icon: '📞', path: '/contact', description: 'Get in touch with us' },
-  ];
+  }, [location.pathname, menuItems]);
 
   // Get user's display name
   const getUserDisplayName = () => {

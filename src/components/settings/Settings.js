@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '../../context/UserContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './Settings.css';
 import ProfileSettings from './ProfileSettings';
 import AccountSettings from './AccountSettings';
@@ -11,7 +11,6 @@ import PreferencesSettings from './PreferencesSettings';
 function Settings() {
   const { user, updateProfile, updatePreferences, updatePrivacy, updateNotifications, changePassword, deleteAccount, logout } = useUser();
   const navigate = useNavigate();
-  const location = useLocation();
   
   const [darkMode, setDarkMode] = useState(() => {
     if (user?.preferences?.darkMode !== undefined) {

@@ -7,18 +7,17 @@ import SideMenu from './SideMenu';
 import NotificationsModal from './NotificationsModal';
 import CartModal from '../shop/CartSidebar';
 import HeroSection from './HeroSection';
-import ServicesSection from './ServicesSection';
 import BrandsSection from './BrandsSection';
 import InfoSection from './InfoSection';
 import Footer from './Footer';
 
 function Home() {
   const navigate = useNavigate();
-  const { cart, addToCart, updateQuantity, removeFromCart, getCartTotal, getCartCount, clearCart } = useCart();
+  const { cart, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
   
   // State Management
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activePage, setActivePage] = useState('home');
+  const [activePage] = useState('home');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [scrolled, setScrolled] = useState(false);

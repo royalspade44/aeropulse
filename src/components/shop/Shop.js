@@ -9,7 +9,7 @@ import ProductModal from './ProductModal';
 
 function Shop() {
   const navigate = useNavigate();
-  const { cart, addToCart, updateQuantity, removeFromCart, getCartCount, getCartTotal, clearCart } = useCart();
+  const { cart, addToCart, updateQuantity, removeFromCart, getCartCount, getCartTotal } = useCart();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });

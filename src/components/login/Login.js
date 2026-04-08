@@ -121,12 +121,12 @@ function Login() {
   }, [user.email, canAttemptLogin]);
 
   useEffect(() => {
-    if (lockoutInfo && secondsLeft > 0) {
-      setLockoutInfo(prev => ({
+    if (secondsLeft > 0) {
+      setLockoutInfo(prev => prev ? ({
         ...prev,
         message: `Account locked. Try again in ${secondsLeft} seconds.`,
         secondsLeft: secondsLeft
-      }));
+      }) : prev);
     }
   }, [secondsLeft]);
 
