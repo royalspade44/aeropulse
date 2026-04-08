@@ -13,7 +13,7 @@ function Footer() {
         <div className="footer-section">
           <h4>Follow Us</h4>
           <div className="social-links">
-            <button onClick={() => alert('Facebook')}> PESBUK📘</button>
+            <button onClick={() => alert('Facebook')}>📘</button>
             <button onClick={() => alert('Instagram')}>📷</button>
             <button onClick={() => alert('Twitter')}>🐦</button>
           </div>
