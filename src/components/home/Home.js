@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { useUser } from '../../context/UserContext';
 import './Home.css';
 import Header from './Header';
 import SideMenu from './SideMenu';
@@ -14,6 +15,7 @@ import Footer from './Footer';
 function Home() {
   const navigate = useNavigate();
   const { cart, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
+  const { logout } = useUser();
   
   // State Management
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -136,6 +138,7 @@ function Home() {
     ];
     
     keysToRemove.forEach(key => localStorage.removeItem(key));
+    logout();
     clearCart();
     navigate('/login');
   };
