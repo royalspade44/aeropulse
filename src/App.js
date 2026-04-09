@@ -12,8 +12,24 @@ import Services from './components/services/Services';
 import Checkout from './components/checkout/Checkout';
 import MyOrders from './components/orders/MyOrders';
 import AdminDashboard from './components/ADMIN/Dashboard/AdminDashboard';
+import AdminInventory from './components/ADMIN/Inventory/AdminInventory';
+import AdminMaintenance from './components/ADMIN/Maintenance/AdminMaintenance';
+import AdminTechnician from './components/ADMIN/Technicians/AdminTechnician';
+import AdminReoder from './components/ADMIN/Reorder/AdminReoder';
+import AdminProfile from './components/ADMIN/Profile/AdminProfile';
 import TechMainScreen from './components/TECH/Dashboard/TechMainScreen';
+import TaskScreens from './components/TECH/Tasks/TaskScreens';
+import TaskDetails from './components/TECH/Tasks/TaskDetails';
+import ProfileTechnicianScreen from './components/TECH/Profile/ProfileTechnicianScreen';
+import TechEditProfile from './components/TECH/Profile/TechEditProfile';
 import SuperAdminDashboard from './components/SUPERADMIN/Dashboard/SuperAdminDashboard';
+import SuperAdminBranches from './components/SUPERADMIN/Dashboard/SuperAdminBranches';
+import SuperAdminAttendance from './components/SUPERADMIN/Dashboard/SuperAdminAttendance';
+import SuperAdminSales from './components/SUPERADMIN/Dashboard/SuperAdminSales';
+import SuperAdminInventory from './components/SUPERADMIN/Dashboard/SuperAdminInventory';
+import SuperAdminTasks from './components/SUPERADMIN/Dashboard/SuperAdminTasks';
+import SuperAdminAlerts from './components/SUPERADMIN/Dashboard/SuperAdminAlerts';
+import GlobalDialog from './components/common/GlobalDialog';
 import './App.css';
 
 const getRoleHomePath = (role) => {
@@ -188,6 +204,46 @@ function AppContent() {
           </RoleRoute>
         }
       />
+      <Route
+        path="/admin/inventory"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminInventory />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/admin/maintenance"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminMaintenance />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/admin/technicians"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminTechnician />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/admin/reorder"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminReoder />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/admin/profile"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminProfile />
+          </RoleRoute>
+        }
+      />
 
       <Route
         path="/tech/dashboard"
@@ -197,12 +253,92 @@ function AppContent() {
           </RoleRoute>
         }
       />
+      <Route
+        path="/tech/tasks"
+        element={
+          <RoleRoute allowedRoles={['technician']}>
+            <TaskScreens />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/tech/tasks/:taskId"
+        element={
+          <RoleRoute allowedRoles={['technician']}>
+            <TaskDetails />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/tech/profile"
+        element={
+          <RoleRoute allowedRoles={['technician']}>
+            <ProfileTechnicianScreen />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/tech/profile/edit"
+        element={
+          <RoleRoute allowedRoles={['technician']}>
+            <TechEditProfile />
+          </RoleRoute>
+        }
+      />
 
       <Route
         path="/superadmin/dashboard"
         element={
           <RoleRoute allowedRoles={['superadmin']}>
             <SuperAdminDashboard />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/superadmin/branches"
+        element={
+          <RoleRoute allowedRoles={['superadmin']}>
+            <SuperAdminBranches />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/superadmin/attendance"
+        element={
+          <RoleRoute allowedRoles={['superadmin']}>
+            <SuperAdminAttendance />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/superadmin/sales"
+        element={
+          <RoleRoute allowedRoles={['superadmin']}>
+            <SuperAdminSales />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/superadmin/inventory"
+        element={
+          <RoleRoute allowedRoles={['superadmin']}>
+            <SuperAdminInventory />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/superadmin/tasks"
+        element={
+          <RoleRoute allowedRoles={['superadmin']}>
+            <SuperAdminTasks />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/superadmin/alerts"
+        element={
+          <RoleRoute allowedRoles={['superadmin']}>
+            <SuperAdminAlerts />
           </RoleRoute>
         }
       />
@@ -226,6 +362,7 @@ function App() {
         <Router>
           <div className="App">
             <AppContent />
+            <GlobalDialog />
           </div>
         </Router>
       </CartProvider>

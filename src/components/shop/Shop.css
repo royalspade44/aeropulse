@@ -437,6 +437,17 @@
   color: white;
 }
 
+.buy-now-btn {
+  margin-top: 8px;
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.buy-now-btn:hover {
+  background: var(--primary-dark);
+  color: #fff;
+}
+
 /* Cart Sidebar */
 .cart-sidebar {
   position: fixed;

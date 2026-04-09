@@ -2,11 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../context/UserContext';
 import { apiRequest } from '../../../config/api';
-import './SuperAdminDashboard.css';
+import SuperAdminLayout from '../Common/SuperAdminLayout';
+import '../superAdminShared.css';
 
 function SuperAdminDashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useUser();
+  const { user, updateProfile } = useUser();
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    phone: user?.phone || '',
+    address: user?.address || ''
+  });
   const [stats, setStats] = useState({
     totalUsers: 0,
     admins: 0,
@@ -31,67 +39,92 @@ function SuperAdminDashboard() {
       });
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const openEdit = () => {
+    setForm({
+      name: user?.name || '',
+      phone: user?.phone || '',
+      address: user?.address || ''
+    });
+    setIsEditing(true);
+  };
+
+  const onSave = async (event) => {
+    event.preventDefault();
+    try {
+      setSaving(true);
+      await updateProfile(form);
+      setIsEditing(false);
+      alert('Super admin profile updated.');
+    } catch (error) {
+      alert(`Unable to update profile: ${error.message}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <div className="superadmin-dashboard">
-      <div className="superadmin-header">
-        <div>
-          <h1>Super Admin Command Center</h1>
-          <p>Platform-wide controls and governance</p>
-        </div>
-        <div className="superadmin-user">
-          <span>{user?.name || 'Super Admin'}</span>
-          <button onClick={handleLogout}>Logout</button>
-        </div>
-      </div>
-
-      <div className="superadmin-grid">
+    <SuperAdminLayout title="Super Admin Command Center" subtitle={`Welcome, ${user?.name || 'Boss'}`}>
+      <div className="super-grid">
         <div className="super-card">
           <h3>Admins</h3>
-          <p>Admin and superadmin accounts</p>
           <strong>{stats.admins}</strong>
         </div>
         <div className="super-card">
           <h3>Organization Users</h3>
-          <p>Total active users across roles</p>
           <strong>{stats.totalUsers}</strong>
         </div>
         <div className="super-card">
           <h3>Technicians</h3>
-          <p>Total field personnel accounts</p>
           <strong>{stats.technicians}</strong>
         </div>
         <div className="super-card">
           <h3>Recently Active</h3>
-          <p>Users with login in last 24h</p>
           <strong>{stats.recentlyActiveUsers}</strong>
         </div>
       </div>
 
-      <div className="superadmin-panels">
-        <section>
-          <h2>Global Controls</h2>
+      <div className="super-grid-2">
+        <div className="super-card">
+          <h2>Boss Controls</h2>
+          <div className="super-list">
+            <button type="button" onClick={() => navigate('/superadmin/branches')}>📍 Branch Location Handling</button>
+            <button type="button" onClick={() => navigate('/superadmin/attendance')}>🕒 Attendance (Admins and Techs)</button>
+            <button type="button" onClick={() => navigate('/superadmin/sales')}>💰 Pending Sales</button>
+            <button type="button" onClick={() => navigate('/superadmin/inventory')}>📦 Inventory Checker</button>
+            <button type="button" onClick={() => navigate('/superadmin/tasks')}>📋 Pending Tech Tasks</button>
+            <button type="button" onClick={() => navigate('/superadmin/alerts')}>🚨 Customer Complaint Alerts</button>
+          </div>
+        </div>
+        <div className="super-card">
+          <h2>Executive Notes</h2>
+          <p><strong>Name:</strong> {user?.name || 'Super Admin'}</p>
+          <p><strong>Email:</strong> {user?.email || 'superadmin@aeropulse.com'}</p>
+          <p><strong>Phone:</strong> {user?.phone || '-'}</p>
+          <p><strong>Address:</strong> {user?.address || '-'}</p>
+          <button type="button" onClick={openEdit}>Edit Profile</button>
           <ul>
-            <li>Manage admins and elevated permissions</li>
-            <li>Audit platform activity logs</li>
             <li>Current customer accounts: {stats.customers}</li>
-            <li>Enforce security policies and MFA rollout</li>
+            <li>Review escalation board every morning and before close.</li>
+            <li>Validate branch inventory risk for critical spare parts.</li>
+            <li>Track unresolved complaints beyond 24 hours.</li>
           </ul>
-        </section>
-        <section>
-          <h2>Priority Actions</h2>
-          <ul>
-            <li>Review role access changes requested today</li>
-            <li>Confirm backup and restore checks</li>
-            <li>Approve critical production maintenance windows</li>
-          </ul>
-        </section>
+        </div>
       </div>
-    </div>
+      {isEditing && (
+        <div className="app-modal-overlay" onClick={() => setIsEditing(false)}>
+          <form className="app-modal-card" onSubmit={onSave} onClick={(event) => event.stopPropagation()}>
+            <h3>Edit Super Admin Profile</h3>
+            <input value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} placeholder="Name" />
+            <input value={form.phone} onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))} placeholder="Phone" />
+            <input value={form.address} onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))} placeholder="Address" />
+            <div className="app-modal-actions">
+              <button type="button" onClick={() => setIsEditing(false)}>Cancel</button>
+              <button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </SuperAdminLayout>
   );
 }
 

@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useUser } from '../../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '../../../config/api';
-import './AdminDashboard.css';
+import AdminLayout from '../Common/AdminLayout';
+import StatsCards from './StatsCards';
+import Charts from './Charts';
+import '../adminShared.css';
 
 const AdminDashboard = () => {
-  const { user, logout } = useUser();
+  const { user } = useUser();
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalSales: 0,
@@ -37,124 +40,64 @@ const AdminDashboard = () => {
       });
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const salesTrend = [
+    Math.max(10, Math.floor(stats.totalSales * 0.08)),
+    Math.max(12, Math.floor(stats.totalSales * 0.11)),
+    Math.max(18, Math.floor(stats.totalSales * 0.09)),
+    Math.max(20, Math.floor(stats.totalSales * 0.13)),
+    Math.max(28, Math.floor(stats.totalSales * 0.15)),
+    Math.max(22, Math.floor(stats.totalSales * 0.12)),
+    Math.max(30, Math.floor(stats.totalSales * 0.17))
+  ];
 
   return (
-    <div className="admin-dashboard">
-      <div className="dashboard-header">
-        <h1>Admin Dashboard</h1>
-        <div className="admin-info">
-          <span>Welcome, {user?.name || 'Admin'}</span>
-          <button onClick={handleLogout} className="logout-btn">Logout</button>
+    <AdminLayout
+      title="Admin Dashboard"
+      subtitle={`Welcome back, ${user?.name?.split(' ')[0] || 'Admin'}`}
+    >
+      <div className="admin-grid-2">
+        <div className="admin-card">
+          <h3>Overview</h3>
+          <p>
+            Monitor sales, inventory, technician activity, and service requests from one place.
+            Use the sidebar to jump to each admin module.
+          </p>
         </div>
-      </div>
-
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">💰</div>
-          <div className="stat-info">
-            <h3>Total Sales</h3>
-            <p>₱{stats.totalSales.toLocaleString()}</p>
-            <span>This month</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">📦</div>
-          <div className="stat-info">
-            <h3>Total Orders</h3>
-            <p>{stats.totalOrders}</p>
-            <span>All time</span>
-          </div>
-        </div>
-
-        <div className="stat-card warning">
-          <div className="stat-icon">⚠️</div>
-          <div className="stat-info">
-            <h3>Low Stock Items</h3>
-            <p>{stats.lowStockItems}</p>
-            <span>Need reorder</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">🔧</div>
-          <div className="stat-info">
-            <h3>Active Technicians</h3>
-            <p>{stats.activeTechnicians}</p>
-            <span>Currently working</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">📋</div>
-          <div className="stat-info">
-            <h3>Pending Tasks</h3>
-            <p>{stats.pendingTasks}</p>
-            <span>Need attention</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">👥</div>
-          <div className="stat-info">
-            <h3>Total Customers</h3>
-            <p>{stats.totalCustomers}</p>
-            <span>Registered users</span>
+        <div className="admin-card">
+          <h3>Quick Actions</h3>
+          <div className="action-buttons">
+            <button onClick={() => navigate('/admin/inventory')}>📦 Manage Inventory</button>
+            <button onClick={() => navigate('/admin/profile')}>👤 View Admin Profile</button>
+            <button onClick={() => navigate('/admin/technicians')}>🔧 Manage Technicians</button>
+            <button onClick={() => navigate('/admin/reorder')}>📋 Reorder Stock</button>
+            <button onClick={() => navigate('/admin/maintenance')}>🛠️ Service Requests</button>
           </div>
         </div>
       </div>
 
-      <div className="quick-actions">
-        <h2>Quick Actions</h2>
-        <div className="action-buttons">
-          <button onClick={() => navigate('/admin/inventory')}>Manage Inventory</button>
-          <button onClick={() => navigate('/admin/sales')}>View Sales</button>
-          <button onClick={() => navigate('/admin/technicians')}>Manage Technicians</button>
-          <button onClick={() => navigate('/admin/reorder')}>Reorder Stock</button>
-          <button onClick={() => navigate('/admin/maintenance')}>Service Requests</button>
-        </div>
-      </div>
+      <StatsCards stats={stats} />
 
-      <div className="recent-activity">
-        <h2>Recent Activity</h2>
-        <div className="activity-list">
-          <div className="activity-item">
-            <span className="time">10:30 AM</span>
-            <span>New order #ORD-001 received</span>
-          </div>
-          <div className="activity-item">
-            <span className="time">09:45 AM</span>
-            <span>Low stock alert: AC Filter (5 left)</span>
-          </div>
-          <div className="activity-item">
-            <span className="time">09:00 AM</span>
-            <span>Technician John assigned to task #TSK-123</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="quick-actions">
-        <h2>Admin Oversight</h2>
-        <div className="activity-list">
-          <div className="activity-item">
-            <span className="time">Policy</span>
-            <span>Review technician SLAs and completion rates weekly.</span>
-          </div>
-          <div className="activity-item">
-            <span className="time">Finance</span>
-            <span>Validate sales and refund reports before end-of-day closeout.</span>
-          </div>
-          <div className="activity-item">
-            <span className="time">Inventory</span>
-            <span>Prioritize reorders for critical spare parts below threshold.</span>
+      <div className="admin-grid-2">
+        <Charts sales={salesTrend} />
+        <div className="admin-card">
+          <h3>Admin Oversight</h3>
+          <div className="oversight-list">
+            <div className="oversight-item">
+              <div className="oversight-title">📋 Policy Review</div>
+              <div className="oversight-desc">Review technician SLAs and completion rates weekly.</div>
+            </div>
+            <div className="oversight-item">
+              <div className="oversight-title">💰 Finance Validation</div>
+              <div className="oversight-desc">Validate sales and refund reports before end-of-day closeout.</div>
+            </div>
+            <div className="oversight-item">
+              <div className="oversight-title">📦 Inventory Priority</div>
+              <div className="oversight-desc">Prioritize reorders for critical spare parts below threshold.</div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

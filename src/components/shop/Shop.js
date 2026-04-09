@@ -415,6 +415,11 @@ function Shop() {
     setIsCartOpen(false);
   };
 
+  const handleBuyNow = (product) => {
+    addToCart(product, 1);
+    navigate('/checkout');
+  };
+
   const handleBack = () => {
     navigate('/home');
   };
@@ -528,6 +533,7 @@ function Shop() {
           <ProductGrid
             products={filteredProducts}
             onAddToCart={handleAddToCart}
+            onBuyNow={handleBuyNow}
             onProductClick={setSelectedProduct}
           />
         </div>

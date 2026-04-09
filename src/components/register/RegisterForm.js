@@ -73,20 +73,6 @@ function RegisterForm({
         required
       />
 
-      <div className="role-selector">
-        <label>Account Type <span className="required-star">*</span></label>
-        <div 
-          className="role-dropdown" 
-          onClick={() => {}}
-        >
-          <div className="role-selected">
-            <span className="role-icon">{selectedRole.icon}</span>
-            <span>{selectedRole.label}</span>
-          </div>
-          <span className="dropdown-icon">▼</span>
-        </div>
-      </div>
-
       <RoleSelector
         selectedRole={selectedRole}
         roles={roles}

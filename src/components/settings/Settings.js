@@ -7,6 +7,7 @@ import AccountSettings from './AccountSettings';
 import NotificationSettings from './NotificationSettings';
 import PrivacySettings from './PrivacySettings';
 import PreferencesSettings from './PreferencesSettings';
+import { confirmDialog } from '../../utils/dialog';
 
 function Settings() {
   const { user, updateProfile, updatePreferences, updatePrivacy, updateNotifications, changePassword, deleteAccount, logout } = useUser();
@@ -87,7 +88,7 @@ function Settings() {
   };
 
   const handleDeleteAccount = async () => {
-    const confirm = window.confirm('Are you sure you want to delete your account? This action cannot be undone!');
+    const confirm = await confirmDialog('Are you sure you want to delete your account? This action cannot be undone!', 'Delete Account');
     if (confirm) {
       try {
         await deleteAccount();
@@ -108,8 +109,8 @@ function Settings() {
     }
   };
 
-  const handleLogout = () => {
-    const confirm = window.confirm('Are you sure you want to logout?');
+  const handleLogout = async () => {
+    const confirm = await confirmDialog('Are you sure you want to logout?', 'Logout');
     if (confirm) {
       logout();
       navigate('/login', { replace: true });

@@ -1,4 +1,4 @@
-function ProductGrid({ products, onAddToCart, onProductClick }) {
+function ProductGrid({ products, onAddToCart, onBuyNow, onProductClick }) {
   if (products.length === 0) {
     return (
       <div className="no-products">
@@ -58,6 +58,17 @@ function ProductGrid({ products, onAddToCart, onProductClick }) {
             >
               {product.inStock ? 'Add to Cart 🛒' : 'Out of Stock'}
             </button>
+            {product.inStock && (
+              <button
+                className="add-to-cart-btn buy-now-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBuyNow(product);
+                }}
+              >
+                Buy Now ⚡
+              </button>
+            )}
           </div>
         </div>
       ))}
