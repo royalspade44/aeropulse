@@ -1,4 +1,4 @@
-function LockoutWarning({ lockoutInfo, secondsLeft, onClearLockout }) {
+function LockoutWarning({ lockoutInfo, secondsLeft }) {
   if (!lockoutInfo) return null;
 
   return (
@@ -18,9 +18,6 @@ function LockoutWarning({ lockoutInfo, secondsLeft, onClearLockout }) {
             </div>
           </div>
         )}
-        <button className="clear-lockout" onClick={onClearLockout}>
-          Clear Lockout (Admin)
-        </button>
       </div>
     </div>
   );

@@ -8,6 +8,58 @@
   padding: 14px;
 }
 
+.super-burger-button {
+  position: fixed;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 1100;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border: none;
+  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.super-burger-button:hover {
+  background: linear-gradient(135deg, #1e293b, #334155);
+  transform: scale(1.02);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.super-burger-button:active {
+  transform: scale(0.98);
+}
+
+.super-burger-button span {
+  display: block;
+  width: 24px;
+  height: 2.5px;
+  background-color: white;
+  border-radius: 4px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.super-burger-button.open span:nth-child(1) {
+  transform: translateY(8.5px) rotate(45deg);
+}
+
+.super-burger-button.open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.super-burger-button.open span:nth-child(3) {
+  transform: translateY(-8.5px) rotate(-45deg);
+}
+
 .super-menu-overlay {
   position: fixed;
   inset: 0;
@@ -186,4 +238,9 @@
   .super-grid-2 {
     grid-template-columns: 1fr;
   }
+}
+
+.no-scroll {
+  overflow: hidden;
+  height: 100vh;
 }

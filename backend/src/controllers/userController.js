@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const User = require("../models/User");
 
 const updateProfile = async (req, res) => {
   const { name, name_first, name_last, phone, address } = req.body;
@@ -48,11 +49,43 @@ const deleteAccount = async (req, res) => {
   return res.json({ message: "Account deleted successfully" });
 };
 
+const listUsers = async (req, res) => {
+  const role = req.query.role;
+  const locked = req.query.locked;
+
+  if (req.authUser.role !== "admin" && req.authUser.role !== "superadmin") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const query = {};
+  if (role) query.role = role;
+  if (locked === "true") query.lockoutUntil = { $gt: new Date() };
+
+  const users = await User.find(query).sort({ createdAt: -1 }).limit(500);
+  return res.json({ users: users.map((u) => u.toJSON()) });
+};
+
+const unlockUser = async (req, res) => {
+  if (req.authUser.role !== "admin" && req.authUser.role !== "superadmin") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  user.failedLoginAttempts = 0;
+  user.lockoutUntil = null;
+  await user.save();
+  return res.json({ user: user.toJSON() });
+};
+
 module.exports = {
+  listUsers,
   updateProfile,
   updatePreferences,
   updatePrivacy,
   updateNotifications,
   changePassword,
   deleteAccount,
+  unlockUser,
 };

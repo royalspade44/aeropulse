@@ -1,25 +1,73 @@
-import React, { useState } from 'react';
-import AdminHeader from './AdminHeader';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Outlet } from 'react-router-dom';
+import { useUser } from '../../../context/UserContext';
 import AdminSidebar from './AdminSidebar';
-import './AdminHeader.css';
-import './AdminSidebar.css';
 import '../adminShared.css';
+import './AdminLayout.css';
 
 const AdminLayout = ({ title, subtitle, children }) => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { user } = useUser();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const initials = useMemo(() => {
+    const name = user?.name?.trim();
+    if (!name) return 'A';
+    return name.charAt(0).toUpperCase();
+  }, [user?.name]);
+
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
+  const closeSidebar = () => setIsSidebarOpen(false);
+
+  useEffect(() => {
+    if (isSidebarOpen && window.innerWidth < 768) {
+      document.body.classList.add('no-scroll');
+    } else {
+      document.body.classList.remove('no-scroll');
+    }
+    return () => document.body.classList.remove('no-scroll');
+  }, [isSidebarOpen]);
 
   return (
-    <div className={`admin-layout ${menuOpen ? 'menu-open' : ''}`}>
-      <AdminSidebar isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
-      <div className="admin-layout-main">
-        <AdminHeader
-          title={title}
-          subtitle={subtitle}
-          onMenuToggle={() => setMenuOpen((open) => !open)}
-        />
-        <div className="admin-layout-content">{children}</div>
-      </div>
-      {menuOpen && <div className="admin-menu-overlay" onClick={() => setMenuOpen(false)} />}
+    <div className="admin-layout">
+      <button
+        className={`burger-button ${isSidebarOpen ? 'open' : ''}`}
+        onClick={toggleSidebar}
+        aria-label="Toggle menu"
+        type="button"
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+
+      <div
+        className={`admin-sidebar-overlay ${isSidebarOpen ? 'open' : ''}`}
+        onClick={closeSidebar}
+        role="presentation"
+      />
+
+      <AdminSidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+
+      <main className="admin-main-content">
+        <div className="admin-content-wrapper">
+          {(title || subtitle) && (
+            <header className="admin-header">
+              <div className="admin-header-left">
+                <div>
+                  {title && <h1>{title}</h1>}
+                  {subtitle && <p>{subtitle}</p>}
+                </div>
+              </div>
+              <div className="admin-header-user">
+                <div className="admin-user-avatar">{initials}</div>
+                <div>{user?.name || 'Admin'}</div>
+              </div>
+            </header>
+          )}
+
+          {children ?? <Outlet />}
+        </div>
+      </main>
     </div>
   );
 };

@@ -17,6 +17,8 @@ import AdminMaintenance from './components/ADMIN/Maintenance/AdminMaintenance';
 import AdminTechnician from './components/ADMIN/Technicians/AdminTechnician';
 import AdminReoder from './components/ADMIN/Reorder/AdminReoder';
 import AdminProfile from './components/ADMIN/Profile/AdminProfile';
+import AdminAttendance from './components/ADMIN/Attendance/AdminAttendance';
+import AdminUnlockUsers from './components/ADMIN/Users/AdminUnlockUsers';
 import TechMainScreen from './components/TECH/Dashboard/TechMainScreen';
 import TaskScreens from './components/TECH/Tasks/TaskScreens';
 import TaskDetails from './components/TECH/Tasks/TaskDetails';
@@ -241,6 +243,22 @@ function AppContent() {
         element={
           <RoleRoute allowedRoles={['admin']}>
             <AdminProfile />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/admin/attendance"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminAttendance />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/admin/unlock-users"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminUnlockUsers />
           </RoleRoute>
         }
       />

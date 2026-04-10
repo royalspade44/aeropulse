@@ -1,13 +1,12 @@
 import React from 'react';
 import { useUser } from '../../../context/UserContext';
 
-const SuperAdminHeader = ({ title = 'Super Admin', subtitle = 'Executive control', onMenuToggle }) => {
+const SuperAdminHeader = ({ title = 'Super Admin', subtitle = 'Executive control' }) => {
   const { user } = useUser();
 
   return (
     <header className="super-header">
       <div className="super-header-left">
-        <button type="button" className="super-toggle" onClick={onMenuToggle}>☰</button>
         <div>
           <h1>{title}</h1>
           <p>{subtitle}</p>

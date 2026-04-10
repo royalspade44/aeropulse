@@ -22,7 +22,10 @@ const apiRequest = async (path, options = {}) => {
 
   if (!response.ok) {
     const message = data?.message || "Request failed";
-    throw new Error(message);
+    const err = new Error(message);
+    err.status = response.status;
+    err.data = data;
+    throw err;
   }
 
   return data;

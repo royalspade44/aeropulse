@@ -38,6 +38,8 @@ const userSchema = new mongoose.Schema(
     permissions: [{ type: String }],
     department: { type: String },
     lastLogin: { type: Date },
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockoutUntil: { type: Date, default: null },
   },
   { timestamps: true }
 );

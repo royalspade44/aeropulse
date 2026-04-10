@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SuperAdminHeader from './SuperAdminHeader';
 import SuperAdminSidebar from './SuperAdminSidebar';
 import '../superAdminShared.css';
@@ -6,11 +6,30 @@ import '../superAdminShared.css';
 const SuperAdminLayout = ({ title, subtitle, children }) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  useEffect(() => {
+    if (menuOpen && window.innerWidth < 768) {
+      document.body.classList.add('no-scroll');
+    } else {
+      document.body.classList.remove('no-scroll');
+    }
+    return () => document.body.classList.remove('no-scroll');
+  }, [menuOpen]);
+
   return (
     <div className="super-layout">
+      <button
+        className={`super-burger-button ${menuOpen ? 'open' : ''}`}
+        type="button"
+        aria-label="Toggle menu"
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
       <SuperAdminSidebar isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
       <div className="super-layout-main">
-        <SuperAdminHeader title={title} subtitle={subtitle} onMenuToggle={() => setMenuOpen((open) => !open)} />
+        <SuperAdminHeader title={title} subtitle={subtitle} />
         {children}
       </div>
       {menuOpen && <div className="super-menu-overlay" onClick={() => setMenuOpen(false)} />}

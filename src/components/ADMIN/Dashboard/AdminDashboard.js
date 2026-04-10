@@ -1,98 +1,154 @@
 import React, { useEffect, useState } from 'react';
-import { useUser } from '../../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
-import { apiRequest } from '../../../config/api';
+import { useUser } from '../../../context/UserContext';
 import AdminLayout from '../Common/AdminLayout';
-import StatsCards from './StatsCards';
+import { apiRequest } from '../../../config/api';
 import Charts from './Charts';
-import '../adminShared.css';
+import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const { user } = useUser();
   const navigate = useNavigate();
-  const [stats, setStats] = useState({
-    totalSales: 0,
-    totalOrders: 0,
-    lowStockItems: 0,
-    activeTechnicians: 0,
-    pendingTasks: 0,
-    totalCustomers: 0
-  });
+  const [stats, setStats] = useState(null);
+  const [statsError, setStatsError] = useState('');
 
+  // Sample data for the dashboard
   useEffect(() => {
-    loadDashboardData();
+    const load = async () => {
+      setStatsError('');
+      try {
+        const result = await apiRequest('/dashboard/me');
+        setStats(result.stats || null);
+      } catch (e) {
+        setStatsError(e.message);
+      }
+    };
+    load();
   }, []);
 
-  const loadDashboardData = () => {
-    apiRequest('/dashboard/me')
-      .then((data) => {
-        setStats({
-          totalSales: data?.stats?.totalSales || 0,
-          totalOrders: data?.stats?.totalOrders || 0,
-          lowStockItems: data?.stats?.lowStockItems || 0,
-          activeTechnicians: data?.stats?.activeTechnicians || 0,
-          pendingTasks: data?.stats?.pendingTasks || 0,
-          totalCustomers: data?.stats?.totalCustomers || 0
-        });
-      })
-      .catch((error) => {
-        console.error('Failed to load admin dashboard:', error);
-      });
-  };
-
-  const salesTrend = [
-    Math.max(10, Math.floor(stats.totalSales * 0.08)),
-    Math.max(12, Math.floor(stats.totalSales * 0.11)),
-    Math.max(18, Math.floor(stats.totalSales * 0.09)),
-    Math.max(20, Math.floor(stats.totalSales * 0.13)),
-    Math.max(28, Math.floor(stats.totalSales * 0.15)),
-    Math.max(22, Math.floor(stats.totalSales * 0.12)),
-    Math.max(30, Math.floor(stats.totalSales * 0.17))
+  const recentActivities = [
+    { id: 1, text: "New order #1234 completed", time: "2 hours ago", icon: "🛒" },
+    { id: 2, text: "Technician John finished maintenance", time: "5 hours ago", icon: "🔧" },
+    { id: 3, text: "Inventory updated: Brake pads", time: "1 day ago", icon: "📦" },
+    { id: 4, text: "Service request #567 approved", time: "2 days ago", icon: "✅" }
   ];
 
+  const oversightItems = [
+    {
+      title: "Policy Review",
+      description: "Review technician SLAs and completion rates weekly."
+    },
+    {
+      title: "Finance Validation",
+      description: "Validate sales and refund reports before end-of-day closeout."
+    },
+    {
+      title: "Inventory Priority",
+      description: "Prioritize reorders for critical spare parts below threshold."
+    }
+  ];
+
+  const quickActions = [
+    { label: "Manage Inventory", action: () => navigate('/admin/inventory'), icon: "📦" },
+    { label: "View Profile", action: () => navigate('/admin/profile'), icon: "👤" },
+    { label: "Manage Technicians", action: () => navigate('/admin/technicians'), icon: "🔧" },
+    { label: "Reorder Stock", action: () => navigate('/admin/reorder'), icon: "🧾" },
+    { label: "Service Requests", action: () => navigate('/admin/maintenance'), icon: "🛠️" }
+  ];
+
+  const weeklySalesData = [42, 38, 55, 68, 72, 85, 78];
+
   return (
-    <AdminLayout
-      title="Admin Dashboard"
-      subtitle={`Welcome back, ${user?.name?.split(' ')[0] || 'Admin'}`}
-    >
-      <div className="admin-grid-2">
-        <div className="admin-card">
-          <h3>Overview</h3>
-          <p>
-            Monitor sales, inventory, technician activity, and service requests from one place.
-            Use the sidebar to jump to each admin module.
-          </p>
+    <AdminLayout title="Admin Dashboard" subtitle="Monitor sales, inventory, technicians, and requests">
+      <div className="admin-dashboard">
+        {/* Welcome Section */}
+        <div className="welcome-section">
+          <h2>Welcome back, {user?.name || 'Admin'} 👋</h2>
+          <p>Monitor sales, inventory, technician activity, and service requests from one place.</p>
         </div>
-        <div className="admin-card">
-          <h3>Quick Actions</h3>
-          <div className="action-buttons">
-            <button onClick={() => navigate('/admin/inventory')}>📦 Manage Inventory</button>
-            <button onClick={() => navigate('/admin/profile')}>👤 View Admin Profile</button>
-            <button onClick={() => navigate('/admin/technicians')}>🔧 Manage Technicians</button>
-            <button onClick={() => navigate('/admin/reorder')}>📋 Reorder Stock</button>
-            <button onClick={() => navigate('/admin/maintenance')}>🛠️ Service Requests</button>
+
+        {/* Stats Grid */}
+        <div className="stats-grid">
+          {statsError ? <p style={{ color: '#b91c1c' }}>{statsError}</p> : null}
+          <div className="stat-card">
+            <div className="stat-icon">💰</div>
+            <div className="stat-info">
+              <h3>Total Sales</h3>
+              <p>₱{Number(stats?.totalSales || 0).toLocaleString()}</p>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-icon">📋</div>
+            <div className="stat-info">
+              <h3>Total Orders</h3>
+              <p>{stats?.totalOrders || 0}</p>
+            </div>
+          </div>
+
+          <div className="stat-card warning">
+            <div className="stat-icon">⚠️</div>
+            <div className="stat-info">
+              <h3>Low Stock Items</h3>
+              <p>{stats?.lowStockItems || 0}</p>
+            </div>
+          </div>
+
+          <div className="stat-card success">
+            <div className="stat-icon">🔧</div>
+            <div className="stat-info">
+              <h3>Active Technicians</h3>
+              <p>{stats?.activeTechnicians || 0}</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <StatsCards stats={stats} />
+        {/* Weekly Sales Trend Chart */}
+        <div className="chart-section">
+          <Charts sales={weeklySalesData} />
+        </div>
 
-      <div className="admin-grid-2">
-        <Charts sales={salesTrend} />
-        <div className="admin-card">
-          <h3>Admin Oversight</h3>
-          <div className="oversight-list">
-            <div className="oversight-item">
-              <div className="oversight-title">📋 Policy Review</div>
-              <div className="oversight-desc">Review technician SLAs and completion rates weekly.</div>
+        {/* Quick Actions */}
+        <div className="quick-actions">
+          <h3>Quick Actions</h3>
+          <div className="action-buttons">
+            {quickActions.map((action, index) => (
+              <button key={index} onClick={action.action}>
+                <span className="action-icon">{action.icon}</span>
+                {action.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Two Column Layout */}
+        <div className="dashboard-two-column">
+          {/* Recent Activity */}
+          <div className="recent-activity">
+            <h3>Recent Activity</h3>
+            <div className="activity-list">
+              {recentActivities.map((activity) => (
+                <div key={activity.id} className="activity-item">
+                  <div className="activity-icon">{activity.icon}</div>
+                  <div className="activity-content">
+                    <div className="activity-text">{activity.text}</div>
+                    <div className="time">{activity.time}</div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="oversight-item">
-              <div className="oversight-title">💰 Finance Validation</div>
-              <div className="oversight-desc">Validate sales and refund reports before end-of-day closeout.</div>
-            </div>
-            <div className="oversight-item">
-              <div className="oversight-title">📦 Inventory Priority</div>
-              <div className="oversight-desc">Prioritize reorders for critical spare parts below threshold.</div>
+          </div>
+
+          {/* Admin Oversight */}
+          <div className="admin-oversight">
+            <h3>Admin Oversight</h3>
+            <div className="oversight-list">
+              {oversightItems.map((item, index) => (
+                <div key={index} className="oversight-item">
+                  <div className="oversight-title">{item.title}</div>
+                  <div className="oversight-desc">{item.description}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

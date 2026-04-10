@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useUser } from '../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import LoginBrandSection from './LoginBrandSection';
 import LoginForm from './LoginForm';
-import RoleSelector from './RoleSelector';
 import LockoutWarning from './LockOutWarning';
 import GoogleButton from './GoogleButton';
 
@@ -15,13 +14,15 @@ function Login() {
   const [user, setUser] = useState({
     email: '',
     password: '',
-    role: 'customer'
+    role: null,
   });
   const [errors, setErrors] = useState({});
   const [lockoutInfo, setLockoutInfo] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [step, setStep] = useState('role'); // role | login
+  const [adminKindStep, setAdminKindStep] = useState(false);
   
   const timerRef = useRef(null);
 
@@ -29,97 +30,14 @@ function Login() {
     { id: 'customer', label: 'Customer', icon: '👤', redirectTo: '/home' },
     { id: 'technician', label: 'Technician', icon: '🔧', redirectTo: '/tech/dashboard' },
     { id: 'admin', label: 'Admin', icon: '👨‍💼', redirectTo: '/admin/dashboard' },
-    { id: 'superadmin', label: 'Super Admin', icon: '🛡️', redirectTo: '/superadmin/dashboard' }
+    { id: 'superadmin', label: 'Super Admin', icon: '🛡️', redirectTo: '/superadmin/dashboard' },
   ];
-
-  const getFailedAttempts = useCallback((email) => {
-    const attempts = localStorage.getItem(`failed_attempts_${email}`);
-    return attempts ? JSON.parse(attempts) : { count: 0, lockoutUntil: null };
-  }, []);
-
-  const saveFailedAttempts = useCallback((email, data) => {
-    localStorage.setItem(`failed_attempts_${email}`, JSON.stringify(data));
-  }, []);
-
-  const canAttemptLogin = useCallback((email) => {
-    const attempts = getFailedAttempts(email);
-    if (attempts.lockoutUntil && Date.now() < attempts.lockoutUntil) {
-      const secondsLeft = Math.ceil((attempts.lockoutUntil - Date.now()) / 1000);
-      return { canLogin: false, secondsLeft };
-    }
-    return { canLogin: true };
-  }, [getFailedAttempts]);
-
-  const handleLoginAttempt = useCallback(async (email, success) => {
-    const attempts = getFailedAttempts(email);
-    
-    if (success) {
-      saveFailedAttempts(email, { count: 0, lockoutUntil: null });
-      return { success: true };
-    } else {
-      const newCount = (attempts.count || 0) + 1;
-      let lockoutUntil = null;
-      let lockoutDuration = 0;
-      
-      if (newCount >= 3) {
-        lockoutDuration = 60000 + (newCount - 3) * 30000;
-        lockoutUntil = Date.now() + lockoutDuration;
-      }
-      
-      saveFailedAttempts(email, { count: newCount, lockoutUntil });
-      
-      if (lockoutUntil) {
-        const lockoutSeconds = Math.ceil(lockoutDuration / 1000);
-        return { locked: true, lockoutTime: lockoutSeconds, attempts: newCount };
-      }
-      
-      return { locked: false, attempts: newCount };
-    }
-  }, [getFailedAttempts, saveFailedAttempts]);
-
-  const clearLockout = useCallback((email) => {
-    saveFailedAttempts(email, { count: 0, lockoutUntil: null });
-    setLockoutInfo(null);
-    if (timerRef.current) clearInterval(timerRef.current);
-    alert('Lockout cleared. You can now attempt to login again.');
-  }, [saveFailedAttempts]);
 
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    if (user.email) {
-      const check = canAttemptLogin(user.email);
-      if (!check.canLogin) {
-        setLockoutInfo({
-          message: `Account locked. Try again in ${check.secondsLeft} seconds.`,
-          secondsLeft: check.secondsLeft
-        });
-        setSecondsLeft(check.secondsLeft);
-        
-        if (timerRef.current) clearInterval(timerRef.current);
-        timerRef.current = setInterval(() => {
-          setSecondsLeft(prev => {
-            if (prev <= 1) {
-              clearInterval(timerRef.current);
-              setLockoutInfo(null);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      } else {
-        setLockoutInfo(null);
-        if (timerRef.current) clearInterval(timerRef.current);
-      }
-    } else {
-      setLockoutInfo(null);
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
-  }, [user.email, canAttemptLogin]);
 
   useEffect(() => {
     if (secondsLeft > 0) {
@@ -131,8 +49,13 @@ function Login() {
     }
   }, [secondsLeft]);
 
-  const handleRoleChange = (roleId) => {
-    setUser(prev => ({ ...prev, role: roleId }));
+  const selectRole = (roleId) => {
+    setUser((prev) => ({ ...prev, role: roleId }));
+    setStep('login');
+    setAdminKindStep(false);
+    setLockoutInfo(null);
+    setSecondsLeft(0);
+    if (timerRef.current) clearInterval(timerRef.current);
   };
 
   const handleEmailChange = (email) => {
@@ -172,32 +95,6 @@ function Login() {
       }
     }
 
-    // Check lockout
-    const lockoutCheck = canAttemptLogin(user.email);
-    if (!lockoutCheck.canLogin) {
-      alert(`Too many failed attempts! Account locked for ${lockoutCheck.secondsLeft} seconds.`);
-      setLockoutInfo({
-        message: `Account locked. Try again in ${lockoutCheck.secondsLeft} seconds.`,
-        secondsLeft: lockoutCheck.secondsLeft
-      });
-      setSecondsLeft(lockoutCheck.secondsLeft);
-      
-      if (timerRef.current) clearInterval(timerRef.current);
-      timerRef.current = setInterval(() => {
-        setSecondsLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current);
-            setLockoutInfo(null);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      
-      setLoading(false);
-      return;
-    }
-
     try {
       console.log('Attempting login for:', user.email, 'with role:', user.role);
       
@@ -224,7 +121,6 @@ function Login() {
       const userWithRole = { ...loggedInUser, selectedRole: user.role };
       localStorage.setItem('currentUser', JSON.stringify(userWithRole));
       
-      await handleLoginAttempt(user.email, true);
       if (timerRef.current) clearInterval(timerRef.current);
       
       setLoading(false);
@@ -235,21 +131,17 @@ function Login() {
       
     } catch (err) {
       console.error('Login error details:', err);
-      
-      // Handle failed login
-      const result = await handleLoginAttempt(user.email, false);
-      
-      if (result.locked) {
-        alert(`Too many failed attempts! Account locked for ${result.lockoutTime} seconds.`);
+
+      if (err?.status === 423) {
+        const lockSeconds = err?.data?.secondsLeft || 60;
         setLockoutInfo({
-          message: `Account locked. Try again in ${result.lockoutTime} seconds.`,
-          secondsLeft: result.lockoutTime
+          message: err.message || `Account locked. Try again in ${lockSeconds} seconds.`,
+          secondsLeft: lockSeconds,
         });
-        setSecondsLeft(result.lockoutTime);
-        
+        setSecondsLeft(lockSeconds);
         if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = setInterval(() => {
-          setSecondsLeft(prev => {
+          setSecondsLeft((prev) => {
             if (prev <= 1) {
               clearInterval(timerRef.current);
               setLockoutInfo(null);
@@ -259,8 +151,8 @@ function Login() {
           });
         }, 1000);
       } else {
-        setErrors(prev => ({ ...prev, password: err.message || 'Invalid credentials' }));
-        alert(`${err.message || 'Invalid email or password!'} Attempts: ${result.attempts}/3`);
+        setErrors((prev) => ({ ...prev, password: err.message || 'Invalid credentials' }));
+        alert(err.message || 'Invalid email or password!');
       }
       setLoading(false);
     }
@@ -313,17 +205,11 @@ function Login() {
     }, 1000);
   };
 
-  const handleClearLockout = () => {
-    if (user.email) {
-      clearLockout(user.email);
-    }
-  };
-
   const handleSignUp = () => {
     navigate('/register');
   };
 
-  const selectedRole = roles.find(r => r.id === user.role) || roles[0];
+  const selectedRole = useMemo(() => roles.find((r) => r.id === user.role) || null, [roles, user.role]);
 
   return (
     <div className="login-container">
@@ -332,57 +218,97 @@ function Login() {
         
         <div className="login-form-section">
           <div className="form-header">
-            <h2>Welcome Back</h2>
-            <p>Sign in to your account to continue</p>
+            <h2>{step === 'role' ? 'Choose your portal' : 'Welcome Back'}</h2>
+            <p>{step === 'role' ? 'Select how you want to sign in' : 'Sign in to your account to continue'}</p>
           </div>
 
           <LockoutWarning
             lockoutInfo={lockoutInfo}
             secondsLeft={secondsLeft}
-            onClearLockout={handleClearLockout}
           />
 
-          <RoleSelector
-            selectedRole={selectedRole}
-            roles={roles}
-            onRoleChange={handleRoleChange}
-            disabled={!!lockoutInfo}
-          />
-
-          <LoginForm
-            email={user.email}
-            password={user.password}
-            errors={errors}
-            onEmailChange={handleEmailChange}
-            onPasswordChange={handlePasswordChange}
-            onSubmit={authenticateUser}
-            loading={loading}
-            disabled={!!lockoutInfo}
-            onForgotPassword={handleForgotPassword}
-          />
-
-          <div className="divider">
-            <span>or</span>
-          </div>
-
-          <GoogleButton
-            onClick={handleGoogleSignIn}
-            loading={googleLoading}
-          />
-
-          <div className="signup-link">
-            Don't have an account? <button onClick={handleSignUp}>Sign up</button>
-          </div>
-
-          <div className="tips-card">
-            <div className="tips-header">🔒 Security Information</div>
-            <div className="tips-list">
-              <span>• 3 login attempts before temporary lockout</span>
-              <span>• Lockout duration increases with failed attempts</span>
-              <span>• Admin and technician accounts are managed securely on the backend</span>
-              <span>• Contact your system administrator for account access</span>
+          {step === 'role' ? (
+            <div className="role-cards">
+              {!adminKindStep ? (
+                <>
+                  <button type="button" className="role-card" onClick={() => selectRole('customer')}>
+                    <span className="role-card-icon">👤</span>
+                    <span className="role-card-title">Customer</span>
+                  </button>
+                  <button type="button" className="role-card" onClick={() => selectRole('technician')}>
+                    <span className="role-card-icon">🔧</span>
+                    <span className="role-card-title">Technician</span>
+                  </button>
+                  <button type="button" className="role-card" onClick={() => setAdminKindStep(true)}>
+                    <span className="role-card-icon">🛡️</span>
+                    <span className="role-card-title">Admin</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button type="button" className="role-card" onClick={() => selectRole('admin')}>
+                    <span className="role-card-icon">👨‍💼</span>
+                    <span className="role-card-title">Admin</span>
+                  </button>
+                  <button type="button" className="role-card" onClick={() => selectRole('superadmin')}>
+                    <span className="role-card-icon">🛡️</span>
+                    <span className="role-card-title">Super Admin</span>
+                  </button>
+                  <button type="button" className="cancel-btn" onClick={() => setAdminKindStep(false)}>
+                    Back
+                  </button>
+                </>
+              )}
             </div>
-          </div>
+          ) : (
+            <>
+              <div style={{ marginBottom: 16, color: '#64748b', fontWeight: 600 }}>
+                Signing in as: <span style={{ color: '#1e293b' }}>{selectedRole?.label || 'User'}</span>{' '}
+                <button
+                  type="button"
+                  className="forgot-link"
+                  onClick={() => {
+                    setStep('role');
+                    setUser((prev) => ({ ...prev, role: null }));
+                  }}
+                  style={{ marginLeft: 10 }}
+                >
+                  change
+                </button>
+              </div>
+
+              <LoginForm
+                email={user.email}
+                password={user.password}
+                errors={errors}
+                onEmailChange={handleEmailChange}
+                onPasswordChange={handlePasswordChange}
+                onSubmit={authenticateUser}
+                loading={loading}
+                disabled={!!lockoutInfo}
+                onForgotPassword={handleForgotPassword}
+              />
+
+              <div className="divider">
+                <span>or</span>
+              </div>
+
+              <GoogleButton onClick={handleGoogleSignIn} loading={googleLoading} />
+
+              <div className="signup-link">
+                Don't have an account? <button onClick={handleSignUp}>Sign up</button>
+              </div>
+
+              <div className="tips-card">
+                <div className="tips-header">🔒 Security Information</div>
+                <div className="tips-list">
+                  <span>• 3 login attempts before temporary lockout</span>
+                  <span>• Lockout duration increases with failed attempts</span>
+                  <span>• Only Admins can manually unlock accounts early</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

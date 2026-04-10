@@ -1,0 +1,282 @@
+/* ============================================
+   STATS CARDS - ENHANCED STYLES
+   ============================================ */
+
+   .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  
+  /* Individual Stat Card */
+  .stat-card {
+    background: white;
+    padding: 24px 28px;
+    border-radius: var(--radius-lg, 20px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-shadow: var(--shadow-md, 0 4px 6px -1px rgb(0 0 0 / 0.1));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-xl, 0 20px 25px -5px rgb(0 0 0 / 0.1));
+  }
+  
+  /* Colorful accent bar on the left */
+  .stat-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    border-radius: 20px 0 0 20px;
+  }
+  
+  /* Different accent colors for each card based on position */
+  .stat-card:nth-child(1)::before {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+  }
+  
+  .stat-card:nth-child(2)::before {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+  
+  .stat-card:nth-child(3)::before {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+  }
+  
+  .stat-card:nth-child(4)::before {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  }
+  
+  /* Stat Info Container */
+  .stat-info {
+    flex: 1;
+    text-align: left;
+  }
+  
+  .stat-info h3 {
+    margin: 0 0 8px 0;
+    color: #64748b;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+  
+  .stat-info p {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+  
+  /* Optional: Add icons to each card */
+  .stat-card {
+    position: relative;
+  }
+  
+  /* Add decorative icon on the right */
+  .stat-card::after {
+    content: "";
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 48px;
+    opacity: 0.08;
+    pointer-events: none;
+  }
+  
+  .stat-card:nth-child(1)::after {
+    content: "💰";
+    font-size: 56px;
+  }
+  
+  .stat-card:nth-child(2)::after {
+    content: "📋";
+    font-size: 56px;
+  }
+  
+  .stat-card:nth-child(3)::after {
+    content: "⚠️";
+    font-size: 56px;
+  }
+  
+  .stat-card:nth-child(4)::after {
+    content: "🔧";
+    font-size: 56px;
+  }
+  
+  /* Loading state */
+  .stat-card.loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  
+  .stat-card.loading .stat-info p {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .stat-card.loading .stat-info p::after {
+    content: "...";
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  
+  /* Empty state */
+  .stat-card.empty .stat-info p {
+    color: #94a3b8;
+  }
+  
+  /* Trend indicator (optional addition) */
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    margin-top: 6px;
+    font-weight: 500;
+  }
+  
+  .stat-trend.up {
+    color: #10b981;
+  }
+  
+  .stat-trend.down {
+    color: #ef4444;
+  }
+  
+  .stat-trend.steady {
+    color: #f59e0b;
+  }
+  
+  /* Animation for cards appearing */
+  @keyframes cardFadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .stat-card {
+    animation: cardFadeInUp 0.5s ease backwards;
+  }
+  
+  .stat-card:nth-child(1) { animation-delay: 0.05s; }
+  .stat-card:nth-child(2) { animation-delay: 0.1s; }
+  .stat-card:nth-child(3) { animation-delay: 0.15s; }
+  .stat-card:nth-child(4) { animation-delay: 0.2s; }
+  
+  /* ========== RESPONSIVE DESIGN ========== */
+  @media (max-width: 1024px) {
+    .stats-grid {
+      gap: 16px;
+    }
+    
+    .stat-card {
+      padding: 20px 24px;
+    }
+    
+    .stat-info p {
+      font-size: 28px;
+    }
+    
+    .stat-info h3 {
+      font-size: 11px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    
+    .stat-card {
+      padding: 16px 20px;
+    }
+    
+    .stat-info p {
+      font-size: 24px;
+    }
+    
+    .stat-info h3 {
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+    
+    .stat-card::after {
+      font-size: 40px;
+      right: 15px;
+    }
+    
+    .stat-card:nth-child(1)::after,
+    .stat-card:nth-child(2)::after,
+    .stat-card:nth-child(3)::after,
+    .stat-card:nth-child(4)::after {
+      font-size: 40px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    
+    .stat-card {
+      padding: 18px 20px;
+    }
+    
+    .stat-info p {
+      font-size: 28px;
+    }
+    
+    .stat-card::after {
+      font-size: 48px;
+    }
+  }
+  
+  /* Optional: Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .stat-card {
+      background: #1e293b;
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .stat-info h3 {
+      color: #94a3b8;
+    }
+    
+    .stat-info p {
+      color: #f1f5f9;
+    }
+  }
+  
+  /* ========== UTILITY CLASSES ========== */
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }

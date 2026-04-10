@@ -2,6 +2,12 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const { signAccessToken } = require("../utils/token");
 
+const lockoutSecondsForAttemptCount = (attempts) => {
+  if (attempts < 3) return 0;
+  const ms = 60_000 + (attempts - 3) * 30_000;
+  return Math.ceil(ms / 1000);
+};
+
 const register = async (req, res) => {
   const {
     email,
@@ -51,15 +57,38 @@ const login = async (req, res) => {
     return res.status(401).json({ message: "Email not found. Please register first." });
   }
 
+  if (user.lockoutUntil && user.lockoutUntil.getTime() > Date.now()) {
+    const secondsLeft = Math.max(1, Math.ceil((user.lockoutUntil.getTime() - Date.now()) / 1000));
+    return res.status(423).json({
+      message: `Account locked. Try again in ${secondsLeft} seconds.`,
+      secondsLeft,
+    });
+  }
+
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
-    return res.status(401).json({ message: "Incorrect password. Please try again." });
+    user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+    const lockSeconds = lockoutSecondsForAttemptCount(user.failedLoginAttempts);
+    if (lockSeconds > 0) {
+      user.lockoutUntil = new Date(Date.now() + lockSeconds * 1000);
+    }
+    await user.save();
+    if (lockSeconds > 0) {
+      return res.status(423).json({
+        message: `Account locked. Try again in ${lockSeconds} seconds.`,
+        secondsLeft: lockSeconds,
+        attempts: user.failedLoginAttempts,
+      });
+    }
+    return res.status(401).json({ message: "Incorrect password. Please try again.", attempts: user.failedLoginAttempts });
   }
 
   if (role && user.role !== role) {
     return res.status(403).json({ message: `Access denied. This account is not registered as a ${role}.` });
   }
 
+  user.failedLoginAttempts = 0;
+  user.lockoutUntil = null;
   user.lastLogin = new Date();
   await user.save();
 

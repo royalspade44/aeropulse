@@ -1,9 +1,12 @@
 import React from 'react';
 
-const InventoryList = ({ products }) => {
+const InventoryList = ({ products, loading, onRefresh }) => {
   return (
     <div className="admin-card">
       <h3>Inventory List</h3>
+      {loading ? (
+        <p>Loading…</p>
+      ) : null}
       <table className="admin-table">
         <thead>
           <tr>
@@ -24,6 +27,9 @@ const InventoryList = ({ products }) => {
           ))}
         </tbody>
       </table>
+      <button type="button" onClick={onRefresh} style={{ marginTop: 10 }}>
+        Refresh
+      </button>
     </div>
   );
 };
