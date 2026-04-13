@@ -1,8 +1,8 @@
 import {
   FULFILLMENT_AWAITING_SUPERADMIN,
-  PAYMENT_PENDING_COD,
-  PAYMENT_PENDING_GATEWAY,
-  PAYMENT_PENDING_INSTALL
+  PAYMENT_PROCESSING_COD,
+  PAYMENT_PROCESSING_GATEWAY,
+  PAYMENT_PROCESSING_INSTALL
 } from './orderStatuses';
 
 /**
@@ -30,11 +30,11 @@ export function buildCustomerOrder({
   const estimatedDelivery = new Date();
   estimatedDelivery.setDate(estimatedDelivery.getDate() + 7);
 
-  let paymentStatus = PAYMENT_PENDING_COD;
+  let paymentStatus = PAYMENT_PROCESSING_COD;
   if (paymentMethod === 'gcash' || paymentMethod === 'credit') {
-    paymentStatus = PAYMENT_PENDING_GATEWAY;
+    paymentStatus = PAYMENT_PROCESSING_GATEWAY;
   } else if (paymentMethod === 'pay_on_install') {
-    paymentStatus = PAYMENT_PENDING_INSTALL;
+    paymentStatus = PAYMENT_PROCESSING_INSTALL;
   }
 
   return {
@@ -61,7 +61,7 @@ export function buildCustomerOrder({
     fulfillmentStatus: FULFILLMENT_AWAITING_SUPERADMIN,
     serviceAreaId,
     fromPostRegistrationCheckout,
-    status: 'pending',
+    status: 'processing',
     superAdminNotes: ''
   };
 }

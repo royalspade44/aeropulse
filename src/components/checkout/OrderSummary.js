@@ -39,7 +39,7 @@ function OrderSummary({
         Orders are sent to <strong>Super Admin</strong> for stock confirmation and edits before fulfillment.
         {selectedPayment === 'gcash' || selectedPayment === 'credit'
           ? ' You will complete payment in the gateway after approval where applicable.'
-          : ' Payment stays pending for COD or pay-on-installation until the milestone is reached.'}
+          : ' Payment stays in processing for COD or pay-on-installation until the milestone is reached.'}
       </p>
 
       <button type="button" className="place-order-btn" onClick={onPlaceOrder}>

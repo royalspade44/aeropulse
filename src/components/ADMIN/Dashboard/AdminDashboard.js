@@ -53,7 +53,8 @@ const AdminDashboard = () => {
     { label: 'View Profile', action: () => navigate('/admin/profile'), icon: icons.memberList },
     { label: 'Manage Technicians', action: () => navigate('/admin/technicians'), icon: icons.memberList },
     { label: 'Reorder Stock', action: () => navigate('/admin/reorder'), icon: icons.cartShoppingFast },
-    { label: 'Service Requests', action: () => navigate('/admin/maintenance'), icon: icons.tools }
+    { label: 'Service Requests', action: () => navigate('/admin/maintenance'), icon: icons.tools },
+    { label: 'Store Operations', action: () => navigate('/admin/store'), icon: icons.houseChimney }
   ];
 
   const weeklySalesData = [42, 38, 55, 68, 72, 85, 78];

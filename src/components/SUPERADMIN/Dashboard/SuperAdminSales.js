@@ -44,7 +44,7 @@ const SuperAdminSales = () => {
       <div className="super-card">
         <h3>Awaiting Super Admin ({orders.length})</h3>
         {orders.length === 0 ? (
-          <p style={{ color: '#64748b' }}>No pending orders in local storage. Place an order as a customer to see it here.</p>
+          <p style={{ color: '#64748b' }}>No processing orders in local storage. Place an order as a customer to see it here.</p>
         ) : (
           <div className="super-list">
             {orders.map((order) => (

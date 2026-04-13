@@ -6,6 +6,7 @@ import OfficeLocations from './OfficeLocations';
 import ServicesSupport from './ServicesSupport';
 import MapSection from './MapSection';
 import icons from '../common/icons';
+import Footer from '../home/Footer';
 
 function Contact() {
   const navigate = useNavigate();
@@ -72,6 +73,7 @@ function Contact() {
         <MapSection />
 
       </div>
+      <Footer />
     </div>
   );
 }

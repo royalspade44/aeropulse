@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import SuperAdminLayout from '../Common/SuperAdminLayout';
 import { apiRequest } from '../../../config/api';
+import { loadAttendanceLogs } from '../../../domain/attendance/attendanceStorage';
 import '../superAdminShared.css';
 
 const SuperAdminAttendance = () => {
@@ -15,6 +16,7 @@ const SuperAdminAttendance = () => {
       const result = await apiRequest('/attendance/today');
       setRows(result.attendance || []);
     } catch (e) {
+      setRows(loadAttendanceLogs());
       setError(e.message);
     } finally {
       setLoading(false);
@@ -26,7 +28,7 @@ const SuperAdminAttendance = () => {
   }, []);
 
   return (
-    <SuperAdminLayout title="Attendance View" subtitle="Admins and technicians daily attendance">
+    <SuperAdminLayout title="Attendance View" subtitle="Super admin access for all branches, admins, and staff logs">
       <div className="super-card">
         <h3>Attendance Today</h3>
         {error && <p style={{ color: '#b91c1c' }}>{error}</p>}
@@ -39,6 +41,7 @@ const SuperAdminAttendance = () => {
                 <strong>{row.userName || row.userEmail || 'User'}</strong>
                 <p>{row.role} · {row.branch || '-'}</p>
                 <p>Status: {row.status}</p>
+                <p>Early out: {row.earlyOutTime || '-'}</p>
               </div>
             ))
           ) : (

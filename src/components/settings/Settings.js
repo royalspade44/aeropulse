@@ -9,6 +9,7 @@ import PrivacySettings from './PrivacySettings';
 import PreferencesSettings from './PreferencesSettings';
 import { confirmDialog } from '../../utils/dialog';
 import icons from '../common/icons';
+import Footer from '../home/Footer';
 
 function Settings() {
   const { user, updateProfile, updatePreferences, updatePrivacy, updateNotifications, changePassword, deleteAccount, logout } = useUser();
@@ -166,6 +167,7 @@ function Settings() {
           onUpdatePreferences={handleUpdatePreferences}
         />
       </div>
+      <Footer />
     </div>
   );
 }

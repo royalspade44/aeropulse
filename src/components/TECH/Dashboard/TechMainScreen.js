@@ -14,7 +14,7 @@ const TechMainScreen = () => {
   const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState('all');
   const [stats, setStats] = useState({
-    pendingTasks: 0,
+    processingTasks: 0,
     inProgressTasks: 0,
     completedToday: 0,
     totalTasks: 0
@@ -29,7 +29,7 @@ const TechMainScreen = () => {
       .then((data) => {
         setTasks(data.tasks || []);
         setStats({
-          pendingTasks: data?.stats?.pendingTasks || 0,
+          processingTasks: data?.stats?.processingTasks || 0,
           inProgressTasks: data?.stats?.inProgressTasks || 0,
           completedToday: data?.stats?.completedToday || 0,
           totalTasks: data?.stats?.totalTasks || 0
@@ -51,8 +51,8 @@ const TechMainScreen = () => {
       </p>
       <div className="tech-stats-grid">
         <div className="tech-stat-card">
-          <h3>Pending Tasks</h3>
-          <p>{stats.pendingTasks}</p>
+          <h3>Processing Tasks</h3>
+          <p>{stats.processingTasks}</p>
         </div>
         <div className="tech-stat-card">
           <h3>In Progress</h3>

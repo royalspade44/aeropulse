@@ -2,10 +2,10 @@ import icons from '../common/icons';
 
 function PaymentMethod({ selectedMethod, onSelectMethod }) {
   const paymentMethods = [
-    { id: 'cod', name: 'Cash on Delivery', description: 'Pending until you pay on delivery', iconSrc: icons.cartShoppingFast },
+    { id: 'cod', name: 'Cash on Delivery', description: 'Processing until you pay on delivery', iconSrc: icons.cartShoppingFast },
     { id: 'gcash', name: 'GCash', description: 'Payment gateway — complete after order submit', iconSrc: icons.customize },
     { id: 'credit', name: 'Credit / debit card', description: 'Payment gateway (Visa, Mastercard, JCB)', iconSrc: icons.shieldKeyhole },
-    { id: 'pay_on_install', name: 'Payment upon installation', description: 'Pending until installation is completed', iconSrc: icons.tools }
+    { id: 'pay_on_install', name: 'Payment upon installation', description: 'Processing until installation is completed', iconSrc: icons.tools }
   ];
 
   return (

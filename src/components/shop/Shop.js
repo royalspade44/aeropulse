@@ -8,6 +8,7 @@ import ProductGrid from './ProductGrid';
 import CartSidebar from './CartSidebar';
 import ProductModal from './ProductModal';
 import ServiceAreaSelector from '../customer/ServiceAreaSelector';
+import Footer from '../home/Footer';
 
 function Shop() {
   const navigate = useNavigate();
@@ -567,6 +568,7 @@ function Shop() {
         onClose={() => setSelectedProduct(null)}
         onAddToCart={handleAddToCart}
       />
+      <Footer />
     </div>
   );
 }

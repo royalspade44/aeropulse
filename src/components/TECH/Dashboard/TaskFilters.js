@@ -6,7 +6,7 @@ const TaskFilters = ({ filter, setFilter }) => {
       <h3>Task Filters</h3>
       <select value={filter} onChange={(e) => setFilter(e.target.value)}>
         <option value="all">All</option>
-        <option value="pending">Pending</option>
+        <option value="processing">Processing</option>
         <option value="in-progress">In Progress</option>
         <option value="completed">Completed</option>
       </select>

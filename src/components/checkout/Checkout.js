@@ -11,8 +11,9 @@ import { DEFAULT_SERVICE_AREA_ID } from '../../domain/purchase/serviceAreas';
 import { computePurchaseTotals } from '../../domain/purchase/computePurchaseTotals';
 import { buildCustomerOrder } from '../../domain/purchase/buildCustomerOrder';
 import { loadOrdersFromStorage, saveOrdersToStorage } from '../../domain/purchase/ordersStorage';
-import { PAYMENT_PENDING_GATEWAY } from '../../domain/purchase/orderStatuses';
+import { PAYMENT_PROCESSING_GATEWAY } from '../../domain/purchase/orderStatuses';
 import { consumePostRegistrationCheckoutIntent } from '../../domain/checkout/postRegistrationIntent';
+import Footer from '../home/Footer';
 
 function Checkout() {
   const navigate = useNavigate();
@@ -72,13 +73,13 @@ function Checkout() {
     orders.unshift(order);
     saveOrdersToStorage(orders);
 
-    if (order.paymentStatus === PAYMENT_PENDING_GATEWAY) {
+    if (order.paymentStatus === PAYMENT_PROCESSING_GATEWAY) {
       alert(
-        `Order submitted (${orderId}). Super Admin will confirm availability. After approval, complete payment in the ${selectedPayment === 'gcash' ? 'GCash' : 'card'} gateway (demo).`
+        `Order received (${orderId}). We are processing stock allocation for your branch and reserved this cart for 15 minutes. Complete payment in the ${selectedPayment === 'gcash' ? 'GCash' : 'card'} gateway once checkout approval is ready.`
       );
     } else {
       alert(
-        `Order submitted (${orderId}). Awaiting Super Admin approval. Invoice will be sent to your confirmed email when the backend is connected.`
+        `Order received (${orderId}). Your order is now processing in our POS queue and a payment reminder will be sent once dispatch confirms your slot.`
       );
     }
 
@@ -101,6 +102,7 @@ function Checkout() {
             Continue Shopping
           </button>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -142,6 +144,7 @@ function Checkout() {
           onSave={handleAddAddress}
         />
       )}
+      <Footer />
     </div>
   );
 }

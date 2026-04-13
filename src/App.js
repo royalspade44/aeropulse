@@ -13,6 +13,7 @@ import Contact from './components/contact/Contact';
 import Services from './components/services/Services';
 import Checkout from './components/checkout/Checkout';
 import MyOrders from './components/orders/MyOrders';
+import FaqPage from './components/faq/FaqPage';
 import AdminDashboard from './components/ADMIN/Dashboard/AdminDashboard';
 import AdminInventory from './components/ADMIN/Inventory/AdminInventory';
 import AdminMaintenance from './components/ADMIN/Maintenance/AdminMaintenance';
@@ -21,6 +22,7 @@ import AdminReoder from './components/ADMIN/Reorder/AdminReoder';
 import AdminProfile from './components/ADMIN/Profile/AdminProfile';
 import AdminAttendance from './components/ADMIN/Attendance/AdminAttendance';
 import AdminUnlockUsers from './components/ADMIN/Users/AdminUnlockUsers';
+import AdminStoreOperations from './components/ADMIN/Store/AdminStoreOperations';
 import TechMainScreen from './components/TECH/Dashboard/TechMainScreen';
 import TaskScreens from './components/TECH/Tasks/TaskScreens';
 import TaskDetails from './components/TECH/Tasks/TaskDetails';
@@ -203,6 +205,14 @@ function AppContent() {
           </ProtectedRoute>
         } 
       />
+      <Route
+        path="/faq"
+        element={
+          <ProtectedRoute>
+            <FaqPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Role-based dashboards */}
       <Route
@@ -266,6 +276,14 @@ function AppContent() {
         element={
           <RoleRoute allowedRoles={['admin']}>
             <AdminUnlockUsers />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/admin/store"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminStoreOperations />
           </RoleRoute>
         }
       />

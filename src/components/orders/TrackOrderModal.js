@@ -3,8 +3,8 @@ import icons from '../common/icons';
 function TrackOrderModal({ order, onClose }) {
   const steps = [
     { label: 'Order Placed', status: 'completed', date: order.date },
-    { label: 'Processing', status: order.status === 'pending' ? 'pending' : 'completed', date: order.status !== 'pending' ? order.date : null },
-    { label: 'Shipped', status: order.status === 'shipped' || order.status === 'delivered' ? 'completed' : order.status === 'processing' ? 'pending' : 'upcoming', date: order.status === 'shipped' ? order.date : null },
+    { label: 'Processing', status: order.status === 'processing' ? 'processing' : 'completed', date: order.status !== 'processing' ? order.date : null },
+    { label: 'Shipped', status: order.status === 'shipped' || order.status === 'delivered' ? 'completed' : order.status === 'processing' ? 'processing' : 'upcoming', date: order.status === 'shipped' ? order.date : null },
     { label: 'Delivered', status: order.status === 'delivered' ? 'completed' : 'upcoming', date: order.status === 'delivered' ? order.estimatedDelivery : null }
   ];
 
@@ -12,7 +12,7 @@ function TrackOrderModal({ order, onClose }) {
     if (step.status === 'completed') {
       return <img src={icons.checkCircle} alt="" className="inline-icon" style={{ filter: 'brightness(0) invert(1)' }} />;
     }
-    if (step.status === 'pending') {
+    if (step.status === 'processing') {
       return '●';
     }
     return '○';
@@ -41,7 +41,7 @@ function TrackOrderModal({ order, onClose }) {
                     width: '30px',
                     height: '30px',
                     borderRadius: '50%',
-                    background: step.status === 'completed' ? '#4CAF50' : step.status === 'pending' ? '#FF9800' : '#e0e0e0',
+                    background: step.status === 'completed' ? '#4CAF50' : step.status === 'processing' ? '#FF9800' : '#e0e0e0',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',

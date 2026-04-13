@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Services.css';
 import icons from '../common/icons';
 import ServiceBookingModal from './ServiceBookingModal';
+import Footer from '../home/Footer';
 
 function Services() {
   const navigate = useNavigate();
@@ -132,7 +133,7 @@ function Services() {
       technicianLabel: technicianLabel,
       totalPrice: totalPrice,
       bookingId: Date.now(),
-      status: 'pending',
+      status: 'processing',
       warranty: service.warranty
     };
     
@@ -297,6 +298,7 @@ function Services() {
           onConfirm={handleConfirmBooking}
         />
       )}
+      <Footer />
     </div>
   );
 }

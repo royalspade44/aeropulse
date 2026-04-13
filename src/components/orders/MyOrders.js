@@ -4,6 +4,7 @@ import { useCart } from '../../context/CartContext';
 import './MyOrders.css';
 import OrderCard from './OrderCard';
 import TrackOrderModal from './TrackOrderModal';
+import Footer from '../home/Footer';
 
 function MyOrders() {
   const navigate = useNavigate();
@@ -82,6 +83,7 @@ function MyOrders() {
           }}
         />
       )}
+      <Footer />
     </div>
   );
 }

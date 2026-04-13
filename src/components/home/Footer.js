@@ -1,16 +1,24 @@
 import icons from '../common/icons';
+import { Link } from 'react-router-dom';
+import './Footer.css';
 
 function Footer() {
   return (
     <footer className="footer">
       <div className="footer-content">
         <div className="footer-section">
-          <h4>Cold Air</h4>
-          <p>Professional AC installation, maintenance, and repair services in Singapore.</p>
+          <h4>AeroPulse</h4>
+          <p>Professional AC installation, maintenance, and repair services for residential and commercial customers.</p>
         </div>
         <div className="footer-section">
           <h4>Quick Links</h4>
-          <p>About Us | Services | Booking | FAQ</p>
+          <div className="footer-link-list">
+            <Link className="footer-link" to="/home">Home</Link>
+            <Link className="footer-link" to="/services">Services</Link>
+            <Link className="footer-link" to="/shop">Shop</Link>
+            <Link className="footer-link" to="/contact">Contact</Link>
+            <Link className="footer-link" to="/faq">FAQs</Link>
+          </div>
         </div>
         <div className="footer-section">
           <h4>Follow Us</h4>
@@ -28,7 +36,7 @@ function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <p>© 2024 Cold Air. All rights reserved.</p>
+        <p>© 2026 AeroPulse. All rights reserved.</p>
       </div>
     </footer>
   );

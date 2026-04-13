@@ -5,11 +5,11 @@
 function TechDispatchMetrics({ tasks = [] }) {
   const list = Array.isArray(tasks) ? tasks : [];
 
-  const pendingSchedules = list.filter((t) =>
-    ['scheduled', 'pending', 'assigned'].includes(String(t.status || '').toLowerCase())
+  const processingSchedules = list.filter((t) =>
+    ['scheduled', 'processing', 'assigned'].includes(String(t.status || '').toLowerCase())
   ).length;
 
-  const waitingQueue = list.filter((t) => String(t.status || '').toLowerCase() === 'pending').length;
+  const waitingQueue = list.filter((t) => String(t.status || '').toLowerCase() === 'processing').length;
 
   const failuresReported = list.filter((t) => t.failureReported || t.customerIssue === 'failure').length;
 
@@ -20,8 +20,8 @@ function TechDispatchMetrics({ tasks = [] }) {
   return (
     <div className="tech-dispatch-metrics">
       <div className="tech-dispatch-metric">
-        <span className="tech-dispatch-label">Pending schedules</span>
-        <strong>{pendingSchedules}</strong>
+        <span className="tech-dispatch-label">Processing schedules</span>
+        <strong>{processingSchedules}</strong>
       </div>
       <div className="tech-dispatch-metric">
         <span className="tech-dispatch-label">Waiting in queue</span>

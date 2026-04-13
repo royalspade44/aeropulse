@@ -38,22 +38,22 @@ function Home() {
   const [notifications] = useState([
     { 
       id: 1, 
-      title: 'Welcome!', 
-      message: 'Thank you for joining Cold Air', 
+      title: 'POS Receipt Ready', 
+      message: 'Invoice INV-10482 is available in My Orders for today\'s checkout.', 
       time: 'Just now', 
       unread: true 
     },
     { 
       id: 2, 
-      title: 'Special Offer', 
-      message: '20% off on all AC services this week!', 
+      title: 'Dispatch Update', 
+      message: 'Technician team is preparing your delivery window for tomorrow 1:00 PM to 3:00 PM.', 
       time: '2 hours ago', 
       unread: true 
     },
     { 
       id: 3, 
-      title: 'Booking Confirmed', 
-      message: 'Your service appointment is confirmed', 
+      title: 'Payment Posted', 
+      message: 'GCash payment reference 9XK31 has been posted to order TRK-930447112.', 
       time: 'Yesterday', 
       unread: false 
     },

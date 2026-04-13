@@ -5,7 +5,7 @@ import TaskCard from '../Dashboard/TaskCard';
 import '../techShared.css';
 
 const taskList = [
-  { id: 101, title: 'Split Type Cleaning', customer: 'Anna Cruz', address: 'Makati', status: 'pending', priority: 'high' },
+  { id: 101, title: 'Split Type Cleaning', customer: 'Anna Cruz', address: 'Makati', status: 'processing', priority: 'high' },
   { id: 102, title: 'Compressor Check', customer: 'Mark Lee', address: 'Taguig', status: 'in-progress', priority: 'medium' },
   { id: 103, title: 'Installation Follow-up', customer: 'Celine Tan', address: 'Pasig', status: 'completed', priority: 'low' }
 ];

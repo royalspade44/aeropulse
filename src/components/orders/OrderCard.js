@@ -3,7 +3,6 @@ import icons from '../common/icons';
 function OrderCard({ order, onTrack, onReorder }) {
   const getStatusClass = (status) => {
     switch (status) {
-      case 'pending': return 'status-pending';
       case 'processing': return 'status-processing';
       case 'shipped': return 'status-shipped';
       case 'delivered': return 'status-delivered';
@@ -14,7 +13,6 @@ function OrderCard({ order, onTrack, onReorder }) {
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'pending': return 'Pending';
       case 'processing': return 'Processing';
       case 'shipped': return 'Shipped';
       case 'delivered': return 'Delivered';

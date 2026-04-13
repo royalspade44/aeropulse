@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import { apiRequest } from "../config/api";
 
 const UserContext = createContext();
+const ACTIVE_ACCOUNT_SESSION_KEY = "activeAccountSession";
 
 export const useUser = () => {
   const context = useContext(UserContext);
@@ -23,6 +24,24 @@ const clearSession = () => {
   localStorage.removeItem("userRole");
 };
 
+const readActiveSession = () => {
+  try {
+    return JSON.parse(localStorage.getItem(ACTIVE_ACCOUNT_SESSION_KEY));
+  } catch (_error) {
+    return null;
+  }
+};
+
+const activateSingleSession = (user) => {
+  const session = {
+    accountId: user?.id || user?.email || "unknown",
+    email: user?.email || "",
+    startedAt: new Date().toISOString()
+  };
+  localStorage.setItem(ACTIVE_ACCOUNT_SESSION_KEY, JSON.stringify(session));
+  return session;
+};
+
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
@@ -41,11 +60,19 @@ export const UserProvider = ({ children }) => {
 
       try {
         const result = await apiRequest("/auth/me");
+        const active = readActiveSession();
+        const accountId = result.user?.id || result.user?.email || "unknown";
+        if (active?.accountId && active.accountId !== accountId) {
+          clearSession();
+          setLoading(false);
+          return;
+        }
         setUser(result.user);
         setUserRole(result.user.role || null);
         setCurrentSession(result.user);
         setIsAuthenticated(true);
         localStorage.setItem("currentUser", JSON.stringify(result.user));
+        activateSingleSession(result.user);
       } catch (_error) {
         clearSession();
         if (cachedUser) {
@@ -58,12 +85,30 @@ export const UserProvider = ({ children }) => {
     bootstrap();
   }, []);
 
+  useEffect(() => {
+    const onStorage = (event) => {
+      if (event.key !== ACTIVE_ACCOUNT_SESSION_KEY || !isAuthenticated || !user) return;
+      const next = readActiveSession();
+      const accountId = user.id || user.email || "unknown";
+      if (next?.accountId && next.accountId !== accountId) {
+        clearSession();
+        setUser(null);
+        setUserRole(null);
+        setCurrentSession(null);
+        setIsAuthenticated(false);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [isAuthenticated, user]);
+
   const login = async (email, password, role = null) => {
     const result = await apiRequest("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password, role }),
     });
     saveSession(result.token, result.user);
+    activateSingleSession(result.user);
     setUser(result.user);
     setUserRole(result.user.role || null);
     setCurrentSession(result.user);
@@ -77,6 +122,7 @@ export const UserProvider = ({ children }) => {
       body: JSON.stringify({ ...userData, role: userData.role || role }),
     });
     saveSession(result.token, result.user);
+    activateSingleSession(result.user);
     setUser(result.user);
     setUserRole(result.user.role || null);
     setCurrentSession(result.user);
@@ -89,6 +135,11 @@ export const UserProvider = ({ children }) => {
   const loginAsSuperAdmin = async (email, password) => login(email, password, "superadmin");
 
   const logout = () => {
+    const active = readActiveSession();
+    const accountId = user?.id || user?.email || "unknown";
+    if (!active?.accountId || active.accountId === accountId) {
+      localStorage.removeItem(ACTIVE_ACCOUNT_SESSION_KEY);
+    }
     clearSession();
     setUser(null);
     setUserRole(null);

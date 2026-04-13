@@ -75,14 +75,9 @@
   font-weight: 600;
 }
 
-.status-pending {
+.status-processing {
   background: #FFF3E0;
   color: #FF9800;
-}
-
-.status-processing {
-  background: #E3F2FD;
-  color: #1E88E5;
 }
 
 .status-shipped {

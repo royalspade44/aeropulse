@@ -9,6 +9,7 @@ import ScheduleServiceModal from './ScheduleServiceModal';
 import WarrantyStatusModal from './WarrantyStatusModal';
 import RegisterQrUnitModal from './RegisterQrUnitModal';
 import icons from '../common/icons';
+import Footer from '../home/Footer';
 
 function MyUnit() {
   const navigate = useNavigate();
@@ -215,6 +216,7 @@ function MyUnit() {
           onRegister={handleQrRegister}
         />
       )}
+      <Footer />
     </div>
   );
 }

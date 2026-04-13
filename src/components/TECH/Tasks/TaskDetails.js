@@ -13,7 +13,7 @@ const TaskDetails = () => {
     customer: 'Sample Customer',
     address: 'Quezon City',
     priority: 'medium',
-    status: 'pending',
+    status: 'processing',
     notes: 'Inspect condenser and clean filters.'
   });
 

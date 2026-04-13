@@ -1,0 +1,262 @@
+/* ============================================
+   ADMIN REGISTER — Enhanced
+   Minimalist, clean, #2563eb primary
+   ============================================ */
+
+   :root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --primary-light: #eff6ff;
+    --primary-mid: #bfdbfe;
+    --danger: #ef4444;
+    --success: #10b981;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+  }
+  
+  /* ========== LAYOUT ========== */
+  .register-page {
+    min-height: 100vh;
+    background: var(--gray-50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  }
+  
+  .register-card {
+    background: white;
+    border-radius: 20px;
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 4px 20px -4px rgb(0 0 0 / 0.08);
+    width: 100%;
+    max-width: 480px;
+    padding: 40px;
+    animation: fadeInUp 0.3s ease;
+  }
+  
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* ========== HEADER ========== */
+  .register-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  
+  .register-logo {
+    width: 52px;
+    height: 52px;
+    background: var(--primary);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 24px;
+    color: white;
+  }
+  
+  .register-header h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--gray-900);
+    margin: 0 0 6px;
+    letter-spacing: -0.04em;
+  }
+  
+  .register-header p {
+    font-size: 13.5px;
+    color: var(--gray-500);
+    margin: 0;
+  }
+  
+  /* ========== FORM ========== */
+  .register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .form-group label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--gray-700);
+    letter-spacing: 0.02em;
+  }
+  
+  .form-group input,
+  .form-group select {
+    padding: 11px 14px;
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--gray-800);
+    background: var(--gray-50);
+    transition: all 0.18s ease;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+  }
+  
+  .form-group input::placeholder {
+    color: var(--gray-400);
+  }
+  
+  .form-group input.error,
+  .form-group select.error {
+    border-color: var(--danger);
+    background: #fef2f2;
+  }
+  
+  .form-group input.error:focus {
+    box-shadow: 0 0 0 3px rgb(239 68 68 / 0.1);
+  }
+  
+  .field-error {
+    font-size: 12px;
+    color: var(--danger);
+    font-weight: 500;
+  }
+  
+  /* ========== SUBMIT BUTTON ========== */
+  .register-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 11px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    margin-top: 8px;
+    letter-spacing: 0.01em;
+  }
+  
+  .register-btn:hover {
+    background: var(--primary-dark);
+    box-shadow: 0 6px 18px rgb(37 99 235 / 0.3);
+    transform: translateY(-1px);
+  }
+  
+  .register-btn:active {
+    transform: translateY(0);
+  }
+  
+  .register-btn:disabled {
+    background: var(--gray-300);
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+  
+  /* ========== FOOTER LINK ========== */
+  .register-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--gray-500);
+  }
+  
+  .register-footer a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  
+  .register-footer a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+  }
+  
+  /* ========== DIVIDER ========== */
+  .form-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 0;
+  }
+  
+  .form-divider span {
+    font-size: 12px;
+    color: var(--gray-400);
+    white-space: nowrap;
+  }
+  
+  .form-divider::before,
+  .form-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gray-200);
+  }
+  
+  /* ========== SUCCESS STATE ========== */
+  .register-success {
+    text-align: center;
+    padding: 16px 0;
+  }
+  
+  .register-success-icon {
+    width: 56px;
+    height: 56px;
+    background: #ecfdf5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 26px;
+    border: 2px solid #a7f3d0;
+  }
+  
+  .register-success h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 8px;
+  }
+  
+  .register-success p {
+    font-size: 13.5px;
+    color: var(--gray-500);
+  }
+  
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 480px) {
+    .register-card {
+      padding: 28px 22px;
+      border-radius: 16px;
+    }
+  
+    .register-header h1 {
+      font-size: 20px;
+    }
+  }
