@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import InputField from '../common/InputField';
 import Button from '../common/Button';
+import icons from '../common/icons';
 
 function LoginForm({ 
   email, 
@@ -11,7 +13,8 @@ function LoginForm({
   onSubmit, 
   loading, 
   disabled,
-  onForgotPassword
+  onForgotPassword,
+  showAccountRecovery = false
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -62,12 +65,25 @@ function LoginForm({
             {showPassword ? 'Hide' : 'Show'}
           </button>
         </div>
-        {errors.password && <div className="error-message">{errors.password}</div>}
+        {errors.password && (
+          <div className="error-message">
+            <img src={icons.diamondExclamation} alt="" className="inline-icon" />
+            <span>{errors.password}</span>
+          </div>
+        )}
       </div>
 
       <button type="button" className="forgot-link" onClick={onForgotPassword}>
         Forgot password?
       </button>
+
+      {showAccountRecovery && (
+        <div className="login-recovery-links">
+          <Link to="/recover/alias">Forgot my alias</Link>
+          <span aria-hidden="true"> · </span>
+          <Link to="/recover/totp">Lost my TOTP secret</Link>
+        </div>
+      )}
 
       <Button
         onClick={onSubmit}

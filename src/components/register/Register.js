@@ -1,116 +1,91 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useUser } from '../../context/UserContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Register.css';
 import RegisterBrandSection from './RegisterBrandSection';
-import RegisterForm from './RegisterForm';
+import RegisterLegalConsentsStep from './RegisterLegalConsentsStep';
+import RegisterEmailOtpStep from './RegisterEmailOtpStep';
+import RegisterProfilePasswordStep from './RegisterProfilePasswordStep';
+import RegisterPhoneOtpStep from './RegisterPhoneOtpStep';
+import { validateRegistrationProfile } from '../../domain/register/validateRegistrationProfile';
+import { consumePostRegistrationCheckoutIntent, setPostRegistrationCheckoutIntent } from '../../domain/checkout/postRegistrationIntent';
+
+const STEPS = ['legal', 'email', 'profile', 'phone'];
 
 function Register() {
   const { register } = useUser();
   const navigate = useNavigate();
-  
+  const location = useLocation();
+
+  const [stepIndex, setStepIndex] = useState(0);
+  const [totpSecret, setTotpSecret] = useState('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
+    alias: '',
     phone: '',
     password: '',
     confirmPassword: '',
     role: 'customer',
-    agreeTerms: false,
-    address: '' // Added address field
+    address: '',
+    agreeTermsWarranty: false,
+    agreeTermsService: false,
+    agreeTermsApp: false,
+    agreePrivacyRa10173: false
   });
-  
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    // First Name validation
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    } else if (formData.firstName.length < 2) {
-      newErrors.firstName = 'First name must be at least 2 characters';
-    } else if (!/^[a-zA-Z\s]+$/.test(formData.firstName)) {
-      newErrors.firstName = 'First name can only contain letters';
+  useEffect(() => {
+    if (location.state?.returnToCheckout) {
+      setPostRegistrationCheckoutIntent();
     }
+  }, [location.state]);
 
-    // Last Name validation
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    } else if (formData.lastName.length < 2) {
-      newErrors.lastName = 'Last name must be at least 2 characters';
-    } else if (!/^[a-zA-Z\s]+$/.test(formData.lastName)) {
-      newErrors.lastName = 'Last name can only contain letters';
-    }
+  const handleFieldChange = useCallback((field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: '' }));
+  }, []);
 
-    // Email validation
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    // Phone validation (Philippines format)
-    if (!formData.phone) {
-      newErrors.phone = 'Phone number is required';
-    } else {
-      const cleanPhone = formData.phone.replace(/\D/g, '');
-      if (!/^[0-9]{10,11}$/.test(cleanPhone)) {
-        newErrors.phone = 'Please enter a valid phone number (10-11 digits)';
-      } else if (!cleanPhone.startsWith('09') && !cleanPhone.startsWith('639')) {
-        newErrors.phone = 'Please enter a valid Philippine mobile number (starts with 09 or 639)';
-      }
-    }
-
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])/.test(formData.password)) {
-      newErrors.password = 'Password must contain at least one lowercase letter';
-    } else if (!/(?=.*[A-Z])/.test(formData.password)) {
-      newErrors.password = 'Password must contain at least one uppercase letter';
-    } else if (!/(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain at least one number';
-    } else if (!/(?=.*[@$!%*?&])/.test(formData.password)) {
-      newErrors.password = 'Password must contain at least one special character (@$!%*?&)';
-    }
-
-    // Confirm Password validation
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    // Terms validation
-    if (!formData.agreeTerms) {
-      newErrors.agreeTerms = 'You must agree to the Terms and Conditions';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const validateLegal = () => {
+    const e = {};
+    if (!formData.agreeTermsWarranty) e.agreeTermsWarranty = 'Required';
+    if (!formData.agreeTermsService) e.agreeTermsService = 'Required';
+    if (!formData.agreeTermsApp) e.agreeTermsApp = 'Required';
+    if (!formData.agreePrivacyRa10173) e.agreePrivacyRa10173 = 'Required';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const handleFieldChange = (field, value) => {
-    setFormData({ ...formData, [field]: value });
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: '' });
+  const goNext = () => setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
+  const goBack = () => setStepIndex((i) => Math.max(i - 1, 0));
+
+  const handleLegalNext = () => {
+    if (validateLegal()) goNext();
+  };
+
+  const persistLocalSecurity = (email) => {
+    try {
+      const key = 'aeropulse_user_security';
+      const map = JSON.parse(localStorage.getItem(key) || '{}');
+      map[email] = { alias: formData.alias, totpSecret, updatedAt: new Date().toISOString() };
+      localStorage.setItem(key, JSON.stringify(map));
+    } catch {
+      /* ignore */
     }
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) {
+  const handleFinalSubmit = async () => {
+    const { errors: vErrors, valid } = validateRegistrationProfile(formData);
+    if (!valid) {
+      setErrors(vErrors);
       return;
     }
-    
+
     setLoading(true);
-    
     try {
-      // Register user using UserContext
       await register({
         name: `${formData.firstName} ${formData.lastName}`,
         name_first: formData.firstName,
@@ -119,41 +94,84 @@ function Register() {
         phone: formData.phone,
         password: formData.password,
         role: formData.role,
-        address: formData.address || '',
-        agreeTerms: formData.agreeTerms
+        address: formData.address || ''
       });
-      
-      // Show success message
-      alert('Registration successful! Welcome to Cold Air!');
-      
-      // Navigate to home page (user is automatically logged in)
-      navigate('/home');
+      persistLocalSecurity(formData.email);
+      const returnCheckout = consumePostRegistrationCheckoutIntent();
+      alert(returnCheckout ? 'Account created. Continue to checkout to finish your purchase.' : 'Registration successful!');
+      navigate(returnCheckout ? '/checkout' : '/home');
     } catch (err) {
-      setErrors({ ...errors, email: err.message });
+      setErrors((prev) => ({ ...prev, email: err.message }));
       alert(err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const step = STEPS[stepIndex];
+
   return (
     <div className="register-container">
       <div className="register-grid">
         <RegisterBrandSection />
-        
+
         <div className="register-form-section">
           <div className="form-header">
-            <h2>Create an Account</h2>
-            <p>Join Cold Air and start shopping today</p>
+            <h2>Create an account</h2>
+            <p>Step {stepIndex + 1} of {STEPS.length}</p>
           </div>
 
-          <RegisterForm
-            formData={formData}
-            errors={errors}
-            onFieldChange={handleFieldChange}
-            onSubmit={handleSubmit}
-            loading={loading}
-          />
+          <div className="register-step-indicator">
+            {STEPS.map((s, i) => (
+              <span key={s} className={`register-step-dot ${i === stepIndex ? 'active' : ''} ${i < stepIndex ? 'done' : ''}`} />
+            ))}
+          </div>
+
+          {step === 'legal' && (
+            <RegisterLegalConsentsStep
+              formData={formData}
+              errors={errors}
+              onFieldChange={handleFieldChange}
+              onNext={handleLegalNext}
+            />
+          )}
+          {step === 'email' && (
+            <RegisterEmailOtpStep
+              formData={formData}
+              errors={errors}
+              onFieldChange={handleFieldChange}
+              onNext={goNext}
+              onBack={goBack}
+            />
+          )}
+          {step === 'profile' && (
+            <RegisterProfilePasswordStep
+              formData={formData}
+              errors={errors}
+              onFieldChange={handleFieldChange}
+              onNext={goNext}
+              onBack={goBack}
+              totpSecret={totpSecret}
+              onTotpSecret={setTotpSecret}
+            />
+          )}
+          {step === 'phone' && (
+            <RegisterPhoneOtpStep
+              formData={formData}
+              errors={errors}
+              onFieldChange={handleFieldChange}
+              onSubmit={handleFinalSubmit}
+              onBack={goBack}
+              loading={loading}
+            />
+          )}
+
+          <div className="login-link" style={{ marginTop: 24 }}>
+            Already have an account?{' '}
+            <button type="button" onClick={() => navigate('/login')}>
+              Sign in
+            </button>
+          </div>
         </div>
       </div>
     </div>

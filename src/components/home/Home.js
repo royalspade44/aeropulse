@@ -11,6 +11,7 @@ import HeroSection from './HeroSection';
 import BrandsSection from './BrandsSection';
 import InfoSection from './InfoSection';
 import Footer from './Footer';
+import icons from '../common/icons';
 
 function Home() {
   const navigate = useNavigate();
@@ -63,63 +64,63 @@ function Home() {
     { 
       id: 1, 
       name: 'Midea', 
-      emoji: '❄️',
+      iconSrc: icons.temperatureFrigid,
       logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvl2GSFigO4nNXMWW1qO_VZ1GZwjVl5alpsw&s',
       description: 'Premium AC Solutions'
     },
     { 
       id: 2, 
       name: 'TCL', 
-      emoji: '🌬️',
+      iconSrc: icons.wind,
       logoUrl: 'https://cdn.manilastandard.net/wp-content/uploads/2023/02/TCL.png',
       description: 'Smart Air Conditioning'
     },
     { 
       id: 3, 
       name: 'Aux', 
-      emoji: '🔧',
+      iconSrc: icons.tools,
       logoUrl: 'https://auxaircon.com.ph/images/aux_logo.png',
       description: 'Energy Efficient'
     },
     { 
       id: 4, 
       name: 'Samsung', 
-      emoji: '📱',
+      iconSrc: icons.customize,
       logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRXFVQh2BQhYtWf9APXNliSnNTi7MBwV6yPFA&s',
       description: 'Innovation Technology'
     },
     { 
       id: 5, 
       name: 'Daikin', 
-      emoji: '✨',
+      iconSrc: icons.checkCircle,
       logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwu8SCQH4joBnn0HXF5F_HQKBRb85KZ8ZkuA&s',
       description: 'World Leader in AC'
     },
     { 
       id: 6, 
       name: 'Carrier', 
-      emoji: '💨',
+      iconSrc: icons.wind,
       logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/Logo_of_the_Carrier_Corporation.svg',
       description: 'Inventor of AC'
     },
     { 
       id: 7, 
       name: 'LG', 
-      emoji: '⚡',
+      iconSrc: icons.bolt,
       logoUrl: 'https://www.lg.com/content/dam/lge/common/logo/logo-lg-100-44.jpg',
       description: 'Life\'s Good'
     },
     { 
       id: 8, 
       name: 'American Home', 
-      emoji: '🏠',
+      iconSrc: icons.houseChimney,
       logoUrl: 'https://ansons.ph/wp-content/uploads/2024/05/aham.jpg',
       description: 'Home Comfort Solutions'
     },
     { 
       id: 9, 
       name: 'Gree', 
-      emoji: '🌿',
+      iconSrc: icons.wind,
       logoUrl: 'https://1000logos.net/wp-content/uploads/2018/08/Gree-Logo.png',
       description: 'Eco-Friendly Cooling'
     },

@@ -1,8 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { UserProvider, useUser } from './context/UserContext';
 import Login from './components/login/Login';
 import Register from './components/register/Register';
+import RecoverAlias from './components/recover/RecoverAlias';
+import RecoverTotp from './components/recover/RecoverTotp';
 import Home from './components/home/Home';
 import Settings from './components/settings/Settings';
 import MyUnit from './components/myunit/MyUnit';
@@ -50,23 +52,25 @@ const getRoleHomePath = (role) => {
 // Protected Route wrapper component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useUser();
-  
+  const location = useLocation();
+
   if (loading) {
     return <div className="loading-screen">Loading...</div>;
   }
-  
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+
+  return isAuthenticated ? children : <Navigate to="/login" replace state={{ from: location }} />;
 };
 
 const RoleRoute = ({ allowedRoles, children }) => {
   const { isAuthenticated, loading, userRole } = useUser();
+  const location = useLocation();
 
   if (loading) {
     return <div className="loading-screen">Loading...</div>;
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   return allowedRoles.includes(userRole)
@@ -123,6 +127,9 @@ function AppContent() {
           </PublicRoute>
         } 
       />
+
+      <Route path="/recover/alias" element={<RecoverAlias />} />
+      <Route path="/recover/totp" element={<RecoverTotp />} />
       
       {/* Protected routes */}
       <Route 

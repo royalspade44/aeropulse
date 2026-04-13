@@ -271,7 +271,7 @@
 
 /* Warranty overlay on hover */
 .service-card::after {
-  content: '🔒 Warranty Included ✓';
+  content: 'Warranty included';
   position: absolute;
   bottom: 20px;
   right: 20px;

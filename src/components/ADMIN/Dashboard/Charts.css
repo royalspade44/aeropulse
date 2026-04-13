@@ -14,10 +14,6 @@
     gap: 8px;
   }
   
-  .admin-chart h3::before {
-    content: "📊";
-    font-size: 20px;
-  }
   
   .admin-chart-bars {
     display: flex;

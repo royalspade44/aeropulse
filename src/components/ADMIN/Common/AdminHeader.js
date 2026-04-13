@@ -1,5 +1,6 @@
 import React from 'react';
 import { useUser } from '../../../context/UserContext';
+import icons from '../../common/icons';
 
 const AdminHeader = ({ title = 'Admin Module', subtitle = 'Control panel', onMenuToggle }) => {
   const { user } = useUser();
@@ -8,7 +9,7 @@ const AdminHeader = ({ title = 'Admin Module', subtitle = 'Control panel', onMen
     <header className="admin-header">
       <div className="admin-header-left">
         <button className="admin-menu-toggle" onClick={onMenuToggle} type="button">
-          ☰
+          <img src={icons.customize} alt="" className="inline-icon inline-icon--md" />
         </button>
         <div>
           <h1>{title}</h1>

@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import icons from '../common/icons';
 import './Shop.css';
 import CategoryFilter from './CategoryFilter';
 import ProductGrid from './ProductGrid';
 import CartSidebar from './CartSidebar';
 import ProductModal from './ProductModal';
+import ServiceAreaSelector from '../customer/ServiceAreaSelector';
 
 function Shop() {
   const navigate = useNavigate();
@@ -17,6 +19,11 @@ function Shop() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [serviceAreaLabel, setServiceAreaLabel] = useState('');
+
+  const onServiceAreaChange = useCallback((area) => {
+    setServiceAreaLabel(area?.label || '');
+  }, []);
 
   const categories = [
     { id: 'all', name: 'All Products', count: 40 },
@@ -34,7 +41,7 @@ function Shop() {
   const products = [
     // ===== AMERICAN HOME INVERTER (Split Type) =====
     { 
-      id: 1, name: 'American Home Inverter AC', brand: 'American Home', category: 'split', icon: '❄️', 
+      id: 1, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
       price: 18499, oldPrice: 20999, specs: '1.0HP', model: 'AHAC-MINV1023EHW', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Energy efficient inverter AC with rapid cooling technology', 
@@ -42,7 +49,7 @@ function Shop() {
       imageUrl: 'https://ansons.ph/wp-content/uploads/2024/12/29_AHAC-MINV1023EHW.jpg' // Add your image URL here
     },
     { 
-      id: 2, name: 'American Home Inverter AC', brand: 'American Home', category: 'split', icon: '❄️', 
+      id: 2, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
       price: 21999, oldPrice: 24999, specs: '1.5HP', model: 'AHAC-MINV1523EHW', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Energy efficient inverter AC with rapid cooling technology', 
@@ -50,7 +57,7 @@ function Shop() {
       imageUrl: 'https://lh6.googleusercontent.com/proxy/U2nLoCzYuJbL4ZscaAExVPmrZwi0ypWILcqmVQei7rwDfT_htCNq9uzBvaDRmiOsSuT0Ccf7vT9PN8CkHJzbv-qBFSMutZVuhJ16'
     },
     { 
-      id: 3, name: 'American Home Inverter AC', brand: 'American Home', category: 'split', icon: '❄️', 
+      id: 3, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
       price: 28499, oldPrice: 32999, specs: '2.0HP', model: 'AHAC-MINV2023EHW', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Energy efficient inverter AC with rapid cooling technology', 
@@ -58,7 +65,7 @@ function Shop() {
       imageUrl: 'https://ansons.ph/wp-content/uploads/2024/12/29_AHAC-MINV1023EHW.jpg'
     },
     { 
-      id: 4, name: 'American Home Inverter AC', brand: 'American Home', category: 'split', icon: '❄️', 
+      id: 4, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
       price: 31499, oldPrice: 36999, specs: '2.5HP', model: 'AHAC-MINV2523EHW', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Energy efficient inverter AC with rapid cooling technology', 
@@ -66,7 +73,7 @@ function Shop() {
       imageUrl: 'https://www.ldraenterprises.com/wp-content/uploads/2025/08/Untitled-1-300x300.jpg'
     },
     { 
-      id: 5, name: 'American Home Inverter AC', brand: 'American Home', category: 'split', icon: '❄️', 
+      id: 5, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
       price: 43999, oldPrice: 49999, specs: '3.0HP', model: 'AHAC-MINV3023EHW', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Energy efficient inverter AC with rapid cooling technology', 
@@ -76,7 +83,7 @@ function Shop() {
 
     // ===== TCL FULL DC INVERTER (Split Type) =====
     { 
-      id: 6, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split', icon: '❄️', 
+      id: 6, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split',
       price: 21500, specs: '1.0HP', model: 'TAC-10CSD/KEI-S/2', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Full DC inverter with T-AI technology and WiFi control. Features: Golden titanium fin, Fast cooling, Filter Cleaning Reminder, 42db Low Noise Operation', 
@@ -84,7 +91,7 @@ function Shop() {
       imageUrl: 'https://d1rlzxa98cyc61.cloudfront.net/catalog/product/1/9/196330_4.jpg?auto=webp&format=pjpg&width=640'
     },
     { 
-      id: 7, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split', icon: '❄️', 
+      id: 7, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split',
       price: 22500, specs: '1.5HP', model: 'TAC-13CSD/KEI-S/2', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Full DC inverter with T-AI technology and WiFi control', 
@@ -92,7 +99,7 @@ function Shop() {
       imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZhqB0c7O2-OQ-9vMRvxdt3vfJW9PbXcE9fw&s'
     },
     { 
-      id: 8, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split', icon: '❄️', 
+      id: 8, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split',
       price: 28700, specs: '2.0HP', model: 'TAC-19CSD/KEI-S/2', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Full DC inverter with T-AI technology and WiFi control', 
@@ -100,7 +107,7 @@ function Shop() {
       imageUrl: 'https://ansons.ph/wp-content/uploads/2025/04/02_TAC-CSD_KEI2.jpg'
     },
     { 
-      id: 9, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split', icon: '❄️', 
+      id: 9, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split',
       price: 33600, specs: '2.5HP', model: 'TAC-25CSD/KEI-S/2', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Full DC inverter with T-AI technology and WiFi control', 
@@ -108,7 +115,7 @@ function Shop() {
       imageUrl: 'https://boomupp.com/wp-content/uploads/2025/03/TCL-KEi-S222.png'
     },
     { 
-      id: 10, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split', icon: '❄️', 
+      id: 10, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split',
       price: 48999, specs: '3.0HP', model: 'TAC-30CSD/KEI-S/2', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Full DC inverter with T-AI technology and WiFi control', 
@@ -118,7 +125,7 @@ function Shop() {
 
     // ===== MIDEA CELEST PRO (Split Type) =====
     { 
-      id: 11, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split', icon: '❄️', 
+      id: 11, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split',
       price: 22999, oldPrice: 26999, specs: '1.0HP', model: 'MSCE-10CRFN8', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'New model with advanced cooling technology', 
@@ -126,7 +133,7 @@ function Shop() {
       imageUrl: 'https://www.remalsales.com/assets/images/aircon%202024/msce_crfn8.png'
     },
     { 
-      id: 12, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split', icon: '❄️', 
+      id: 12, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split',
       price: 23999, oldPrice: 27999, specs: '1.5HP', model: 'MSCE-13CRFN8', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'New model with advanced cooling technology', 
@@ -134,7 +141,7 @@ function Shop() {
       imageUrl: 'https://www.remalsales.com/assets/images/aircon%202024/msce_crfn8.png'
     },
     { 
-      id: 13, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split', icon: '❄️', 
+      id: 13, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split',
       price: 30499, oldPrice: 35999, specs: '2.0HP', model: 'MSCE-19CRFN8', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'New model with advanced cooling technology', 
@@ -142,7 +149,7 @@ function Shop() {
       imageUrl: 'https://www.remalsales.com/assets/images/aircon%202024/msce_crfn8.png'
     },
     { 
-      id: 14, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split', icon: '❄️', 
+      id: 14, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split',
       price: 35499, oldPrice: 41999, specs: '2.5HP', model: 'MSCE-22CRFN8', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'New model with advanced cooling technology', 
@@ -150,7 +157,7 @@ function Shop() {
       imageUrl: 'https://www.remalsales.com/assets/images/aircon%202024/msce_crfn8.png'
     },
     { 
-      id: 15, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split', icon: '❄️', 
+      id: 15, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split',
       price: 51499, oldPrice: 59999, specs: '3.0HP', model: 'MSCE-25CRFN8', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'New model with advanced cooling technology', 
@@ -160,7 +167,7 @@ function Shop() {
 
     // ===== AUX QCDI FULL DC INVERTER (Split Type) =====
     { 
-      id: 16, name: 'Aux QCDI Full DC Inverter', brand: 'Aux', category: 'split', icon: '❄️', 
+      id: 16, name: 'Aux QCDI Full DC Inverter', brand: 'Aux', category: 'split',
       price: 21499, specs: '1.0HP', model: 'ASW09A/QCDI', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Full DC inverter with energy saving technology', 
@@ -168,7 +175,7 @@ function Shop() {
       imageUrl: 'https://mws-data.auxair.com/upload/2024-04-07/1712478296443_50f494b0-f4b8-11ee-8241-4555d2ac6d44.png'
     },
     { 
-      id: 17, name: 'Aux QCDI Full DC Inverter', brand: 'Aux', category: 'split', icon: '❄️', 
+      id: 17, name: 'Aux QCDI Full DC Inverter', brand: 'Aux', category: 'split',
       price: 22999, specs: '1.5HP', model: 'ASW12A/QCDI', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Full DC inverter with energy saving technology', 
@@ -176,7 +183,7 @@ function Shop() {
       imageUrl: 'https://mws-data.auxair.com/upload/2024-04-07/1712478296443_50f494b0-f4b8-11ee-8241-4555d2ac6d44.png'
     },
     { 
-      id: 18, name: 'Aux QCDI Full DC Inverter', brand: 'Aux', category: 'split', icon: '❄️', 
+      id: 18, name: 'Aux QCDI Full DC Inverter', brand: 'Aux', category: 'split',
       price: 30499, specs: '2.0HP', model: 'ASW18A/QCDI', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Full DC inverter with energy saving technology', 
@@ -184,7 +191,7 @@ function Shop() {
       imageUrl: 'https://mws-data.auxair.com/upload/2024-04-07/1712478296443_50f494b0-f4b8-11ee-8241-4555d2ac6d44.png'
     },
     { 
-      id: 19, name: 'Aux QCDI Full DC Inverter', brand: 'Aux', category: 'split', icon: '❄️', 
+      id: 19, name: 'Aux QCDI Full DC Inverter', brand: 'Aux', category: 'split',
       price: 35499, specs: '2.5HP', model: 'ASW24A/QCDI', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Full DC inverter with energy saving technology', 
@@ -192,7 +199,7 @@ function Shop() {
       imageUrl: 'https://mws-data.auxair.com/upload/2024-04-07/1712478296443_50f494b0-f4b8-11ee-8241-4555d2ac6d44.png'
     },
     { 
-      id: 20, name: 'Aux QCDI Full DC Inverter', brand: 'Aux', category: 'split', icon: '❄️', 
+      id: 20, name: 'Aux QCDI Full DC Inverter', brand: 'Aux', category: 'split',
       price: 47499, specs: '3.0HP', model: 'ASW30A/QCDI', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Full DC inverter with energy saving technology', 
@@ -202,7 +209,7 @@ function Shop() {
 
     // ===== SAMSUNG DIGITAL INVERTER (Split Type) =====
     { 
-      id: 21, name: 'Samsung Digital Inverter AC', brand: 'Samsung', category: 'split', icon: '❄️', 
+      id: 21, name: 'Samsung Digital Inverter AC', brand: 'Samsung', category: 'split',
       price: 22999, specs: '1.0HP', model: 'AR09TYHYE', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Digital inverter technology with smart features', 
@@ -210,7 +217,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 22, name: 'Samsung Digital Inverter AC', brand: 'Samsung', category: 'split', icon: '❄️', 
+      id: 22, name: 'Samsung Digital Inverter AC', brand: 'Samsung', category: 'split',
       price: 25999, specs: '1.5HP', model: 'AR12TYHYE', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Digital inverter technology with smart features', 
@@ -218,7 +225,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 23, name: 'Samsung Digital Inverter AC', brand: 'Samsung', category: 'split', icon: '❄️', 
+      id: 23, name: 'Samsung Digital Inverter AC', brand: 'Samsung', category: 'split',
       price: 30999, specs: '2.0HP', model: 'AR18TYHYE', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Digital inverter technology with smart features', 
@@ -226,7 +233,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 24, name: 'Samsung Digital Inverter AC', brand: 'Samsung', category: 'split', icon: '❄️', 
+      id: 24, name: 'Samsung Digital Inverter AC', brand: 'Samsung', category: 'split',
       price: 35999, specs: '2.5HP', model: 'AR24TYHYE', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Digital inverter technology with smart features', 
@@ -236,7 +243,7 @@ function Shop() {
 
     // ===== LG PREMIUM DUAL INVERTER (Split Type) =====
     { 
-      id: 25, name: 'LG Premium Dual Inverter AC', brand: 'LG', category: 'split', icon: '❄️', 
+      id: 25, name: 'LG Premium Dual Inverter AC', brand: 'LG', category: 'split',
       price: 31499, oldPrice: 39999, specs: '1.0HP', model: 'HSN09IPX3', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: '70% energy savings with WiFi, Ionizer & UV Light. Features: Dual Inverter Compressor, SmartThinQ WiFi, UVnano Technology', 
@@ -244,7 +251,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 26, name: 'LG Premium Dual Inverter AC', brand: 'LG', category: 'split', icon: '❄️', 
+      id: 26, name: 'LG Premium Dual Inverter AC', brand: 'LG', category: 'split',
       price: 33499, oldPrice: 42999, specs: '1.5HP', model: 'HSN12IPX3', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: '70% energy savings with WiFi, Ionizer & UV Light', 
@@ -252,7 +259,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 27, name: 'LG Premium Dual Inverter AC', brand: 'LG', category: 'split', icon: '❄️', 
+      id: 27, name: 'LG Premium Dual Inverter AC', brand: 'LG', category: 'split',
       price: 41499, oldPrice: 52999, specs: '2.0HP', model: 'HSN18IPX3', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: '70% energy savings with WiFi, Ionizer & UV Light', 
@@ -260,7 +267,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 28, name: 'LG Premium Dual Inverter AC', brand: 'LG', category: 'split', icon: '❄️', 
+      id: 28, name: 'LG Premium Dual Inverter AC', brand: 'LG', category: 'split',
       price: 46499, oldPrice: 59999, specs: '2.5HP', model: 'HSN24IPX3', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: '70% energy savings with WiFi, Ionizer & UV Light', 
@@ -268,7 +275,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 29, name: 'LG Premium Dual Inverter AC', brand: 'LG', category: 'split', icon: '❄️', 
+      id: 29, name: 'LG Premium Dual Inverter AC', brand: 'LG', category: 'split',
       price: 82999, oldPrice: 99999, specs: '3.0HP', model: 'HSN30IPC', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: '70% energy savings with WiFi, Ionizer & UV Light', 
@@ -278,7 +285,7 @@ function Shop() {
 
     // ===== LG STANDARD DUAL INVERTER (Split Type) =====
     { 
-      id: 30, name: 'LG Standard Dual Inverter AC', brand: 'LG', category: 'split', icon: '❄️', 
+      id: 30, name: 'LG Standard Dual Inverter AC', brand: 'LG', category: 'split',
       price: 24999, specs: '1.0HP', model: 'HSN09IBA', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: '70% energy savings with dual inverter technology', 
@@ -286,7 +293,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 31, name: 'LG Standard Dual Inverter AC', brand: 'LG', category: 'split', icon: '❄️', 
+      id: 31, name: 'LG Standard Dual Inverter AC', brand: 'LG', category: 'split',
       price: 27999, specs: '1.5HP', model: 'HSN12IBA', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: '70% energy savings with dual inverter technology', 
@@ -294,7 +301,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 32, name: 'LG Standard Dual Inverter AC', brand: 'LG', category: 'split', icon: '❄️', 
+      id: 32, name: 'LG Standard Dual Inverter AC', brand: 'LG', category: 'split',
       price: 32999, specs: '2.0HP', model: 'HSN18IBA', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: '70% energy savings with dual inverter technology', 
@@ -302,7 +309,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 33, name: 'LG Standard Dual Inverter AC', brand: 'LG', category: 'split', icon: '❄️', 
+      id: 33, name: 'LG Standard Dual Inverter AC', brand: 'LG', category: 'split',
       price: 38999, specs: '2.5HP', model: 'HSN24IBA', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: '70% energy savings with dual inverter technology', 
@@ -312,7 +319,7 @@ function Shop() {
 
     // ===== WINDOW TYPE ACs =====
     { 
-      id: 34, name: 'TCL Full DC Inverter Window AC', brand: 'TCL', category: 'window', icon: '❄️', 
+      id: 34, name: 'TCL Full DC Inverter Window AC', brand: 'TCL', category: 'window',
       price: 21995, oldPrice: 25995, specs: '1.0HP', model: 'TAC09 CWI/UJE2', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Quiet operation with WiFi control, 75% energy savings vs Non-inverter. Features: T-AI Technology, Golden titanium fin, Fast cooling, Filter Cleaning Reminder, 42db Low Noise Operation', 
@@ -320,7 +327,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 35, name: 'TCL Full DC Inverter Window AC', brand: 'TCL', category: 'window', icon: '❄️', 
+      id: 35, name: 'TCL Full DC Inverter Window AC', brand: 'TCL', category: 'window',
       price: 23995, oldPrice: 27995, specs: '1.5HP', model: 'TAC12 CWI/UJE2', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Quiet operation with WiFi control, 75% energy savings vs Non-inverter', 
@@ -328,7 +335,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 36, name: 'TCL Full DC Inverter Window AC', brand: 'TCL', category: 'window', icon: '❄️', 
+      id: 36, name: 'TCL Full DC Inverter Window AC', brand: 'TCL', category: 'window',
       price: 31995, oldPrice: 37995, specs: '2.0HP', model: 'TAC18 CWI/UJE2', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Quiet operation with WiFi control, 75% energy savings vs Non-inverter', 
@@ -336,7 +343,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 37, name: 'TCL Full DC Inverter Window AC', brand: 'TCL', category: 'window', icon: '❄️', 
+      id: 37, name: 'TCL Full DC Inverter Window AC', brand: 'TCL', category: 'window',
       price: 35995, oldPrice: 42995, specs: '2.5HP', model: 'TAC24 CWI/UJE2', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Quiet operation with WiFi control, 75% energy savings vs Non-inverter', 
@@ -346,7 +353,7 @@ function Shop() {
 
     // ===== FLOOR MOUNTED ACs =====
     { 
-      id: 38, name: 'Carrier Opus Inverter Floor Mounted', brand: 'Carrier', category: 'floor', icon: '❄️', 
+      id: 38, name: 'Carrier Opus Inverter Floor Mounted', brand: 'Carrier', category: 'floor',
       price: 95000, oldPrice: 109999, specs: '3.0HP', model: '53CNV030WTHP', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Energenius Inverter Technology with 6.40 PHP/hour cost to run, 18 Speed Fan Control, 3D Cooling, Multi Directional Airflow, Adaptive Cooling, Mood Lightning and LED Panel Display', 
@@ -354,7 +361,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 39, name: 'Carrier Slim Floor Mounted', brand: 'Carrier', category: 'floor', icon: '❄️', 
+      id: 39, name: 'Carrier Slim Floor Mounted', brand: 'Carrier', category: 'floor',
       price: 100000, oldPrice: 115000, specs: '4.0HP', model: '53CLV036308', 
       energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Energenius Inverter Technology with 7.00 PHP/hour cost to run, Low Sound at 22 dB(A), 3D Airflow 85°, Horizontal Air swing, Gold Fin Coating, Be+ ionizer, Sure shield Warranty', 
@@ -362,7 +369,7 @@ function Shop() {
       imageUrl: ''
     },
     { 
-      id: 40, name: 'TCL Floor Mounted AC', brand: 'TCL', category: 'floor', icon: '❄️', 
+      id: 40, name: 'TCL Floor Mounted AC', brand: 'TCL', category: 'floor',
       price: 55000, oldPrice: 65000, specs: '3.0HP', model: 'TAC-FM30', 
       energyRating: '4 Stars', warranty: '1 year parts & labor, 5 years compressor', 
       description: 'Powerful floor mounted cooling solution for large spaces', 
@@ -432,11 +439,16 @@ function Shop() {
         <div className="shop-header-content">
           <div className="shop-header-left">
             <button className="back-btn" onClick={handleBack}>←</button>
-            <h1 className="shop-title">Shop AC Units</h1>
+            <div>
+              <h1 className="shop-title">Shop AC Units</h1>
+              {serviceAreaLabel && (
+                <p className="shop-service-area-pill">Delivering to: {serviceAreaLabel}</p>
+              )}
+            </div>
           </div>
           <div className="shop-header-right">
-            <button className="cart-icon-btn" onClick={() => setIsCartOpen(true)}>
-              🛒
+            <button type="button" className="cart-icon-btn" onClick={() => setIsCartOpen(true)} aria-label="Open cart">
+              <img src={icons.cartShoppingFast} alt="" className="inline-icon inline-icon--lg" />
               {getCartCount() > 0 && <span className="cart-badge">{getCartCount()}</span>}
             </button>
           </div>
@@ -445,6 +457,7 @@ function Shop() {
 
       <div className="shop-main">
         <div className="shop-sidebar">
+          <ServiceAreaSelector onAreaChange={onServiceAreaChange} />
           <CategoryFilter
             categories={categories}
             selectedCategory={selectedCategory}

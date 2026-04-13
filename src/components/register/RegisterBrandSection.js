@@ -1,9 +1,11 @@
+import icons from '../common/icons';
+
 function RegisterBrandSection() {
   const features = [
-    { icon: '✅', text: 'Join thousands of satisfied customers' },
-    { icon: '🎁', text: 'Get exclusive member discounts' },
-    { icon: '🚀', text: 'Fast checkout and order tracking' },
-    { icon: '💬', text: '24/7 priority customer support' }
+    { icon: icons.checkCircle, text: 'Join thousands of satisfied customers' },
+    { icon: icons.cartShoppingFast, text: 'Get exclusive member discounts' },
+    { icon: icons.bolt, text: 'Fast checkout and order tracking' },
+    { icon: icons.envelope, text: '24/7 priority customer support' }
   ];
 
   return (
@@ -17,7 +19,9 @@ function RegisterBrandSection() {
         <div className="brand-features">
           {features.map((feature, index) => (
             <div key={index} className="feature-item">
-              <span className="feature-icon">{feature.icon}</span>
+              <span className="feature-icon">
+                <img src={feature.icon} alt="" className="inline-icon inline-icon--md" />
+              </span>
               <span>{feature.text}</span>
             </div>
           ))}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../context/UserContext';
 import { apiRequest } from '../../../config/api';
 import SuperAdminLayout from '../Common/SuperAdminLayout';
+import icons from '../../common/icons';
 import '../superAdminShared.css';
 
 function SuperAdminDashboard() {
@@ -87,12 +88,12 @@ function SuperAdminDashboard() {
         <div className="super-card">
           <h2>Boss Controls</h2>
           <div className="super-list">
-            <button type="button" onClick={() => navigate('/superadmin/branches')}>📍 Branch Location Handling</button>
-            <button type="button" onClick={() => navigate('/superadmin/attendance')}>🕒 Attendance (Admins and Techs)</button>
-            <button type="button" onClick={() => navigate('/superadmin/sales')}>💰 Pending Sales</button>
-            <button type="button" onClick={() => navigate('/superadmin/inventory')}>📦 Inventory Checker</button>
-            <button type="button" onClick={() => navigate('/superadmin/tasks')}>📋 Pending Tech Tasks</button>
-            <button type="button" onClick={() => navigate('/superadmin/alerts')}>🚨 Customer Complaint Alerts</button>
+            <button type="button" onClick={() => navigate('/superadmin/branches')}><img src={icons.marker} alt="" className="inline-icon" /> Branch Location Handling</button>
+            <button type="button" onClick={() => navigate('/superadmin/attendance')}><img src={icons.clipboardList} alt="" className="inline-icon" /> Attendance (Admins and Techs)</button>
+            <button type="button" onClick={() => navigate('/superadmin/sales')}><img src={icons.cartShoppingFast} alt="" className="inline-icon" /> Pending Sales</button>
+            <button type="button" onClick={() => navigate('/superadmin/inventory')}><img src={icons.boxOpen} alt="" className="inline-icon" /> Inventory Checker</button>
+            <button type="button" onClick={() => navigate('/superadmin/tasks')}><img src={icons.tools} alt="" className="inline-icon" /> Pending Tech Tasks</button>
+            <button type="button" onClick={() => navigate('/superadmin/alerts')}><img src={icons.diamondExclamation} alt="" className="inline-icon" /> Customer Complaint Alerts</button>
           </div>
         </div>
         <div className="super-card">

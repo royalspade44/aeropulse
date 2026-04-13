@@ -1,9 +1,11 @@
+import icons from '../common/icons';
+
 function ContactInfo() {
   const contactItems = [
-    { icon: '📞', title: 'Phone Number', details: ['+65 6760 0083', '+65 9123 4567'] },
-    { icon: '✉️', title: 'Email Address', details: ['info@coldair.com.sg', 'support@coldair.com.sg'] },
-    { icon: '🌐', title: 'Website', details: ['www.coldair.com.sg'] },
-    { icon: '📍', title: 'Address', details: ['192 Pandan Loop #06-29', 'Singapore 128381'] }
+    { iconSrc: icons.phoneCall, title: 'Phone Number', details: ['+65 6760 0083', '+65 9123 4567'] },
+    { iconSrc: icons.envelope, title: 'Email Address', details: ['info@coldair.com.sg', 'support@coldair.com.sg'] },
+    { iconSrc: icons.globePointer, title: 'Website', details: ['www.coldair.com.sg'] },
+    { iconSrc: icons.marker, title: 'Address', details: ['192 Pandan Loop #06-29', 'Singapore 128381'] }
   ];
 
   return (
@@ -13,7 +15,9 @@ function ContactInfo() {
       <div className="contact-details">
         {contactItems.map((item, index) => (
           <div key={index} className="contact-item">
-            <div className="contact-icon">{item.icon}</div>
+            <div className="contact-icon">
+              <img src={item.iconSrc} alt="" className="inline-icon inline-icon--lg" />
+            </div>
             <div className="contact-text">
               <h4>{item.title}</h4>
               {item.details.map((detail, i) => (

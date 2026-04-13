@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import icons from '../common/icons';
 
 function NotificationSettings() {
   const [notifications, setNotifications] = useState({
@@ -17,7 +18,7 @@ function NotificationSettings() {
   return (
     <div className="settings-section">
       <div className="section-title">
-        <span className="section-icon">🔔</span>
+        <span className="section-icon"><img src={icons.visit} alt="" className="inline-icon inline-icon--md" /></span>
         <h2>Notification Settings</h2>
       </div>
       <div className="settings-list">

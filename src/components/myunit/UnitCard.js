@@ -1,4 +1,7 @@
-function UnitCard({ unit, onClick, onScheduleService, onViewHistory }) {
+import icons from '../common/icons';
+import UnitKebabMenu from './UnitKebabMenu';
+
+function UnitCard({ unit, onClick, onScheduleService, onViewHistory, onWarrantyStatus, onRegisterQr }) {
   const getStatusClass = () => {
     switch(unit.status) {
       case 'Good': return 'status-good';
@@ -14,7 +17,16 @@ function UnitCard({ unit, onClick, onScheduleService, onViewHistory }) {
         <div className="unit-brand-model">
           {unit.brand} {unit.model}
         </div>
-        <div className="unit-icon">❄️</div>
+        <div className="unit-header-actions">
+          <UnitKebabMenu
+            unit={unit}
+            onScheduleService={onScheduleService}
+            onViewHistory={onViewHistory}
+            onWarrantyStatus={onWarrantyStatus}
+            onRegisterQr={onRegisterQr}
+          />
+          <div className="unit-icon"><img src={icons.temperatureFrigid} alt="" className="inline-icon inline-icon--lg" /></div>
+        </div>
       </div>
       <div className="unit-body">
         <div className="unit-info">
@@ -30,6 +42,12 @@ function UnitCard({ unit, onClick, onScheduleService, onViewHistory }) {
             <span className="info-label">Status</span>
             <span className={`unit-status ${getStatusClass()}`}>{unit.status}</span>
           </div>
+          {unit.ampereNextServiceLabel && (
+            <div className="info-row">
+              <span className="info-label">AMPERE</span>
+              <span className="info-value">{unit.ampereNextServiceLabel}</span>
+            </div>
+          )}
         </div>
       </div>
       <div className="unit-footer">

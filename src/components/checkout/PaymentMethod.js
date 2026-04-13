@@ -1,26 +1,30 @@
+import icons from '../common/icons';
+
 function PaymentMethod({ selectedMethod, onSelectMethod }) {
   const paymentMethods = [
-    { id: 'cod', name: 'Cash on Delivery', description: 'Pay when you receive the item', icon: '💰' },
-    { id: 'gcash', name: 'GCash', description: 'Pay via GCash (QR code will be provided)', icon: '📱' },
-    { id: 'credit', name: 'Credit/Debit Card', description: 'Visa, Mastercard, JCB', icon: '💳' }
+    { id: 'cod', name: 'Cash on Delivery', description: 'Pending until you pay on delivery', iconSrc: icons.cartShoppingFast },
+    { id: 'gcash', name: 'GCash', description: 'Payment gateway — complete after order submit', iconSrc: icons.customize },
+    { id: 'credit', name: 'Credit / debit card', description: 'Payment gateway (Visa, Mastercard, JCB)', iconSrc: icons.shieldKeyhole },
+    { id: 'pay_on_install', name: 'Payment upon installation', description: 'Pending until installation is completed', iconSrc: icons.tools }
   ];
 
   return (
     <div className="checkout-section">
       <h2 style={{ marginBottom: '20px' }}>Payment Method</h2>
       <div className="payment-methods">
-        {paymentMethods.map(method => (
+        {paymentMethods.map((method) => (
           <div
             key={method.id}
             className={`payment-option ${selectedMethod === method.id ? 'selected' : ''}`}
             onClick={() => onSelectMethod(method.id)}
+            role="presentation"
           >
             <div className="payment-radio"></div>
             <div className="payment-info">
               <div className="payment-name">{method.name}</div>
               <div className="payment-description">{method.description}</div>
             </div>
-            <span style={{ fontSize: '24px' }}>{method.icon}</span>
+            <img src={method.iconSrc} alt="" className="inline-icon inline-icon--xl" />
           </div>
         ))}
       </div>

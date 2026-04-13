@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import icons from '../common/icons';
 
 function AccountSettings() {
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -25,7 +26,7 @@ function AccountSettings() {
   return (
     <div className="settings-section">
       <div className="section-title">
-        <span className="section-icon">🔐</span>
+        <span className="section-icon"><img src={icons.lock} alt="" className="inline-icon inline-icon--md" /></span>
         <h2>Account Settings</h2>
       </div>
       <div className="settings-list">

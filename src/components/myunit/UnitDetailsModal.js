@@ -1,3 +1,5 @@
+import icons from '../common/icons';
+
 function UnitDetailsModal({ unit, onClose, onEdit, onDelete }) {
   const getStatusClass = () => {
     switch(unit.status) {
@@ -17,7 +19,7 @@ function UnitDetailsModal({ unit, onClose, onEdit, onDelete }) {
         </div>
         <div className="modal-body">
           <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <div style={{ fontSize: '60px' }}>❄️</div>
+            <div style={{ marginBottom: '8px' }}><img src={icons.temperatureFrigid} alt="" style={{ width: 56, height: 56, objectFit: 'contain' }} /></div>
             <h2>{unit.brand} {unit.model}</h2>
           </div>
           
@@ -33,6 +35,24 @@ function UnitDetailsModal({ unit, onClose, onEdit, onDelete }) {
             <span className="info-label">Status</span>
             <span className={`unit-status ${getStatusClass()}`}>{unit.status}</span>
           </div>
+          {unit.ampereNextServiceLabel && (
+            <div className="info-row">
+              <span className="info-label">Next service (AMPERE)</span>
+              <span className="info-value">{unit.ampereNextServiceLabel}</span>
+            </div>
+          )}
+          {unit.technicianReportSummary && (
+            <div className="info-row">
+              <span className="info-label">Latest report</span>
+              <span className="info-value">{unit.technicianReportSummary}</span>
+            </div>
+          )}
+          {unit.installEnvironmentNotes && (
+            <div className="info-row">
+              <span className="info-label">Install environment</span>
+              <span className="info-value">{unit.installEnvironmentNotes}</span>
+            </div>
+          )}
           {unit.notes && (
             <div className="info-row">
               <span className="info-label">Notes</span>

@@ -1,10 +1,12 @@
-function InputField({ 
-  label, 
-  type = 'text', 
-  placeholder, 
-  value, 
-  onChange, 
-  error, 
+import icons from './icons';
+
+function InputField({
+  label,
+  type = 'text',
+  placeholder,
+  value,
+  onChange,
+  error,
   disabled,
   required = false
 }) {
@@ -24,7 +26,12 @@ function InputField({
         disabled={disabled}
         className={error ? 'input-error' : ''}
       />
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-message">
+          <img src={icons.diamondExclamation} alt="" className="inline-icon" />
+          <span>{error}</span>
+        </div>
+      )}
     </div>
   );
 }

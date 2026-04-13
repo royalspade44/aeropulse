@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import icons from '../common/icons';
 
 function ServiceBookingModal({ service, onClose, onConfirm }) {
   const [bookingData, setBookingData] = useState({
@@ -65,7 +66,7 @@ function ServiceBookingModal({ service, onClose, onConfirm }) {
             </div>
             <div className="booking-info-item">
               <span className="booking-label">Warranty:</span>
-              <span className="booking-value warranty-value">🔒 {service.warranty}</span>
+              <span className="booking-value warranty-value"><img src={icons.lock} alt="" className="inline-icon" /> {service.warranty}</span>
             </div>
           </div>
 
@@ -119,14 +120,14 @@ function ServiceBookingModal({ service, onClose, onConfirm }) {
               onChange={(e) => setBookingData({ ...bookingData, technician: e.target.value })}
             >
               <option value="any">Any available technician (Included)</option>
-              <option value="senior">⭐ Senior Technician (+₱200)</option>
-              <option value="express">⚡ Express Service (+₱500)</option>
+              <option value="senior">Senior Technician (+₱200)</option>
+              <option value="express">Express Service (+₱500)</option>
             </select>
             {bookingData.technician !== 'any' && (
               <div className="tech-note">
                 {bookingData.technician === 'senior' 
-                  ? '✓ Experienced technician with 5+ years experience' 
-                  : '✓ Priority dispatch within 2 hours'}
+                  ? 'Experienced technician with 5+ years experience'
+                  : 'Priority dispatch within 2 hours'}
               </div>
             )}
           </div>

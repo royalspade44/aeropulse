@@ -1,3 +1,5 @@
+import icons from '../common/icons';
+
 function Footer() {
   return (
     <footer className="footer">
@@ -13,9 +15,15 @@ function Footer() {
         <div className="footer-section">
           <h4>Follow Us</h4>
           <div className="social-links">
-            <button onClick={() => alert('Facebook')}>📘</button>
-            <button onClick={() => alert('Instagram')}>📷</button>
-            <button onClick={() => alert('Twitter')}>🐦</button>
+            <button type="button" onClick={() => alert('Facebook')} aria-label="Facebook">
+              <img src={icons.globePointer} alt="" className="inline-icon inline-icon--md" />
+            </button>
+            <button type="button" onClick={() => alert('Instagram')} aria-label="Instagram">
+              <img src={icons.globePointer} alt="" className="inline-icon inline-icon--md" />
+            </button>
+            <button type="button" onClick={() => alert('Twitter')} aria-label="Twitter">
+              <img src={icons.globePointer} alt="" className="inline-icon inline-icon--md" />
+            </button>
           </div>
         </div>
       </div>

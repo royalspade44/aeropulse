@@ -1,4 +1,33 @@
 import { useState } from 'react';
+import icons from '../common/icons';
+
+function productPlaceholderIcon(product) {
+  if (product?.category === 'window') return icons.windowFrame;
+  if (product?.category === 'floor') return icons.houseChimney;
+  return icons.temperatureFrigid;
+}
+
+function ModalProductImage({ product }) {
+  const [broken, setBroken] = useState(false);
+  const placeholder = productPlaceholderIcon(product);
+
+  if (product.imageUrl && !broken) {
+    return (
+      <img
+        src={product.imageUrl}
+        alt={product.name}
+        className="modal-product-img"
+        onError={() => setBroken(true)}
+      />
+    );
+  }
+
+  return (
+    <span className="modal-product-fallback">
+      <img src={placeholder} alt="" className="inline-icon inline-icon--xl" />
+    </span>
+  );
+}
 
 function ProductModal({ product, onClose, onAddToCart }) {
   const [quantity, setQuantity] = useState(1);
@@ -11,32 +40,20 @@ function ProductModal({ product, onClose, onAddToCart }) {
   };
 
   return (
-    <div className="product-modal-overlay" onClick={onClose}>
-      <div className="product-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="close-modal-btn" onClick={onClose}>×</button>
+    <div className="product-modal-overlay" onClick={onClose} role="presentation">
+      <div className="product-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <button type="button" className="close-modal-btn" onClick={onClose}>×</button>
         <div className="modal-content">
           <div className="modal-image">
-            {product.imageUrl ? (
-              <img 
-                src={product.imageUrl} 
-                alt={product.name}
-                className="modal-product-img"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.parentElement.innerHTML = `<span class="modal-product-fallback">${product.icon || '❄️'}</span>`;
-                }}
-              />
-            ) : (
-              <span className="modal-product-fallback">{product.icon || '❄️'}</span>
-            )}
+            <ModalProductImage product={product} />
           </div>
           <div className="modal-details">
             <h2>{product.name}</h2>
             <div className="modal-brand">{product.brand}</div>
             <div className="modal-price">
-              ₱{product.price.toLocaleString()}
+              {'\u20b1'}{product.price.toLocaleString()}
               {product.oldPrice && (
-                <span className="product-old-price"> ₱{product.oldPrice.toLocaleString()}</span>
+                <span className="product-old-price"> {'\u20b1'}{product.oldPrice.toLocaleString()}</span>
               )}
             </div>
             <p className="modal-description">{product.description}</p>
@@ -47,12 +64,12 @@ function ProductModal({ product, onClose, onAddToCart }) {
               <li><span className="spec-label">Warranty:</span><span>{product.warranty}</span></li>
             </ul>
             <div className="quantity-selector">
-              <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
+              <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
               <span>{quantity}</span>
-              <button onClick={() => setQuantity(quantity + 1)}>+</button>
+              <button type="button" onClick={() => setQuantity(quantity + 1)}>+</button>
             </div>
-            <button className="add-to-cart-modal" onClick={handleAddToCart}>
-              Add to Cart - ₱{(product.price * quantity).toLocaleString()}
+            <button type="button" className="add-to-cart-modal" onClick={handleAddToCart}>
+              Add to Cart - {'\u20b1'}{(product.price * quantity).toLocaleString()}
             </button>
           </div>
         </div>

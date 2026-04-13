@@ -1,4 +1,11 @@
 import { useNavigate } from 'react-router-dom';
+import icons from '../common/icons';
+
+function productThumbIcon(item) {
+  if (item?.category === 'window') return icons.windowFrame;
+  if (item?.category === 'floor') return icons.houseChimney;
+  return icons.temperatureFrigid;
+}
 
 function CartSidebar({ isOpen, onClose, cart, onUpdateQuantity, onRemoveItem, onCheckout, getCartTotal }) {
   const navigate = useNavigate();
@@ -20,7 +27,9 @@ function CartSidebar({ isOpen, onClose, cart, onUpdateQuantity, onRemoveItem, on
         ) : (
           cart.map(item => (
             <div key={item.id} className="cart-item">
-              <div className="cart-item-image">{item.icon}</div>
+              <div className="cart-item-image">
+                <img src={productThumbIcon(item)} alt="" className="inline-icon inline-icon--lg" />
+              </div>
               <div className="cart-item-details">
                 <div className="cart-item-name">{item.name}</div>
                 <div className="cart-item-price">₱{item.price.toLocaleString()}</div>
@@ -28,12 +37,14 @@ function CartSidebar({ isOpen, onClose, cart, onUpdateQuantity, onRemoveItem, on
                   <button className="qty-btn" onClick={() => onUpdateQuantity(item.id, (item.quantity || 1) - 1)}>-</button>
                   <span>{item.quantity || 1}</span>
                   <button className="qty-btn" onClick={() => onUpdateQuantity(item.id, (item.quantity || 1) + 1)}>+</button>
-                  <button 
-                    className="qty-btn" 
+                  <button
+                    type="button"
+                    className="qty-btn"
                     onClick={() => onRemoveItem(item.id)}
                     style={{ background: '#f44336', color: 'white', marginLeft: '10px' }}
+                    aria-label="Remove item"
                   >
-                    🗑️
+                    <img src={icons.broom} alt="" className="inline-icon" style={{ filter: 'brightness(0) invert(1)' }} />
                   </button>
                 </div>
               </div>

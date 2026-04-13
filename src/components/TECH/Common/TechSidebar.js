@@ -2,11 +2,12 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useUser } from '../../../context/UserContext';
 import { confirmDialog } from '../../../utils/dialog';
+import icons from '../../common/icons';
 
 const items = [
-  { to: '/tech/dashboard', label: 'Dashboard', icon: '📊' },
-  { to: '/tech/tasks', label: 'Tasks', icon: '📋' },
-  { to: '/tech/profile', label: 'Profile', icon: '👤' }
+  { to: '/tech/dashboard', label: 'Dashboard', icon: icons.clipboardList },
+  { to: '/tech/tasks', label: 'Tasks', icon: icons.tools },
+  { to: '/tech/profile', label: 'Profile', icon: icons.memberList }
 ];
 
 const TechSidebar = ({ isOpen, onClose }) => {
@@ -24,7 +25,7 @@ const TechSidebar = ({ isOpen, onClose }) => {
     <aside className={`tech-sidebar ${isOpen ? 'open' : ''}`}>
       <div className="tech-sidebar-brand-row">
         <div className="tech-sidebar-brand">AeroPulse Tech</div>
-        <button type="button" className="tech-sidebar-close" onClick={onClose}>✕</button>
+        <button type="button" className="tech-sidebar-close" onClick={onClose}>{'\u2715'}</button>
       </div>
       <nav className="tech-sidebar-nav">
         {items.map((item) => (
@@ -34,7 +35,9 @@ const TechSidebar = ({ isOpen, onClose }) => {
             className={({ isActive }) => `tech-sidebar-link ${isActive ? 'active' : ''}`}
             onClick={onClose}
           >
-            <span>{item.icon}</span>
+            <span className="tech-nav-icon-wrap">
+              <img src={item.icon} alt="" className="inline-icon inline-icon--md" />
+            </span>
             <span>{item.label}</span>
           </NavLink>
         ))}
@@ -44,7 +47,7 @@ const TechSidebar = ({ isOpen, onClose }) => {
         className="tech-sidebar-logout"
         onClick={handleLogout}
       >
-        🚪 Logout
+        <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" /> Logout
       </button>
     </aside>
   );

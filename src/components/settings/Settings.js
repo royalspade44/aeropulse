@@ -8,6 +8,7 @@ import NotificationSettings from './NotificationSettings';
 import PrivacySettings from './PrivacySettings';
 import PreferencesSettings from './PreferencesSettings';
 import { confirmDialog } from '../../utils/dialog';
+import icons from '../common/icons';
 
 function Settings() {
   const { user, updateProfile, updatePreferences, updatePrivacy, updateNotifications, changePassword, deleteAccount, logout } = useUser();
@@ -136,8 +137,8 @@ function Settings() {
           ←
         </button>
         <h1>Settings</h1>
-        <button className="logout-btn" onClick={handleLogout}>
-          <span>🚪</span> Logout
+        <button type="button" className="logout-btn" onClick={handleLogout}>
+          <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" /> Logout
         </button>
       </div>
 

@@ -88,39 +88,7 @@
     position: relative;
   }
   
-  /* Add decorative icon on the right */
-  .stat-card::after {
-    content: "";
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 48px;
-    opacity: 0.08;
-    pointer-events: none;
-  }
-  
-  .stat-card:nth-child(1)::after {
-    content: "💰";
-    font-size: 56px;
-  }
-  
-  .stat-card:nth-child(2)::after {
-    content: "📋";
-    font-size: 56px;
-  }
-  
-  .stat-card:nth-child(3)::after {
-    content: "⚠️";
-    font-size: 56px;
-  }
-  
-  .stat-card:nth-child(4)::after {
-    content: "🔧";
-    font-size: 56px;
-  }
-  
-  /* Loading state */
+/* Loading state */
   .stat-card.loading {
     opacity: 0.6;
     pointer-events: none;
@@ -223,17 +191,7 @@
       letter-spacing: 0.5px;
     }
     
-    .stat-card::after {
-      font-size: 40px;
-      right: 15px;
-    }
     
-    .stat-card:nth-child(1)::after,
-    .stat-card:nth-child(2)::after,
-    .stat-card:nth-child(3)::after,
-    .stat-card:nth-child(4)::after {
-      font-size: 40px;
-    }
   }
   
   @media (max-width: 480px) {
@@ -250,9 +208,6 @@
       font-size: 28px;
     }
     
-    .stat-card::after {
-      font-size: 48px;
-    }
   }
   
   /* Optional: Dark mode support */

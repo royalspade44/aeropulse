@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Services.css';
+import icons from '../common/icons';
 import ServiceBookingModal from './ServiceBookingModal';
 
 function Services() {
@@ -21,7 +22,7 @@ function Services() {
     {
       id: 1,
       name: 'Maintenance',
-      icon: '🔧',
+      iconSrc: icons.tools,
       description: 'Regular check-ups and servicing for your AC to ensure optimal performance and energy efficiency.',
       duration: '1-2 hours',
       technicians: 2,
@@ -34,7 +35,7 @@ function Services() {
     {
       id: 2,
       name: 'Repair',
-      icon: '⚙️',
+      iconSrc: icons.tools,
       description: 'AC repair services for any issues including compressor problems, refrigerant leaks, and electrical faults.',
       duration: '2-3 hours',
       technicians: 2,
@@ -47,7 +48,7 @@ function Services() {
     {
       id: 3,
       name: 'Cleaning',
-      icon: '🧼',
+      iconSrc: icons.broom,
       description: 'Deep cleaning service to remove dirt, dust, mold, and bacteria from your AC unit.',
       duration: '1.5 hours',
       technicians: 1,
@@ -60,7 +61,7 @@ function Services() {
     {
       id: 4,
       name: 'Emergency Repair',
-      icon: '🚨',
+      iconSrc: icons.diamondExclamation,
       description: '24/7 emergency AC repair service for urgent issues. Same-day response guaranteed.',
       duration: '2-3 hours',
       technicians: 2,
@@ -73,7 +74,7 @@ function Services() {
     {
       id: 5,
       name: 'Premium Maintenance',
-      icon: '⭐',
+      iconSrc: icons.checkCircle,
       description: 'Comprehensive maintenance including filter replacement, coil cleaning, and performance tuning.',
       duration: '2-3 hours',
       technicians: 2,
@@ -86,7 +87,7 @@ function Services() {
     {
       id: 6,
       name: 'Sanitization Service',
-      icon: '🦠',
+      iconSrc: icons.shieldKeyhole,
       description: 'Anti-bacterial and anti-viral sanitization for your AC unit. Improves air quality.',
       duration: '1.5 hours',
       technicians: 1,
@@ -140,7 +141,7 @@ function Services() {
     bookings.push(bookingDetails);
     localStorage.setItem('bookings', JSON.stringify(bookings));
     
-    alert(`✅ Booking Confirmed!\n\nService: ${service.name}\nDate: ${bookingData.date}\nTime: ${bookingData.time}\nTechnician: ${technicianLabel}\nTotal: ₱${totalPrice.toLocaleString()}\n\nWarranty: ${service.warranty}\nBooking ID: #${bookingDetails.bookingId}`);
+    alert(`Booking confirmed!\n\nService: ${service.name}\nDate: ${bookingData.date}\nTime: ${bookingData.time}\nTechnician: ${technicianLabel}\nTotal: ₱${totalPrice.toLocaleString()}\n\nWarranty: ${service.warranty}\nBooking ID: #${bookingDetails.bookingId}`);
     
     setShowBookingModal(false);
     setSelectedService(null);
@@ -209,10 +210,10 @@ function Services() {
           <div className="sidebar-section">
             <h3>Warranty Benefits</h3>
             <div className="benefits-list">
-              <div className="benefit-item">✅ 30-day service warranty</div>
-              <div className="benefit-item">✅ Free re-service if unsatisfied</div>
-              <div className="benefit-item">✅ Certified technicians</div>
-              <div className="benefit-item">✅ Genuine spare parts</div>
+              <div className="benefit-item"><img src={icons.checkCircle} alt="" className="inline-icon" /> 30-day service warranty</div>
+              <div className="benefit-item"><img src={icons.checkCircle} alt="" className="inline-icon" /> Free re-service if unsatisfied</div>
+              <div className="benefit-item"><img src={icons.checkCircle} alt="" className="inline-icon" /> Certified technicians</div>
+              <div className="benefit-item"><img src={icons.checkCircle} alt="" className="inline-icon" /> Genuine spare parts</div>
             </div>
           </div>
         </aside>
@@ -226,7 +227,7 @@ function Services() {
             </div>
             <div className="search-sort">
               <div className="search-box">
-                <span>🔍</span>
+                <img src={icons.globePointer} alt="" className="inline-icon" />
                 <input
                   type="text"
                   placeholder="Search services..."
@@ -251,15 +252,15 @@ function Services() {
                   <div className="discount-badge">{service.discount}</div>
                 )}
                 <div className="service-card-image">
-                  <span className="service-icon">{service.icon}</span>
+                  <span className="service-icon"><img src={service.iconSrc} alt="" className="inline-icon inline-icon--xl" /></span>
                   {service.popular && <span className="service-badge">Popular</span>}
                 </div>
                 <div className="service-card-content">
                   <h3 className="service-name">{service.name}</h3>
                   <p className="service-description">{service.description}</p>
                   <div className="service-details">
-                    <span className="service-detail">⏱️ {service.duration}</span>
-                    <span className="service-detail">👥 {service.technicians} {service.technicians === 1 ? 'technician' : 'technicians'}</span>
+                    <span className="service-detail">Duration: {service.duration}</span>
+                    <span className="service-detail"><img src={icons.memberList} alt="" className="inline-icon" /> {service.technicians} {service.technicians === 1 ? 'technician' : 'technicians'}</span>
                   </div>
                   <div className="service-price">
                     <div>
@@ -268,7 +269,7 @@ function Services() {
                       )}
                       <span className="price-amount">₱{service.price.toLocaleString()}</span>
                     </div>
-                    <span className="warranty-chip">🔒 {service.warranty} warranty</span>
+                    <span className="warranty-chip"><img src={icons.lock} alt="" className="inline-icon" /> {service.warranty} warranty</span>
                   </div>
                   <button className="book-btn" onClick={() => handleBookService(service)}>
                     Book Now →

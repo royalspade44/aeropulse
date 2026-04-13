@@ -1,4 +1,5 @@
 import { useCart } from '../../context/CartContext';
+import icons from '../common/icons';
 
 function Header({ onMenuToggle, onNotificationClick, onCartClick, notificationCount }) {
   const { getCartCount } = useCart();
@@ -7,8 +8,8 @@ function Header({ onMenuToggle, onNotificationClick, onCartClick, notificationCo
     <header className="home-header">
       <div className="header-content">
         <div className="header-left">
-          <button className="menu-toggle" onClick={onMenuToggle}>
-            ☰
+          <button type="button" className="menu-toggle" onClick={onMenuToggle} aria-label="Open menu">
+            <img src={icons.customize} alt="" className="inline-icon inline-icon--md" />
           </button>
           <div className="logo">
             <div className="logo-icon">CA</div>
@@ -19,16 +20,16 @@ function Header({ onMenuToggle, onNotificationClick, onCartClick, notificationCo
           </div>
         </div>
         <div className="header-right">
-          <div className="icon-btn" onClick={onNotificationClick}>
-            🔔
+          <button type="button" className="icon-btn" onClick={onNotificationClick} aria-label="Notifications">
+            <img src={icons.visit} alt="" className="inline-icon inline-icon--md" />
             {notificationCount > 0 && (
               <span className="badge">{notificationCount}</span>
             )}
-          </div>
-          <div className="icon-btn" onClick={onCartClick}>
-            🛒
+          </button>
+          <button type="button" className="icon-btn" onClick={onCartClick} aria-label="Cart">
+            <img src={icons.cartShoppingFast} alt="" className="inline-icon inline-icon--md" />
             {getCartCount() > 0 && <span className="badge">{getCartCount()}</span>}
-          </div>
+          </button>
         </div>
       </div>
     </header>

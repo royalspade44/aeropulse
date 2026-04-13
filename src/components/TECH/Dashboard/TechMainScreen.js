@@ -5,6 +5,7 @@ import { apiRequest } from '../../../config/api';
 import TechLayout from '../Common/TechLayout';
 import TaskCard from './TaskCard';
 import TaskFilters from './TaskFilters';
+import TechDispatchMetrics from './TechDispatchMetrics';
 import '../techShared.css';
 
 const TechMainScreen = () => {
@@ -44,6 +45,10 @@ const TechMainScreen = () => {
 
   return (
     <TechLayout title="Technician Dashboard" subtitle={`Welcome back, ${user?.name?.split(' ')[0] || 'Tech'}`}>
+      <TechDispatchMetrics tasks={tasks} />
+      <p className="tech-dispatch-note">
+        New jobs are auto-assigned by availability and workload balancing when the dispatcher API is connected; tickets capture visit history, warranty flags, and return visits.
+      </p>
       <div className="tech-stats-grid">
         <div className="tech-stat-card">
           <h3>Pending Tasks</h3>

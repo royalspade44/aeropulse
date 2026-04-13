@@ -745,6 +745,84 @@
   }
 }
 
+.register-step {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.register-step-title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1e293b;
+}
+
+.register-step-desc {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.register-legal-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.register-step-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.register-step-actions .register-button {
+  flex: 1;
+  min-width: 140px;
+}
+
+.register-step-indicator {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.register-step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e2e8f0;
+}
+
+.register-step-dot.active {
+  background: #667eea;
+  transform: scale(1.15);
+}
+
+.register-step-dot.done {
+  background: #94a3b8;
+}
+
+.register-totp-box {
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.register-totp-secret {
+  display: block;
+  margin-top: 8px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  word-break: break-all;
+  border: 1px dashed #cbd5e1;
+}
+
 /* Focus visible for accessibility */
 button:focus-visible,
 input:focus-visible,

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import icons from '../common/icons';
 
 function PrivacySettings() {
   const [privacy, setPrivacy] = useState({
@@ -23,7 +24,7 @@ function PrivacySettings() {
   return (
     <div className="settings-section">
       <div className="section-title">
-        <span className="section-icon">🛡️</span>
+        <span className="section-icon"><img src={icons.shieldKeyhole} alt="" className="inline-icon inline-icon--md" /></span>
         <h2>Privacy & Security</h2>
       </div>
       <div className="settings-list">

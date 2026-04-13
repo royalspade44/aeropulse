@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import icons from '../common/icons';
 
 function ProfileSettings({ user, onUpdateProfile }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -45,7 +46,9 @@ function ProfileSettings({ user, onUpdateProfile }) {
   return (
     <div className="settings-section">
       <div className="section-title">
-        <span className="section-icon">👤</span>
+        <span className="section-icon">
+          <img src={icons.memberList} alt="" className="inline-icon inline-icon--md" />
+        </span>
         <h2>Profile Information</h2>
       </div>
       <div className="settings-list">
@@ -131,25 +134,33 @@ function ProfileSettings({ user, onUpdateProfile }) {
 
         {!isEditing ? (
           <div className="setting-item">
-            <button onClick={() => setIsEditing(true)} className="edit-btn save-btn" style={{ color: '#1E88E5' }}>
-              ✎ Edit Profile
+            <button type="button" onClick={() => setIsEditing(true)} className="edit-btn save-btn" style={{ color: '#1E88E5' }}>
+              <img src={icons.customize} alt="" className="inline-icon" /> Edit Profile
             </button>
           </div>
         ) : (
           <div className="setting-item">
             <div className="edit-buttons">
-              <button onClick={handleSave} className="edit-btn save-btn">✓ Save Changes</button>
-              <button onClick={() => {
-                setIsEditing(false);
-                if (user) {
-                  setFormData({
-                    name: user.name || user.fullName || '',
-                    email: user.email || '',
-                    phone: user.phone || user.contactNumber || '',
-                    address: user.address || ''
-                  });
-                }
-              }} className="edit-btn cancel-btn">✗ Cancel</button>
+              <button type="button" onClick={handleSave} className="edit-btn save-btn">
+                <img src={icons.checkCircle} alt="" className="inline-icon" /> Save Changes
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditing(false);
+                  if (user) {
+                    setFormData({
+                      name: user.name || user.fullName || '',
+                      email: user.email || '',
+                      phone: user.phone || user.contactNumber || '',
+                      address: user.address || ''
+                    });
+                  }
+                }}
+                className="edit-btn cancel-btn"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         )}

@@ -5,6 +5,7 @@ import ContactInfo from './ContactInfo';
 import OfficeLocations from './OfficeLocations';
 import ServicesSupport from './ServicesSupport';
 import MapSection from './MapSection';
+import icons from '../common/icons';
 
 function Contact() {
   const navigate = useNavigate();
@@ -43,15 +44,15 @@ function Contact() {
             <p>Let our specialists help you choose the perfect AC solution for your space. We offer free consultations and site visits.</p>
             <div className="cta-features">
               <div className="cta-feature">
-                <span>🚚</span>
+                <span><img src={icons.visit} alt="" className="inline-icon" /></span>
                 <span>Free Site Visit</span>
               </div>
               <div className="cta-feature">
-                <span>💰</span>
+                <span><img src={icons.cartShoppingFast} alt="" className="inline-icon" /></span>
                 <span>Best Price Guarantee</span>
               </div>
               <div className="cta-feature">
-                <span>⭐</span>
+                <span><img src={icons.tools} alt="" className="inline-icon" /></span>
                 <span>Expert Technicians</span>
               </div>
             </div>

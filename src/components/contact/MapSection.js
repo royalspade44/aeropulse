@@ -1,3 +1,5 @@
+import icons from '../common/icons';
+
 function MapSection() {
   const locations = [
     {
@@ -38,16 +40,21 @@ function MapSection() {
 
   return (
     <div className="map-section">
-      <h3>📍 Our Branch Locations</h3>
+      <h3>
+        <img src={icons.marker} alt="" className="inline-icon inline-icon--md" /> Our Branch Locations
+      </h3>
       <p>Find the nearest Cold Air branch near you</p>
       <div className="map-buttons-grid">
         {locations.map((location, index) => (
-          <button 
+          <button
             key={index}
+            type="button"
             className="map-location-btn"
             onClick={() => handleOpenMap(location.mapsUrl)}
           >
-            <span className="location-icon">📍</span>
+            <span className="location-icon">
+              <img src={icons.marker} alt="" className="inline-icon" />
+            </span>
             <div className="location-info">
               <strong>{location.name}</strong>
               <small>{location.address}</small>

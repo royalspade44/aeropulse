@@ -90,14 +90,70 @@
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 5px;
+  padding-right: 100px;
+}
+
+.unit-header-actions {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.unit-kebab {
+  position: relative;
+}
+
+.unit-kebab-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.unit-kebab-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.unit-kebab-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  margin: 0;
+  padding: 8px 0;
+  list-style: none;
+  min-width: 220px;
+  background: #fff;
+  color: #1e293b;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  z-index: 30;
+}
+
+.unit-kebab-menu button {
+  width: 100%;
+  text-align: left;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.unit-kebab-menu button:hover {
+  background: #f1f5f9;
 }
 
 .unit-icon {
   font-size: 40px;
-  position: absolute;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
 }
 
 .unit-body {
@@ -370,6 +426,77 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.warranty-warnings {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  font-size: 14px;
+}
+
+.warranty-warnings p {
+  margin: 0 0 6px;
+}
+
+.warranty-warnings p:last-child {
+  margin-bottom: 0;
+}
+
+.warranty-footnote {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 16px;
+  line-height: 1.45;
+}
+
+.service-history-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.schedule-ampere-hint {
+  font-size: 14px;
+  color: #475569;
+  margin: 0 0 14px;
+  line-height: 1.45;
+}
+
+.register-qr-modal .register-qr-help {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+
+.register-qr-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.register-qr-preview {
+  margin-top: 14px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.error-inline {
+  color: #b91c1c;
+  font-size: 13px;
+  margin: 0 0 8px;
 }
 
 @media (max-width: 768px) {

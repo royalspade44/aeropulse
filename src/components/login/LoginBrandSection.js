@@ -1,9 +1,11 @@
+import icons from '../common/icons';
+
 function LoginBrandSection() {
   const features = [
-    { icon: '❄️', text: 'Premium Quality AC Units' },
-    { icon: '🔧', text: 'Expert Installation Service' },
-    { icon: '⭐', text: '24/7 Customer Support' },
-    { icon: '🚚', text: 'Free Delivery Nationwide' }
+    { icon: icons.temperatureFrigid, text: 'Premium Quality AC Units' },
+    { icon: icons.tools, text: 'Expert Installation Service' },
+    { icon: icons.checkCircle, text: '24/7 Customer Support' },
+    { icon: icons.cartShoppingFast, text: 'Free Delivery Nationwide' }
   ];
 
   return (
@@ -17,7 +19,9 @@ function LoginBrandSection() {
         <div className="brand-features">
           {features.map((feature, index) => (
             <div key={index} className="feature-item">
-              <span className="feature-icon">{feature.icon}</span>
+              <span className="feature-icon">
+                <img src={feature.icon} alt="" className="inline-icon inline-icon--md" />
+              </span>
               <span>{feature.text}</span>
             </div>
           ))}

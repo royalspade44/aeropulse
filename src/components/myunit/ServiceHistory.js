@@ -1,20 +1,54 @@
+import { useMemo, useState } from 'react';
+import ServiceHistoryFilters from './ServiceHistoryFilters';
+
 function ServiceHistory({ unit, onClose }) {
+  const [sortBy, setSortBy] = useState('newest');
+  const [filterType, setFilterType] = useState('all');
+
+  const serviceTypes = useMemo(() => {
+    const list = unit.serviceHistory || [];
+    const types = [...new Set(list.map((s) => s.serviceType).filter(Boolean))];
+    return types.sort();
+  }, [unit.serviceHistory]);
+
+  const filteredSorted = useMemo(() => {
+    let list = [...(unit.serviceHistory || [])];
+    if (filterType !== 'all') {
+      list = list.filter((s) => s.serviceType === filterType);
+    }
+    list.sort((a, b) => {
+      const da = new Date(a.date).getTime();
+      const db = new Date(b.date).getTime();
+      return sortBy === 'newest' ? db - da : da - db;
+    });
+    return list;
+  }, [unit.serviceHistory, filterType, sortBy]);
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="unit-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Service History - {unit.brand} {unit.model}</h3>
-          <button className="close-modal" onClick={onClose}>×</button>
+          <h3>Service history — {unit.brand} {unit.model}</h3>
+          <button type="button" className="close-modal" onClick={onClose}>
+            ×
+          </button>
         </div>
         <div className="modal-body">
-          {unit.serviceHistory && unit.serviceHistory.length > 0 ? (
+          <ServiceHistoryFilters
+            sortBy={sortBy}
+            onSortBy={setSortBy}
+            filterType={filterType}
+            onFilterType={setFilterType}
+            serviceTypes={serviceTypes}
+          />
+          {filteredSorted.length > 0 ? (
             <div className="history-list">
-              {unit.serviceHistory.map((service, idx) => (
-                <div key={idx} className="history-item">
+              {filteredSorted.map((service) => (
+                <div key={service.id || `${service.date}-${service.serviceType}`} className="history-item">
                   <div className="history-date">{service.date}</div>
                   <div className="history-service">{service.serviceType}</div>
                   <div className="history-details">{service.details}</div>
-                  <div className="history-price">₱{service.price.toLocaleString()}</div>
+                  <div className="history-price">₱{(service.price ?? 0).toLocaleString()}</div>
                   {service.technician && (
                     <div className="history-details">Technician: {service.technician}</div>
                   )}
@@ -23,12 +57,14 @@ function ServiceHistory({ unit, onClose }) {
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
-              No service history available for this unit.
+              No service history matches these filters.
             </div>
           )}
         </div>
         <div className="modal-footer">
-          <button className="confirm-btn" onClick={onClose}>Close</button>
+          <button type="button" className="confirm-btn" onClick={onClose}>
+            Close
+          </button>
         </div>
       </div>
     </div>

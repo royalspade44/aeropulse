@@ -1,23 +1,22 @@
 import { useState } from 'react';
+import icons from '../common/icons';
+
+const CATEGORY_ICONS = {
+  split: icons.temperatureFrigid,
+  window: icons.windowFrame,
+  portable: icons.boxOpen,
+  inverter: icons.bolt,
+  accessories: icons.tools,
+  floor: icons.houseChimney,
+  all: icons.boxOpen
+};
 
 function CategoryFilter({ categories, selectedCategory, onSelectCategory }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Get icon for category
-  const getCategoryIcon = (categoryId) => {
-    const icons = {
-      'split': '❄️',
-      'window': '🪟',
-      'portable': '📦',
-      'inverter': '⚡',
-      'accessories': '🔧',
-      'all': '📦'
-    };
-    return icons[categoryId] || '📦';
-  };
+  const getCategoryIconSrc = (categoryId) => CATEGORY_ICONS[categoryId] || CATEGORY_ICONS.all;
 
-  // Filter categories based on search
   const filteredCategories = categories.filter(category =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -26,15 +25,15 @@ function CategoryFilter({ categories, selectedCategory, onSelectCategory }) {
 
   return (
     <div className="category-filter">
-      <div className="category-header" onClick={() => setIsExpanded(!isExpanded)}>
+      <div className="category-header" onClick={() => setIsExpanded(!isExpanded)} role="presentation">
         <div className="category-header-left">
-          <svg 
+          <svg
             className={`category-chevron ${isExpanded ? 'expanded' : ''}`}
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
             strokeWidth="2"
           >
             <polyline points="6 9 12 15 18 9"></polyline>
@@ -46,7 +45,6 @@ function CategoryFilter({ categories, selectedCategory, onSelectCategory }) {
 
       {isExpanded && (
         <div className="category-content">
-          {/* Search Categories */}
           <div className="category-search">
             <svg className="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="8"></circle>
@@ -62,13 +60,15 @@ function CategoryFilter({ categories, selectedCategory, onSelectCategory }) {
           </div>
 
           <ul className="category-list">
-            {/* All Categories Option */}
-            <li 
+            <li
               className={`category-item ${selectedCategory === 'all' ? 'active' : ''}`}
               onClick={() => onSelectCategory('all')}
+              role="presentation"
             >
               <div className="category-item-content">
-                <span className="category-icon">{getCategoryIcon('all')}</span>
+                <span className="category-icon">
+                  <img src={getCategoryIconSrc('all')} alt="" className="inline-icon" />
+                </span>
                 <span className="category-name">All Products</span>
               </div>
               <div className="category-right">
@@ -81,15 +81,17 @@ function CategoryFilter({ categories, selectedCategory, onSelectCategory }) {
               </div>
             </li>
 
-            {/* Category List */}
             {filteredCategories.map(category => (
-              <li 
+              <li
                 key={category.id}
                 className={`category-item ${selectedCategory === category.id ? 'active' : ''}`}
                 onClick={() => onSelectCategory(category.id)}
+                role="presentation"
               >
                 <div className="category-item-content">
-                  <span className="category-icon">{getCategoryIcon(category.id)}</span>
+                  <span className="category-icon">
+                    <img src={getCategoryIconSrc(category.id)} alt="" className="inline-icon" />
+                  </span>
                   <span className="category-name">{category.name}</span>
                 </div>
                 <div className="category-right">
@@ -103,7 +105,6 @@ function CategoryFilter({ categories, selectedCategory, onSelectCategory }) {
               </li>
             ))}
 
-            {/* No results message */}
             {filteredCategories.length === 0 && (
               <li className="category-empty">
                 <span>No categories found</span>
@@ -111,7 +112,6 @@ function CategoryFilter({ categories, selectedCategory, onSelectCategory }) {
             )}
           </ul>
 
-          {/* Quick Stats */}
           <div className="category-stats">
             <div className="stat-item">
               <span className="stat-label">Active Filter:</span>

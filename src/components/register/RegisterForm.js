@@ -2,6 +2,12 @@ import { useState } from 'react';
 import InputField from '../common/InputField';
 import Button from '../common/Button';
 import RoleSelector from '../login/RoleSelector';
+import icons from '../common/icons';
+
+const REGISTER_ROLES = [
+  { id: 'customer', label: 'Customer', iconSrc: icons.memberList },
+  { id: 'technician', label: 'Technician', iconSrc: icons.tools }
+];
 
 function RegisterForm({
   formData,
@@ -13,12 +19,7 @@ function RegisterForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const roles = [
-    { id: 'customer', label: 'Customer', icon: '👤' },
-    { id: 'technician', label: 'Technician', icon: '🔧' }
-  ];
-
-  const selectedRole = roles.find(r => r.id === formData.role) || roles[0];
+  const selectedRole = REGISTER_ROLES.find(r => r.id === formData.role) || REGISTER_ROLES[0];
 
   const handleRoleChange = (roleId) => {
     onFieldChange('role', roleId);
@@ -75,7 +76,7 @@ function RegisterForm({
 
       <RoleSelector
         selectedRole={selectedRole}
-        roles={roles}
+        roles={REGISTER_ROLES}
         onRoleChange={handleRoleChange}
         disabled={false}
       />
@@ -98,7 +99,12 @@ function RegisterForm({
             {showPassword ? 'Hide' : 'Show'}
           </button>
         </div>
-        {errors.password && <div className="error-message">{errors.password}</div>}
+        {errors.password && (
+          <div className="error-message">
+            <img src={icons.diamondExclamation} alt="" className="inline-icon" />
+            <span>{errors.password}</span>
+          </div>
+        )}
         <div className="password-hint">
           Password must contain at least 8 characters, including uppercase, lowercase, number, and special character (@$!%*?&)
         </div>
@@ -122,7 +128,12 @@ function RegisterForm({
             {showConfirmPassword ? 'Hide' : 'Show'}
           </button>
         </div>
-        {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
+        {errors.confirmPassword && (
+          <div className="error-message">
+            <img src={icons.diamondExclamation} alt="" className="inline-icon" />
+            <span>{errors.confirmPassword}</span>
+          </div>
+        )}
       </div>
 
       <div className="terms-group">
@@ -134,7 +145,12 @@ function RegisterForm({
           />
           <span>I agree to the <a href="/terms" target="_blank">Terms and Conditions</a> and <a href="/privacy" target="_blank">Privacy Policy</a></span>
         </label>
-        {errors.agreeTerms && <div className="error-message">{errors.agreeTerms}</div>}
+        {errors.agreeTerms && (
+          <div className="error-message">
+            <img src={icons.diamondExclamation} alt="" className="inline-icon" />
+            <span>{errors.agreeTerms}</span>
+          </div>
+        )}
       </div>
 
       <Button
@@ -154,7 +170,10 @@ function RegisterForm({
       </div>
 
       <div className="tips-card">
-        <div className="tips-header">📝 Why create an account?</div>
+        <div className="tips-header">
+          <img src={icons.clipboardList} alt="" className="inline-icon inline-icon--md" />
+          Why create an account?
+        </div>
         <div className="tips-list">
           <span>• Faster checkout process</span>
           <span>• Track your orders in real-time</span>

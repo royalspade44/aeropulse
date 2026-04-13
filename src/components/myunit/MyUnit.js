@@ -6,6 +6,9 @@ import AddUnitModal from './AddUnitModal';
 import UnitDetailsModal from './UnitDetailsModal';
 import ServiceHistory from './ServiceHistory';
 import ScheduleServiceModal from './ScheduleServiceModal';
+import WarrantyStatusModal from './WarrantyStatusModal';
+import RegisterQrUnitModal from './RegisterQrUnitModal';
+import icons from '../common/icons';
 
 function MyUnit() {
   const navigate = useNavigate();
@@ -15,6 +18,8 @@ function MyUnit() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showWarrantyModal, setShowWarrantyModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   useEffect(() => {
     const savedUnits = localStorage.getItem('ac_units');
@@ -42,15 +47,19 @@ function MyUnit() {
 
   const handleConfirmSchedule = (unit, serviceData) => {
     const servicePrice = (() => {
-      switch(serviceData.serviceType) {
-        case 'General Cleaning': return 899;
-        case 'Chemical Cleaning': return 1299;
-        case 'AC Overhaul': return 2500;
-        case 'Repair': return 1499;
-        case 'Gas Top-up': return 799;
-        case 'Inspection': return 499;
-        default: return 899;
+      switch (serviceData.serviceTypeId) {
+        case 'cleaning_inspection':
+          return 899;
+        case 'diagnosis_repair':
+          return 1499;
+        case 'location_transfer':
+          return 0;
+        default:
+          break;
       }
+      if (serviceData.serviceType === 'Cleaning and inspection') return 899;
+      if (serviceData.serviceType === 'Diagnosis and repair') return 1499;
+      return 899;
     })();
 
     const totalPrice = servicePrice + (serviceData.technician === 'senior' ? 200 : serviceData.technician === 'express' ? 500 : 0);
@@ -60,7 +69,7 @@ function MyUnit() {
       date: serviceData.date,
       time: serviceData.time,
       serviceType: serviceData.serviceType,
-      details: serviceData.notes || 'Regular maintenance',
+      details: serviceData.notes || 'Scheduled service',
       price: totalPrice,
       technician: serviceData.technician,
       status: 'scheduled'
@@ -93,6 +102,22 @@ function MyUnit() {
     setShowDetailsModal(true);
   };
 
+  const handleWarrantyStatus = (unit) => {
+    setSelectedUnit(unit);
+    setShowWarrantyModal(true);
+  };
+
+  const handleRegisterQrRequest = () => {
+    setShowQrModal(true);
+  };
+
+  const handleQrRegister = (newUnit) => {
+    const updatedUnits = [...units, newUnit];
+    saveUnits(updatedUnits);
+    setShowQrModal(false);
+    alert(`Unit registered. AMPERE next service: ${newUnit.ampereNextServiceLabel || '—'}`);
+  };
+
   const handleBack = () => {
     navigate('/home');
   };
@@ -112,7 +137,7 @@ function MyUnit() {
       <div className="myunit-main">
         {units.length === 0 ? (
           <div className="empty-units">
-            <div className="empty-icon">❄️</div>
+            <div className="empty-icon"><img src={icons.temperatureFrigid} alt="" className="inline-icon" style={{ width: 48, height: 48 }} /></div>
             <div className="empty-title">No AC Units Added</div>
             <div className="empty-text">Add your AC units to track maintenance and service history</div>
             <button className="add-unit-btn" onClick={() => setShowAddModal(true)} style={{ marginTop: '20px' }}>
@@ -128,6 +153,8 @@ function MyUnit() {
                 onClick={handleViewDetails}
                 onScheduleService={handleScheduleService}
                 onViewHistory={handleViewHistory}
+                onWarrantyStatus={handleWarrantyStatus}
+                onRegisterQr={handleRegisterQrRequest}
               />
             ))}
           </div>
@@ -169,6 +196,23 @@ function MyUnit() {
             setSelectedUnit(null);
           }}
           onSchedule={handleConfirmSchedule}
+        />
+      )}
+
+      {showWarrantyModal && selectedUnit && (
+        <WarrantyStatusModal
+          unit={selectedUnit}
+          onClose={() => {
+            setShowWarrantyModal(false);
+            setSelectedUnit(null);
+          }}
+        />
+      )}
+
+      {showQrModal && (
+        <RegisterQrUnitModal
+          onClose={() => setShowQrModal(false)}
+          onRegister={handleQrRegister}
         />
       )}
     </div>

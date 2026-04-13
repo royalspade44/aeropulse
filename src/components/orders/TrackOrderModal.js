@@ -1,3 +1,5 @@
+import icons from '../common/icons';
+
 function TrackOrderModal({ order, onClose }) {
   const steps = [
     { label: 'Order Placed', status: 'completed', date: order.date },
@@ -6,12 +8,22 @@ function TrackOrderModal({ order, onClose }) {
     { label: 'Delivered', status: order.status === 'delivered' ? 'completed' : 'upcoming', date: order.status === 'delivered' ? order.estimatedDelivery : null }
   ];
 
+  const stepInner = (step) => {
+    if (step.status === 'completed') {
+      return <img src={icons.checkCircle} alt="" className="inline-icon" style={{ filter: 'brightness(0) invert(1)' }} />;
+    }
+    if (step.status === 'pending') {
+      return '●';
+    }
+    return '○';
+  };
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="address-modal order-details-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" onClick={onClose} role="presentation">
+      <div className="address-modal order-details-modal" onClick={(e) => e.stopPropagation()} role="dialog">
         <div className="modal-header">
           <h3>Track Order</h3>
-          <button className="close-modal" onClick={onClose}>×</button>
+          <button type="button" className="close-modal" onClick={onClose}>×</button>
         </div>
         <div className="modal-body">
           <div className="tracking-info">
@@ -36,7 +48,7 @@ function TrackOrderModal({ order, onClose }) {
                     justifyContent: 'center',
                     marginRight: '15px'
                   }}>
-                    {step.status === 'completed' ? '✓' : step.status === 'pending' ? '●' : '○'}
+                    {stepInner(step)}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 'bold' }}>{step.label}</div>
@@ -52,7 +64,7 @@ function TrackOrderModal({ order, onClose }) {
             <p><strong>{order.address.name}</strong></p>
             <p>{order.address.street}</p>
             <p>{order.address.city}, {order.address.postalCode}</p>
-            <p>📞 {order.address.phone}</p>
+            <p><img src={icons.phoneCall} alt="" className="inline-icon" /> {order.address.phone}</p>
           </div>
 
           <div style={{ marginTop: '20px' }}>
@@ -61,7 +73,7 @@ function TrackOrderModal({ order, onClose }) {
           </div>
         </div>
         <div className="modal-footer">
-          <button className="confirm-btn" onClick={onClose}>Close</button>
+          <button type="button" className="confirm-btn" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>

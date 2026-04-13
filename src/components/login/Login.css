@@ -346,10 +346,6 @@
   gap: 6px;
 }
 
-.error-message::before {
-  content: '⚠';
-  font-size: 14px;
-}
 
 .required-star {
   color: #ef4444;
@@ -395,6 +391,22 @@
 
 .forgot-link:hover {
   color: #764ba2;
+}
+
+.login-recovery-links {
+  margin: 10px 0 18px;
+  font-size: 13px;
+}
+
+.login-recovery-links a {
+  color: #64748b;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-recovery-links a:hover {
+  color: #667eea;
+  text-decoration: underline;
 }
 
 .password-wrapper {
@@ -696,10 +708,6 @@
   gap: 8px;
 }
 
-.tips-header::before {
-  content: '💡';
-  font-size: 16px;
-}
 
 .tips-list {
   display: flex;

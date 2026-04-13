@@ -1,3 +1,5 @@
+import icons from '../common/icons';
+
 function OfficeLocations() {
   const locations = [
     { 
@@ -51,10 +53,14 @@ function OfficeLocations() {
       <div className="locations-grid">
         {locations.map((loc, index) => (
           <div key={index} className={`location-card ${loc.isMain ? 'main-branch' : ''}`}>
-            {loc.isMain && <div className="main-badge">★ Main Branch</div>}
+            {loc.isMain && (
+              <div className="main-badge">
+                <img src={icons.checkCircle} alt="" className="inline-icon" /> Main Branch
+              </div>
+            )}
             <div className="location-office">{loc.office}</div>
             <div className="location-address">{loc.address}</div>
-            <div className="location-contact">📞 {loc.contact}</div>
+            <div className="location-contact"><img src={icons.phoneCall} alt="" className="inline-icon" /> {loc.contact}</div>
           </div>
         ))}
       </div>

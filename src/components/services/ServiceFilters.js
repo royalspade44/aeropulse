@@ -1,3 +1,5 @@
+import icons from '../common/icons';
+
 function ServiceFilters({ categories, selectedCategory, onCategoryChange, onSearch }) {
   return (
     <div className="services-filters">
@@ -5,6 +7,7 @@ function ServiceFilters({ categories, selectedCategory, onCategoryChange, onSear
         {categories.map(cat => (
           <button
             key={cat.id}
+            type="button"
             className={`filter-btn ${selectedCategory === cat.id ? 'active' : ''}`}
             onClick={() => onCategoryChange(cat.id)}
           >
@@ -13,7 +16,7 @@ function ServiceFilters({ categories, selectedCategory, onCategoryChange, onSear
         ))}
       </div>
       <div className="search-box">
-        <span>🔍</span>
+        <img src={icons.globePointer} alt="" className="inline-icon" />
         <input
           type="text"
           placeholder="Search services..."

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useUser } from '../../../context/UserContext';
+import icons from '../../common/icons';
 
 const TechHeader = ({ title = 'Technician', subtitle = 'Field operations', onMenuToggle }) => {
   const { user } = useUser();
@@ -8,7 +9,7 @@ const TechHeader = ({ title = 'Technician', subtitle = 'Field operations', onMen
     <header className="tech-header">
       <div className="tech-header-left">
         <button type="button" className="tech-menu-toggle" onClick={onMenuToggle}>
-          ☰
+          <img src={icons.customize} alt="" className="inline-icon inline-icon--md" />
         </button>
         <div>
           <h1>{title}</h1>

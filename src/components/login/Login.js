@@ -1,15 +1,24 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useUser } from '../../context/UserContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Login.css';
+import icons from '../common/icons';
 import LoginBrandSection from './LoginBrandSection';
 import LoginForm from './LoginForm';
 import LockoutWarning from './LockOutWarning';
 import GoogleButton from './GoogleButton';
 
+const LOGIN_ROLES = [
+  { id: 'customer', label: 'Customer', icon: icons.memberList, redirectTo: '/home' },
+  { id: 'technician', label: 'Technician', icon: icons.tools, redirectTo: '/tech/dashboard' },
+  { id: 'admin', label: 'Admin', icon: icons.customize, redirectTo: '/admin/dashboard' },
+  { id: 'superadmin', label: 'Super Admin', icon: icons.shieldKeyhole, redirectTo: '/superadmin/dashboard' },
+];
+
 function Login() {
   const { login, loginAsAdmin, loginAsTechnician, register } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [user, setUser] = useState({
     email: '',
@@ -25,13 +34,6 @@ function Login() {
   const [adminKindStep, setAdminKindStep] = useState(false);
   
   const timerRef = useRef(null);
-
-  const roles = [
-    { id: 'customer', label: 'Customer', icon: '👤', redirectTo: '/home' },
-    { id: 'technician', label: 'Technician', icon: '🔧', redirectTo: '/tech/dashboard' },
-    { id: 'admin', label: 'Admin', icon: '👨‍💼', redirectTo: '/admin/dashboard' },
-    { id: 'superadmin', label: 'Super Admin', icon: '🛡️', redirectTo: '/superadmin/dashboard' },
-  ];
 
   useEffect(() => {
     return () => {
@@ -126,7 +128,7 @@ function Login() {
       setLoading(false);
       
       // Redirect based on role
-      const selectedRoleConfig = roles.find(r => r.id === user.role);
+      const selectedRoleConfig = LOGIN_ROLES.find(r => r.id === user.role);
       navigate(selectedRoleConfig.redirectTo);
       
     } catch (err) {
@@ -196,7 +198,7 @@ function Login() {
         }
         const userWithRole = { ...loggedInUser, role: user.role };
         localStorage.setItem('currentUser', JSON.stringify(userWithRole));
-        const selectedRoleConfig = roles.find(r => r.id === user.role);
+        const selectedRoleConfig = LOGIN_ROLES.find(r => r.id === user.role);
         navigate(selectedRoleConfig.redirectTo);
       } catch (err) {
         alert('Google login failed: ' + err.message);
@@ -206,10 +208,11 @@ function Login() {
   };
 
   const handleSignUp = () => {
-    navigate('/register');
+    const fromCheckout = location.state?.from?.pathname === '/checkout';
+    navigate('/register', { state: { returnToCheckout: fromCheckout } });
   };
 
-  const selectedRole = useMemo(() => roles.find((r) => r.id === user.role) || null, [roles, user.role]);
+  const selectedRole = useMemo(() => LOGIN_ROLES.find((r) => r.id === user.role) || null, [user.role]);
 
   return (
     <div className="login-container">
@@ -232,26 +235,26 @@ function Login() {
               {!adminKindStep ? (
                 <>
                   <button type="button" className="role-card" onClick={() => selectRole('customer')}>
-                    <span className="role-card-icon">👤</span>
+                    <span className="role-card-icon"><img src={icons.memberList} alt="" className="inline-icon inline-icon--xl" /></span>
                     <span className="role-card-title">Customer</span>
                   </button>
                   <button type="button" className="role-card" onClick={() => selectRole('technician')}>
-                    <span className="role-card-icon">🔧</span>
+                    <span className="role-card-icon"><img src={icons.tools} alt="" className="inline-icon inline-icon--xl" /></span>
                     <span className="role-card-title">Technician</span>
                   </button>
                   <button type="button" className="role-card" onClick={() => setAdminKindStep(true)}>
-                    <span className="role-card-icon">🛡️</span>
+                    <span className="role-card-icon"><img src={icons.shieldKeyhole} alt="" className="inline-icon inline-icon--xl" /></span>
                     <span className="role-card-title">Admin</span>
                   </button>
                 </>
               ) : (
                 <>
                   <button type="button" className="role-card" onClick={() => selectRole('admin')}>
-                    <span className="role-card-icon">👨‍💼</span>
+                    <span className="role-card-icon"><img src={icons.customize} alt="" className="inline-icon inline-icon--xl" /></span>
                     <span className="role-card-title">Admin</span>
                   </button>
                   <button type="button" className="role-card" onClick={() => selectRole('superadmin')}>
-                    <span className="role-card-icon">🛡️</span>
+                    <span className="role-card-icon"><img src={icons.shieldKeyhole} alt="" className="inline-icon inline-icon--xl" /></span>
                     <span className="role-card-title">Super Admin</span>
                   </button>
                   <button type="button" className="cancel-btn" onClick={() => setAdminKindStep(false)}>
@@ -287,6 +290,7 @@ function Login() {
                 loading={loading}
                 disabled={!!lockoutInfo}
                 onForgotPassword={handleForgotPassword}
+                showAccountRecovery={user.role === 'customer'}
               />
 
               <div className="divider">
@@ -300,7 +304,10 @@ function Login() {
               </div>
 
               <div className="tips-card">
-                <div className="tips-header">🔒 Security Information</div>
+                <div className="tips-header">
+                  <img src={icons.lock} alt="" className="inline-icon inline-icon--md" />
+                  Security Information
+                </div>
                 <div className="tips-list">
                   <span>• 3 login attempts before temporary lockout</span>
                   <span>• Lockout duration increases with failed attempts</span>

@@ -1,5 +1,6 @@
 import React from 'react';
 import './Charts.css';
+import icons from '../../common/icons';
 
 const Charts = ({ sales = [35, 40, 25, 50, 65, 72, 80] }) => {
   const max = Math.max(...sales, 1);
@@ -7,16 +8,19 @@ const Charts = ({ sales = [35, 40, 25, 50, 65, 72, 80] }) => {
 
   return (
     <div className="admin-chart">
-      <h3>Weekly Sales Trend</h3>
+      <h3>
+        <img src={icons.clipboardList} alt="" className="admin-chart-title-icon inline-icon inline-icon--md" />
+        Weekly Sales Trend
+      </h3>
       <div className="admin-chart-bars">
         {sales.map((value, index) => {
           const heightPercentage = (value / max) * 100;
           return (
             <div key={index} className="admin-chart-bar-wrap">
-              <div 
-                className="admin-chart-bar" 
+              <div
+                className="admin-chart-bar"
                 style={{ height: `${heightPercentage}%` }}
-                data-value={`₱${value}`}
+                data-value={`\u20b1${value}`}
               />
               <span>{days[index]}</span>
             </div>

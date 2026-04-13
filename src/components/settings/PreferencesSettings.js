@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import icons from '../common/icons';
 
 function PreferencesSettings({ onDarkModeChange, darkMode }) {
   const [preferences, setPreferences] = useState({
@@ -52,7 +53,7 @@ function PreferencesSettings({ onDarkModeChange, darkMode }) {
   return (
     <div className="settings-section">
       <div className="section-title">
-        <span className="section-icon">⚙️</span>
+        <span className="section-icon"><img src={icons.customize} alt="" className="inline-icon inline-icon--md" /></span>
         <h2>Preferences</h2>
       </div>
       <div className="settings-list">
