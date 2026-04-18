@@ -17,7 +17,7 @@
     position: fixed;
     top: 1.25rem;
     left: 1.25rem;
-    z-index: 1100;
+    z-index: 980;
     background: linear-gradient(135deg, #0f172a, #1e293b);
     border: none;
     border-radius: 12px;
@@ -64,6 +64,11 @@
   
   .burger-button.open span:nth-child(3) {
     transform: translateY(-8.5px) rotate(-45deg);
+  }
+
+  .burger-button.open {
+    opacity: 0;
+    pointer-events: none;
   }
   
   /* ============================================

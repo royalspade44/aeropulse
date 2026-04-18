@@ -3,9 +3,16 @@ import icons from '../common/icons';
 function OrderCard({ order, onTrack, onReorder }) {
   const getStatusClass = (status) => {
     switch (status) {
-      case 'processing': return 'status-processing';
-      case 'shipped': return 'status-shipped';
-      case 'delivered': return 'status-delivered';
+      case 'to_pay':
+      case 'processing':
+        return 'status-processing';
+      case 'to_deliver':
+      case 'shipped':
+        return 'status-shipped';
+      case 'to_install':
+      case 'delivered':
+      case 'complete':
+        return 'status-delivered';
       case 'cancelled': return 'status-cancelled';
       default: return '';
     }
@@ -13,6 +20,10 @@ function OrderCard({ order, onTrack, onReorder }) {
 
   const getStatusText = (status) => {
     switch (status) {
+      case 'to_pay': return 'TO PAY';
+      case 'to_deliver': return 'TO DELIVER';
+      case 'to_install': return 'TO INSTALL';
+      case 'complete': return 'Complete';
       case 'processing': return 'Processing';
       case 'shipped': return 'Shipped';
       case 'delivered': return 'Delivered';

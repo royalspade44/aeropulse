@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { CartProvider } from './context/CartContext';
 import { UserProvider, useUser } from './context/UserContext';
 import Login from './components/login/Login';
+import GoogleAuthCallback from './components/login/GoogleAuthCallback';
 import Register from './components/register/Register';
 import RecoverAlias from './components/recover/RecoverAlias';
 import RecoverTotp from './components/recover/RecoverTotp';
@@ -14,6 +15,7 @@ import Services from './components/services/Services';
 import Checkout from './components/checkout/Checkout';
 import MyOrders from './components/orders/MyOrders';
 import FaqPage from './components/faq/FaqPage';
+import ProfileCenter from './components/profile/ProfileCenter';
 import AdminDashboard from './components/ADMIN/Dashboard/AdminDashboard';
 import AdminInventory from './components/ADMIN/Inventory/AdminInventory';
 import AdminMaintenance from './components/ADMIN/Maintenance/AdminMaintenance';
@@ -36,6 +38,7 @@ import SuperAdminInventory from './components/SUPERADMIN/Dashboard/SuperAdminInv
 import SuperAdminTasks from './components/SUPERADMIN/Dashboard/SuperAdminTasks';
 import SuperAdminAlerts from './components/SUPERADMIN/Dashboard/SuperAdminAlerts';
 import GlobalDialog from './components/common/GlobalDialog';
+import CustomerChatbot from './components/chatbot/CustomerChatbot';
 import './App.css';
 
 const getRoleHomePath = (role) => {
@@ -94,22 +97,30 @@ const PublicRoute = ({ children }) => {
 // Main App content with routes
 function AppContent() {
   const { isAuthenticated, loading, userRole } = useUser();
+  const location = useLocation();
 
   if (loading) {
     return <div className="loading-screen">Loading...</div>;
   }
 
+  const hiddenChatbotRoutes = ['/login', '/register', '/recover/alias', '/recover/totp'];
+  const shouldShowCustomerChatbot =
+    isAuthenticated &&
+    userRole === 'customer' &&
+    !hiddenChatbotRoutes.includes(location.pathname);
+
   return (
-    <Routes>
-      {/* Root path redirects based on auth status */}
-      <Route 
-        path="/" 
-        element={
-          isAuthenticated ? 
-            <Navigate to={getRoleHomePath(userRole)} replace /> : 
-            <Navigate to="/login" replace />
-        } 
-      />
+    <>
+      <Routes>
+        {/* Root path redirects based on auth status */}
+        <Route 
+          path="/" 
+          element={
+            isAuthenticated ? 
+              <Navigate to={getRoleHomePath(userRole)} replace /> : 
+              <Navigate to="/login" replace />
+          } 
+        />
       
       {/* Public routes */}
       <Route 
@@ -120,6 +131,7 @@ function AppContent() {
           </PublicRoute>
         } 
       />
+      <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
       
       <Route 
         path="/register" 
@@ -139,6 +151,15 @@ function AppContent() {
         element={
           <ProtectedRoute>
             <Home />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/profile" 
+        element={
+          <ProtectedRoute>
+            <ProfileCenter />
           </ProtectedRoute>
         } 
       />
@@ -386,14 +407,16 @@ function AppContent() {
         }
       />
       
-      {/* Catch all - redirect to home or login based on auth */}
-      <Route 
-        path="*" 
-        element={
-          <Navigate to={isAuthenticated ? getRoleHomePath(userRole) : "/login"} replace />
-        } 
-      />
-    </Routes>
+        {/* Catch all - redirect to home or login based on auth */}
+        <Route 
+          path="*" 
+          element={
+            <Navigate to={isAuthenticated ? getRoleHomePath(userRole) : "/login"} replace />
+          } 
+        />
+      </Routes>
+      {shouldShowCustomerChatbot && <CustomerChatbot />}
+    </>
   );
 }
 

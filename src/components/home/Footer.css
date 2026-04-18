@@ -1,8 +1,35 @@
+.home-container,
+.shop-container,
+.services-page,
+.myunit-container,
+.orders-container,
+.contact-container,
+.settings-container,
+.faq-page,
+.checkout-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content,
+.shop-main,
+.services-layout,
+.myunit-main,
+.orders-main,
+.contact-main,
+.settings-content,
+.faq-main,
+.checkout-main {
+  flex: 1;
+}
+
 .footer {
   background: #0d1117;
   color: white;
   padding: 60px 0 28px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: auto;
 }
 
 .footer-content {

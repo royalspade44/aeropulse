@@ -20,7 +20,7 @@
     position: fixed;
     top: 1.25rem;
     left: 1.25rem;
-    z-index: 1100;
+    z-index: 980;
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
@@ -69,6 +69,11 @@
   
   .super-burger-button.open span:nth-child(3) {
     transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .super-burger-button.open {
+    opacity: 0;
+    pointer-events: none;
   }
   
   /* ========== OVERLAY ========== */

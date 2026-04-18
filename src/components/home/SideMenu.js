@@ -11,6 +11,7 @@ function SideMenu({ isOpen, onClose, activePage, onLogout }) {
   const [activeMenuItem, setActiveMenuItem] = useState(activePage);
 
   const menuItems = useMemo(() => ([
+    { id: 'profile', label: 'Profile', iconSrc: icons.memberList, path: '/profile', description: 'View and edit your profile' },
     { id: 'myunit', label: 'My Unit', iconSrc: icons.temperatureFrigid, path: '/myunit', description: 'Manage your AC units' },
     { id: 'services', label: 'Services', iconSrc: icons.tools, path: '/services', description: 'Book maintenance & repair' },
     { id: 'shop', label: 'Shop', iconSrc: icons.cartShoppingFast, path: '/shop', description: 'Browse AC products' },

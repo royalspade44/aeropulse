@@ -1,98 +1,86 @@
-/* ============================================
-   TECH MAIN SCREEN — Enhanced
-   Minimalist, clean, #2563eb primary
-   ============================================ */
+/* ============================================================
+   TECH MAIN SCREEN
+   Inherits variables from techShared.css
+   ============================================================ */
 
-   :root {
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-    --primary-light: #eff6ff;
-    --primary-mid: #bfdbfe;
-    --success: #10b981;
-    --success-light: #ecfdf5;
-    --warning: #f59e0b;
-    --warning-light: #fffbeb;
-    --danger: #ef4444;
-    --danger-light: #fef2f2;
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-600: #4b5563;
-    --gray-700: #374151;
-    --gray-800: #1f2937;
-    --gray-900: #111827;
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06);
-    --shadow-md: 0 4px 8px -2px rgb(0 0 0 / 0.08);
-  }
-  
-  .tech-dashboard {
-    padding: 24px;
+   .tech-dashboard {
+    padding: 20px;
     background: var(--gray-50);
     min-height: 100vh;
-    font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
   }
   
-  /* ========== HEADER ========== */
+  /* ──────────────── DASHBOARD HEADER ──────────────── */
+  
   .dashboard-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
-    padding: 16px 22px;
-    background: white;
+    margin-bottom: 20px;
+    padding: 14px 20px;
+    background: var(--white);
     border-radius: var(--radius-lg);
     border: 1px solid var(--gray-200);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-xs);
   }
   
   .tech-info {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
+  }
+  
+  .tech-info-text h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-900);
+    letter-spacing: -0.02em;
+  }
+  
+  .tech-info-text p {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: var(--gray-400);
   }
   
   .logout-btn {
-    padding: 9px 18px;
-    background: #fef2f2;
-    color: var(--danger);
-    border: 1px solid #fecaca;
-    border-radius: var(--radius-md);
+    padding: 8px 16px;
+    background: var(--danger-light);
+    color: #b91c1c;
+    border: 1px solid var(--danger-mid);
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 13px;
-    transition: all 0.18s ease;
+    font-family: inherit;
+    transition: all var(--transition);
   }
   
   .logout-btn:hover {
     background: var(--danger);
-    color: white;
+    color: var(--white);
     border-color: var(--danger);
   }
   
-  /* ========== STATS GRID ========== */
+  /* ──────────────── STATS GRID ──────────────── */
+  
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
   }
   
   .stat-card {
-    background: white;
-    padding: 20px;
+    background: var(--white);
+    padding: 18px 20px;
     border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     border: 1px solid var(--gray-200);
-    box-shadow: var(--shadow-sm);
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    box-shadow: var(--shadow-xs);
+    transition: box-shadow var(--transition), transform var(--transition);
     position: relative;
     overflow: hidden;
   }
@@ -103,8 +91,11 @@
     left: 0; top: 0; bottom: 0;
     width: 3px;
     background: var(--primary);
-    border-radius: 0;
   }
+  
+  .stat-card.success::before { background: var(--success); }
+  .stat-card.warning::before { background: var(--warning); }
+  .stat-card.danger::before  { background: var(--danger);  }
   
   .stat-card:hover {
     transform: translateY(-2px);
@@ -112,206 +103,182 @@
   }
   
   .stat-icon {
-    font-size: 32px;
+    font-size: 26px;
     flex-shrink: 0;
   }
   
   .stat-info h3 {
-    margin: 0 0 6px 0;
-    color: var(--gray-500);
-    font-size: 11px;
+    margin: 0 0 4px;
+    color: var(--gray-400);
+    font-size: 10.5px;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.07em;
     font-weight: 600;
   }
   
   .stat-info p {
     margin: 0;
-    font-size: 28px;
-    font-weight: 700;
+    font-size: 26px;
+    font-weight: 600;
     color: var(--gray-900);
     letter-spacing: -0.03em;
   }
   
-  /* ========== TASKS SECTION ========== */
+  /* ──────────────── TASKS SECTION ──────────────── */
+  
   .tasks-section {
-    background: white;
-    padding: 22px 24px;
+    background: var(--white);
+    padding: 20px 22px;
     border-radius: var(--radius-lg);
     border: 1px solid var(--gray-200);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-xs);
+  }
+  
+  .tasks-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
   }
   
   .tasks-section h2 {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     color: var(--gray-900);
-    margin: 0 0 6px 0;
-    letter-spacing: -0.02em;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  
+  .tasks-section-meta {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-bottom: 16px;
   }
   
   .tasks-list {
-    margin-top: 18px;
+    margin-top: 16px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
   
-  /* ========== TASK CARD ========== */
+  /* ──────────────── TASK CARD ──────────────── */
+  
   .task-card {
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-md);
-    padding: 16px 18px;
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
-    background: white;
+    padding: 14px 16px;
+    transition: box-shadow var(--transition), border-color var(--transition);
+    background: var(--white);
   }
   
   .task-card:hover {
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
     border-color: var(--primary-mid);
   }
   
   .task-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 10px;
+    gap: 12px;
   }
   
   .task-header h3 {
     margin: 0;
     color: var(--gray-800);
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 600;
     letter-spacing: -0.01em;
+    flex: 1;
   }
   
   .badges {
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
   }
   
-  /* ========== BADGES ========== */
-  .badge {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-  }
+  /* ──────────────── TASK DETAILS ──────────────── */
   
-  .badge.processing {
-    background: var(--warning-light);
-    color: #92400e;
-    border: 1px solid #fde68a;
-  }
-  
-  .badge.in-progress {
-    background: var(--primary-light);
-    color: var(--primary-dark);
-    border: 1px solid var(--primary-mid);
-  }
-  
-  .badge.completed {
-    background: var(--success-light);
-    color: #065f46;
-    border: 1px solid #a7f3d0;
-  }
-  
-  /* ========== PRIORITY TAGS ========== */
-  .priority {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  
-  .priority.high {
-    background: var(--danger-light);
-    color: #991b1b;
-    border: 1px solid #fecaca;
-  }
-  
-  .priority.medium {
-    background: var(--warning-light);
-    color: #92400e;
-    border: 1px solid #fde68a;
-  }
-  
-  .priority.low {
-    background: var(--success-light);
-    color: #065f46;
-    border: 1px solid #a7f3d0;
-  }
-  
-  /* ========== TASK DETAILS ========== */
   .task-details {
-    margin: 10px 0;
+    margin: 8px 0;
   }
   
   .task-details p {
-    margin: 5px 0;
+    margin: 4px 0;
     color: var(--gray-500);
-    font-size: 13px;
+    font-size: 12.5px;
     line-height: 1.5;
   }
   
-  /* ========== TASK ACTIONS ========== */
+  .task-details strong {
+    color: var(--gray-600);
+    font-weight: 500;
+  }
+  
+  /* ──────────────── TASK ACTIONS ──────────────── */
+  
   .task-actions {
     display: flex;
     gap: 8px;
     margin-top: 12px;
+    flex-wrap: wrap;
   }
   
   .task-actions button {
-    padding: 7px 14px;
-    border: none;
+    padding: 6px 13px;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 12.5px;
-    font-weight: 600;
-    transition: all 0.18s ease;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    transition: all var(--transition);
+    border: 1px solid transparent;
   }
   
   .view-btn {
     background: var(--primary-light);
     color: var(--primary-dark);
-    border: 1px solid var(--primary-mid) !important;
+    border-color: var(--primary-mid);
   }
   
   .view-btn:hover {
     background: var(--primary);
-    color: white;
-    border-color: var(--primary) !important;
+    color: var(--white);
+    border-color: var(--primary);
   }
   
   .start-btn {
     background: var(--success-light);
     color: #065f46;
-    border: 1px solid #a7f3d0 !important;
+    border-color: var(--success-mid);
   }
   
   .start-btn:hover {
     background: var(--success);
-    color: white;
-    border-color: var(--success) !important;
+    color: var(--white);
+    border-color: var(--success);
   }
   
   .complete-btn {
     background: var(--gray-100);
-    color: var(--gray-700);
-    border: 1px solid var(--gray-200) !important;
+    color: var(--gray-600);
+    border-color: var(--gray-200);
   }
   
   .complete-btn:hover {
     background: var(--gray-200);
-    color: var(--gray-900);
+    color: var(--gray-800);
   }
   
-  /* ========== RESPONSIVE ========== */
+  /* ──────────────── RESPONSIVE ──────────────── */
+  
   @media (max-width: 768px) {
     .tech-dashboard {
-      padding: 14px;
+      padding: 12px;
     }
   
     .dashboard-header {
@@ -324,10 +291,6 @@
       flex-direction: column;
       align-items: flex-start;
       gap: 8px;
-    }
-  
-    .task-actions {
-      flex-wrap: wrap;
     }
   
     .task-actions button {

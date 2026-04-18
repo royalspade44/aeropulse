@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 
 const updateProfile = async (req, res) => {
-  const { name, name_first, name_last, phone, address } = req.body;
+  const { name, name_first, name_last, phone, address, avatarUrl } = req.body;
   const user = req.authUser;
 
   if (name !== undefined) user.name = name;
@@ -10,6 +10,7 @@ const updateProfile = async (req, res) => {
   if (name_last !== undefined) user.name_last = name_last;
   if (phone !== undefined) user.phone = phone;
   if (address !== undefined) user.address = address;
+  if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
 
   await user.save();
   return res.json({ user: user.toJSON() });

@@ -12,6 +12,7 @@ import BrandsSection from './BrandsSection';
 import InfoSection from './InfoSection';
 import Footer from './Footer';
 import icons from '../common/icons';
+import { apiRequest } from '../../config/api';
 
 function Home() {
   const navigate = useNavigate();
@@ -35,29 +36,21 @@ function Home() {
   }, []);
   
   // Notifications Data
-  const [notifications] = useState([
-    { 
-      id: 1, 
-      title: 'POS Receipt Ready', 
-      message: 'Invoice INV-10482 is available in My Orders for today\'s checkout.', 
-      time: 'Just now', 
-      unread: true 
-    },
-    { 
-      id: 2, 
-      title: 'Dispatch Update', 
-      message: 'Technician team is preparing your delivery window for tomorrow 1:00 PM to 3:00 PM.', 
-      time: '2 hours ago', 
-      unread: true 
-    },
-    { 
-      id: 3, 
-      title: 'Payment Posted', 
-      message: 'GCash payment reference 9XK31 has been posted to order TRK-930447112.', 
-      time: 'Yesterday', 
-      unread: false 
-    },
-  ]);
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    apiRequest('/notifications/me')
+      .then((response) => {
+        const normalized = (response.notifications || []).map((item) => ({
+          ...item,
+          time: new Date(item.createdAt).toLocaleString()
+        }));
+        setNotifications(normalized);
+      })
+      .catch(() => {
+        setNotifications([]);
+      });
+  }, []);
 
   // Brand Data - Matches the structure in BrandsSection.js
   const brands = [

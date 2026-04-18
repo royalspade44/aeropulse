@@ -13,6 +13,7 @@ import { buildCustomerOrder } from '../../domain/purchase/buildCustomerOrder';
 import { loadOrdersFromStorage, saveOrdersToStorage } from '../../domain/purchase/ordersStorage';
 import { PAYMENT_PROCESSING_GATEWAY } from '../../domain/purchase/orderStatuses';
 import { consumePostRegistrationCheckoutIntent } from '../../domain/checkout/postRegistrationIntent';
+import { apiRequest } from '../../config/api';
 import Footer from '../home/Footer';
 
 function Checkout() {
@@ -69,22 +70,37 @@ function Checkout() {
       fromPostRegistrationCheckout: fromPostReg
     });
 
-    const orders = loadOrdersFromStorage();
-    orders.unshift(order);
-    saveOrdersToStorage(orders);
-
-    if (order.paymentStatus === PAYMENT_PROCESSING_GATEWAY) {
-      alert(
-        `Order received (${orderId}). We are processing stock allocation for your branch and reserved this cart for 15 minutes. Complete payment in the ${selectedPayment === 'gcash' ? 'GCash' : 'card'} gateway once checkout approval is ready.`
-      );
-    } else {
-      alert(
-        `Order received (${orderId}). Your order is now processing in our POS queue and a payment reminder will be sent once dispatch confirms your slot.`
-      );
-    }
-
-    clearCart();
-    navigate('/my-orders');
+    apiRequest('/orders', {
+      method: 'POST',
+      body: JSON.stringify({
+        items: order.items,
+        address: selectedAddress,
+        paymentMethod: selectedPayment,
+        total: order.total
+      })
+    })
+      .then((response) => {
+        const created = response.order;
+        if (order.paymentStatus === PAYMENT_PROCESSING_GATEWAY) {
+          alert(
+            `Order received (${created.orderCode}). We are processing stock allocation for your branch and reserved this cart for 15 minutes. Complete payment in the ${selectedPayment === 'gcash' ? 'GCash' : 'card'} gateway once checkout approval is ready.`
+          );
+        } else {
+          alert(
+            `Order received (${created.orderCode}). Your order is now processing in our POS queue and a payment reminder will be sent once dispatch confirms your slot.`
+          );
+        }
+      })
+      .catch(() => {
+        const orders = loadOrdersFromStorage();
+        orders.unshift(order);
+        saveOrdersToStorage(orders);
+        alert(`Order received (${orderId}). Saved locally because backend could not be reached.`);
+      })
+      .finally(() => {
+        clearCart();
+        navigate('/my-orders');
+      });
   }, [selectedAddress, cart, selectedPayment, serviceAreaId, totals, clearCart, navigate]);
 
   if (cart.length === 0) {

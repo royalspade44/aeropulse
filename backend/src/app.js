@@ -10,6 +10,9 @@ const attendanceRoutes = require("./routes/attendanceRoutes");
 const productRoutes = require("./routes/productRoutes");
 const reorderRoutes = require("./routes/reorderRoutes");
 const serviceRequestRoutes = require("./routes/serviceRequestRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const taskRoutes = require("./routes/taskRoutes");
 
 const app = express();
 
@@ -29,6 +32,9 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/reorders", reorderRoutes);
 app.use("/api/service-requests", serviceRequestRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/tasks", taskRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

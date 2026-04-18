@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useUser } from '../../context/UserContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { API_BASE_URL } from '../../config/api';
 import './Login.css';
 import icons from '../common/icons';
 import LoginBrandSection from './LoginBrandSection';
@@ -16,7 +17,7 @@ const LOGIN_ROLES = [
 ];
 
 function Login() {
-  const { login, loginAsAdmin, loginAsTechnician, register } = useUser();
+  const { login, loginAsAdmin, loginAsTechnician } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -161,50 +162,12 @@ function Login() {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!user.role) {
+      alert('Please choose a role before using Google sign-in.');
+      return;
+    }
     setGoogleLoading(true);
-    
-    setTimeout(async () => {
-      const googleEmail = `google_${Date.now()}@example.com`;
-      const googleUserData = {
-        name_first: 'Google',
-        name_last: 'User',
-        email: googleEmail,
-        phone: '',
-        password: 'google_auth_' + Date.now(),
-        isGoogleAccount: true,
-        address: ''
-      };
-      
-      try {
-        await register(googleUserData, user.role);
-      } catch (_registerError) {
-        // If account already exists, continue with login path.
-      }
-
-      try {
-        let loggedInUser;
-        switch(user.role) {
-          case 'admin':
-            loggedInUser = await loginAsAdmin(googleEmail, googleUserData.password);
-            break;
-          case 'technician':
-            loggedInUser = await loginAsTechnician(googleEmail, googleUserData.password);
-            break;
-          case 'superadmin':
-            loggedInUser = await login(googleEmail, googleUserData.password, 'superadmin');
-            break;
-          default:
-            loggedInUser = await login(googleEmail, googleUserData.password);
-        }
-        const userWithRole = { ...loggedInUser, role: user.role };
-        localStorage.setItem('currentUser', JSON.stringify(userWithRole));
-        const selectedRoleConfig = LOGIN_ROLES.find(r => r.id === user.role);
-        navigate(selectedRoleConfig.redirectTo);
-      } catch (err) {
-        alert('Google login failed: ' + err.message);
-      }
-      setGoogleLoading(false);
-    }, 1000);
+    window.location.href = `${API_BASE_URL}/auth/google/start?role=${encodeURIComponent(user.role)}`;
   };
 
   const handleSignUp = () => {

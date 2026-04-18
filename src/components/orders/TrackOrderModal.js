@@ -1,11 +1,33 @@
 import icons from '../common/icons';
 
 function TrackOrderModal({ order, onClose }) {
+  const isToPay = order.status === 'to_pay';
+  const isToDeliver = order.status === 'to_deliver';
+  const isToInstall = order.status === 'to_install';
+  const isComplete = order.status === 'complete';
+
   const steps = [
     { label: 'Order Placed', status: 'completed', date: order.date },
-    { label: 'Processing', status: order.status === 'processing' ? 'processing' : 'completed', date: order.status !== 'processing' ? order.date : null },
-    { label: 'Shipped', status: order.status === 'shipped' || order.status === 'delivered' ? 'completed' : order.status === 'processing' ? 'processing' : 'upcoming', date: order.status === 'shipped' ? order.date : null },
-    { label: 'Delivered', status: order.status === 'delivered' ? 'completed' : 'upcoming', date: order.status === 'delivered' ? order.estimatedDelivery : null }
+    {
+      label: 'TO PAY (Admin Confirmation)',
+      status: isToPay ? 'processing' : 'completed',
+      date: isToPay ? order.date : null
+    },
+    {
+      label: 'TO DELIVER',
+      status: isToDeliver ? 'processing' : isToInstall || isComplete ? 'completed' : 'upcoming',
+      date: isToDeliver ? order.date : null
+    },
+    {
+      label: 'TO INSTALL',
+      status: isToInstall ? 'processing' : isComplete ? 'completed' : 'upcoming',
+      date: isToInstall ? order.date : null
+    },
+    {
+      label: 'Complete',
+      status: isComplete ? 'completed' : 'upcoming',
+      date: isComplete ? (order.estimatedDelivery || order.date) : null
+    }
   ];
 
   const stepInner = (step) => {

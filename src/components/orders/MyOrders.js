@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { apiRequest } from '../../config/api';
 import './MyOrders.css';
 import OrderCard from './OrderCard';
 import TrackOrderModal from './TrackOrderModal';
@@ -14,10 +15,26 @@ function MyOrders() {
   const [showTrackModal, setShowTrackModal] = useState(false);
 
   useEffect(() => {
-    const savedOrders = localStorage.getItem('orders');
-    if (savedOrders) {
-      setOrders(JSON.parse(savedOrders));
-    }
+    apiRequest('/orders/me')
+      .then((response) => {
+        const normalized = (response.orders || []).map((order) => ({
+          ...order,
+          id: order.orderCode || order.id,
+          date: order.createdAt || order.date,
+          total: order.totalAmount || order.total || 0,
+          status: order.workflowStatus || order.status,
+          items: order.items || [],
+          trackingNumber: order.trackingNumber || 'Pending',
+          estimatedDelivery: order.estimatedDelivery || '',
+        }));
+        setOrders(normalized);
+      })
+      .catch(() => {
+        const savedOrders = localStorage.getItem('orders');
+        if (savedOrders) {
+          setOrders(JSON.parse(savedOrders));
+        }
+      });
   }, []);
 
   const handleTrack = (order) => {

@@ -68,10 +68,12 @@ const TechMainScreen = () => {
         </div>
       </div>
 
-      <div className="tech-grid-2">
-        <TaskFilters filter={filter} setFilter={setFilter} />
-        <div className="tech-card">
+      <div className="tech-card tech-assigned-tasks-card">
+        <div className="tech-assigned-tasks-header">
           <h3>My Assigned Tasks</h3>
+          <TaskFilters filter={filter} setFilter={setFilter} />
+        </div>
+        <div className="tech-assigned-tasks-list">
           {filteredTasks.map((task) => (
             <TaskCard
               key={task.id}

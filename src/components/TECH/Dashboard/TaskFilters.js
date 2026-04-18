@@ -1,17 +1,22 @@
 import React from 'react';
 
-const TaskFilters = ({ filter, setFilter }) => {
-  return (
-    <div className="tech-card">
-      <h3>Task Filters</h3>
-      <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-        <option value="all">All</option>
-        <option value="processing">Processing</option>
-        <option value="in-progress">In Progress</option>
-        <option value="completed">Completed</option>
-      </select>
-    </div>
-  );
-};
+const TaskFilters = ({ filter, setFilter }) => (
+  <div className="tech-task-filters">
+    <label className="tech-task-filter-label" htmlFor="tech-task-filter">
+      Filter
+    </label>
+    <select
+      id="tech-task-filter"
+      value={filter}
+      onChange={(e) => setFilter(e.target.value)}
+      className="tech-task-filter-select"
+    >
+      <option value="all">All</option>
+      <option value="processing">Processing</option>
+      <option value="in-progress">In Progress</option>
+      <option value="completed">Completed</option>
+    </select>
+  </div>
+);
 
 export default TaskFilters;

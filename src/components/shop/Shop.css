@@ -161,6 +161,9 @@
     padding: 20px;
     position: sticky;
     top: 80px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     border: 1px solid var(--gray-200);
     box-shadow: var(--shadow-sm);
   }

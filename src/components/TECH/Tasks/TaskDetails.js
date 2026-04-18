@@ -1,24 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TechLayout from '../Common/TechLayout';
 import UpdateTaskStatus from './UpdateTaskStatus';
+import { apiRequest } from '../../../config/api';
 import '../techShared.css';
 
 const TaskDetails = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
-  const [task, setTask] = useState({
-    id: taskId,
-    title: `Service Task ${taskId}`,
-    customer: 'Sample Customer',
-    address: 'Quezon City',
-    priority: 'medium',
-    status: 'processing',
-    notes: 'Inspect condenser and clean filters.'
-  });
+  const [task, setTask] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiRequest(`/tasks/${taskId}`)
+      .then((response) => setTask(response.task))
+      .catch(() => setTask(null))
+      .finally(() => setLoading(false));
+  }, [taskId]);
 
   return (
     <TechLayout title="Task Details" subtitle={`Task #${taskId}`}>
+      {loading ? (
+        <div className="tech-card">Loading task details...</div>
+      ) : !task ? (
+        <div className="tech-card">
+          <h3>Task not found</h3>
+          <button type="button" onClick={() => navigate('/tech/tasks')}>Back to Tasks</button>
+        </div>
+      ) : (
       <div className="tech-grid-2">
         <div className="tech-card">
           <h3>{task.title}</h3>
@@ -26,11 +35,12 @@ const TaskDetails = () => {
           <p><strong>Address:</strong> {task.address}</p>
           <p><strong>Priority:</strong> {task.priority}</p>
           <p><strong>Status:</strong> {task.status}</p>
-          <p><strong>Notes:</strong> {task.notes}</p>
+          <p><strong>Notes:</strong> {task.notes || 'No notes available.'}</p>
           <button type="button" onClick={() => navigate('/tech/tasks')}>Back to Tasks</button>
         </div>
         <UpdateTaskStatus task={task} onStatusChange={(status) => setTask((prev) => ({ ...prev, status }))} />
       </div>
+      )}
     </TechLayout>
   );
 };
