@@ -5,6 +5,7 @@ const serviceRequestSchema = new mongoose.Schema(
     customer: { type: String, required: true, trim: true },
     issue: { type: String, required: true, trim: true },
     address: { type: String, required: true, trim: true },
+    branch: { type: String, default: "", index: true },
     status: { type: String, default: "Pending" },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },

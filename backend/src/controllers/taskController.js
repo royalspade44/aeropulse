@@ -1,17 +1,24 @@
 const mongoose = require("mongoose");
 const Task = require("../models/Task");
 
-const findTaskForRequest = async (taskId) => {
+const branchScopeQuery = (req) => {
+  if (req.authUser.role === "superadmin") return {};
+  const branch = req.activeBranch;
+  if (!branch) return {};
+  return { $or: [{ branch }, { branch: "" }, { branch: { $exists: false } }] };
+};
+
+const findTaskForRequest = async (taskId, req) => {
   const conditions = [{ taskCode: taskId }];
   if (mongoose.Types.ObjectId.isValid(taskId)) {
     conditions.unshift({ _id: taskId });
   }
-  return Task.findOne({ $or: conditions });
+  return Task.findOne({ $and: [{ $or: conditions }, branchScopeQuery(req)] });
 };
 
 const getTaskById = async (req, res) => {
   try {
-    const task = await findTaskForRequest(req.params.taskId);
+    const task = await findTaskForRequest(req.params.taskId, req);
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
@@ -30,7 +37,7 @@ const updateTaskStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid task status." });
     }
 
-    const task = await findTaskForRequest(req.params.taskId);
+    const task = await findTaskForRequest(req.params.taskId, req);
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }

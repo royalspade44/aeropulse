@@ -11,6 +11,7 @@ import './TechMainScreen.css';
 
 const TechMainScreen = () => {
   const { user } = useUser();
+  const activeBranch = localStorage.getItem('activeBranch') || user?.activeBranch || '';
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -45,7 +46,7 @@ const TechMainScreen = () => {
   const filteredTasks = filter === 'all' ? tasks : tasks.filter((task) => task.status === filter);
 
   return (
-    <TechLayout title="Technician Dashboard" subtitle={user?.name ? `Welcome back, ${user.name.split(' ')[0]}` : 'Technician workspace'}>
+    <TechLayout title="Technician Dashboard" subtitle={activeBranch ? `${activeBranch} branch workspace` : (user?.name ? `Welcome back, ${user.name.split(' ')[0]}` : 'Technician workspace')}>
       <TechDispatchMetrics tasks={tasks} />
       <p className="tech-dispatch-note">
         New jobs are auto-assigned by availability and workload balancing when the dispatcher API is connected; tickets capture visit history, warranty flags, and return visits.

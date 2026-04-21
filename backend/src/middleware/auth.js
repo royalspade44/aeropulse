@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const env = require("../config/env");
 const User = require("../models/User");
+const { BRANCHES } = require("../domain/branchRouting");
 
 const requireAuth = async (req, res, next) => {
   try {
@@ -18,6 +19,18 @@ const requireAuth = async (req, res, next) => {
     }
 
     req.authUser = user;
+    const headerBranch = typeof req.headers["x-branch"] === "string" ? req.headers["x-branch"].trim() : "";
+    const isBranchScopedRole = user.role === "admin" || user.role === "technician";
+    req.activeBranch = "";
+    if (isBranchScopedRole) {
+      const effectiveBranch = BRANCHES.includes(headerBranch)
+        ? headerBranch
+        : (BRANCHES.includes(user.activeBranch) ? user.activeBranch : user.assignedBranch);
+      if (!effectiveBranch || !BRANCHES.includes(effectiveBranch)) {
+        return res.status(400).json({ message: "Branch is required for this account." });
+      }
+      req.activeBranch = effectiveBranch;
+    }
     return next();
   } catch (_error) {
     return res.status(401).json({ message: "Unauthorized" });

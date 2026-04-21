@@ -26,6 +26,7 @@ const createReorderRequest = async (req, res) => {
     requestedBy: req.authUser._id,
     product: product._id,
     quantity: Number(quantity),
+    branch: req.authUser.role === "superadmin" ? (req.body?.branch || "") : req.activeBranch,
     notes,
   });
 
@@ -34,7 +35,11 @@ const createReorderRequest = async (req, res) => {
 
 const listMyReorders = async (req, res) => {
   if (!requireAdmin(req, res)) return null;
-  const reorders = await ReorderRequest.find({ requestedBy: req.authUser._id })
+  const query = { requestedBy: req.authUser._id };
+  if (req.authUser.role !== "superadmin") {
+    query.$or = [{ branch: req.activeBranch }, { branch: "" }, { branch: { $exists: false } }];
+  }
+  const reorders = await ReorderRequest.find(query)
     .populate("product")
     .sort({ createdAt: -1 })
     .limit(100);

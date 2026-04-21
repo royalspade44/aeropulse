@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const { signAccessToken } = require("../utils/token");
 const env = require("../config/env");
+const { BRANCHES } = require("../domain/branchRouting");
 
 const lockoutSecondsForAttemptCount = (attempts) => {
   if (attempts < 3) return 0;
@@ -48,7 +49,7 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password, role, branch } = req.body;
   const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
   if (!normalizedEmail || !password) {
@@ -94,6 +95,20 @@ const login = async (req, res) => {
 
   if (role && user.role !== role) {
     return res.status(403).json({ message: `Access denied. This account is not registered as a ${role}.` });
+  }
+
+  const isBranchScopedRole = user.role === "admin" || user.role === "technician";
+  if (isBranchScopedRole) {
+    const selectedBranch = typeof branch === "string" ? branch.trim() : "";
+    if (!selectedBranch || !BRANCHES.includes(selectedBranch)) {
+      return res.status(400).json({ message: "A valid branch is required for this account." });
+    }
+    user.activeBranch = selectedBranch;
+    if (!user.assignedBranch) {
+      user.assignedBranch = selectedBranch;
+    }
+  } else if (user.role === "superadmin") {
+    user.activeBranch = "";
   }
 
   user.failedLoginAttempts = 0;

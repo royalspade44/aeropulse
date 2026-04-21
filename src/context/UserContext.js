@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { apiRequest } from "../config/api";
+import { ACTIVE_BRANCH_KEY } from "../domain/branches/branches";
 
 const UserContext = createContext();
 const ACTIVE_ACCOUNT_SESSION_KEY = "activeAccountSession";
@@ -12,16 +13,22 @@ export const useUser = () => {
   return context;
 };
 
-const saveSession = (token, user) => {
+const saveSession = (token, user, branch = "") => {
   localStorage.setItem("accessToken", token);
   localStorage.setItem("currentUser", JSON.stringify(user));
   localStorage.setItem("userRole", user.role);
+  if (branch) {
+    localStorage.setItem(ACTIVE_BRANCH_KEY, branch);
+  } else {
+    localStorage.removeItem(ACTIVE_BRANCH_KEY);
+  }
 };
 
 const clearSession = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("currentUser");
   localStorage.removeItem("userRole");
+  localStorage.removeItem(ACTIVE_BRANCH_KEY);
 };
 
 const readActiveSession = () => {
@@ -72,6 +79,12 @@ export const UserProvider = ({ children }) => {
         setCurrentSession(result.user);
         setIsAuthenticated(true);
         localStorage.setItem("currentUser", JSON.stringify(result.user));
+        const activeBranch = result.user?.activeBranch || result.user?.assignedBranch || "";
+        if (activeBranch) {
+          localStorage.setItem(ACTIVE_BRANCH_KEY, activeBranch);
+        } else {
+          localStorage.removeItem(ACTIVE_BRANCH_KEY);
+        }
         activateSingleSession(result.user);
       } catch (_error) {
         clearSession();
@@ -102,12 +115,13 @@ export const UserProvider = ({ children }) => {
     return () => window.removeEventListener("storage", onStorage);
   }, [isAuthenticated, user]);
 
-  const login = async (email, password, role = null) => {
+  const login = async (email, password, role = null, branch = "") => {
     const result = await apiRequest("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password, role }),
+      body: JSON.stringify({ email, password, role, branch }),
     });
-    saveSession(result.token, result.user);
+    const userBranch = result.user?.activeBranch || result.user?.assignedBranch || branch || "";
+    saveSession(result.token, result.user, userBranch);
     activateSingleSession(result.user);
     setUser(result.user);
     setUserRole(result.user.role || null);
@@ -130,8 +144,8 @@ export const UserProvider = ({ children }) => {
     return result.user;
   };
 
-  const loginAsAdmin = async (email, password) => login(email, password, "admin");
-  const loginAsTechnician = async (email, password) => login(email, password, "technician");
+  const loginAsAdmin = async (email, password, branch = "") => login(email, password, "admin", branch);
+  const loginAsTechnician = async (email, password, branch = "") => login(email, password, "technician", branch);
   const loginAsSuperAdmin = async (email, password) => login(email, password, "superadmin");
 
   const logout = () => {

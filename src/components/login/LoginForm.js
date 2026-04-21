@@ -7,9 +7,13 @@ import icons from '../common/icons';
 function LoginForm({ 
   email, 
   password, 
+  branch,
+  role,
+  branchOptions = [],
   errors, 
   onEmailChange, 
   onPasswordChange, 
+  onBranchChange,
   onSubmit, 
   loading, 
   disabled,
@@ -35,6 +39,32 @@ function LoginForm({
         disabled={disabled}
         required
       />
+
+      {(role === 'admin' || role === 'technician') && (
+        <div className="input-group">
+          <label>Branch <span className="required-star">*</span></label>
+          <select
+            value={branch}
+            onChange={(event) => onBranchChange(event.target.value)}
+            disabled={disabled}
+            className={errors.branch ? 'input-error' : ''}
+            required
+          >
+            <option value="">Select branch</option>
+            {branchOptions.map((branchName) => (
+              <option key={branchName} value={branchName}>
+                {branchName}
+              </option>
+            ))}
+          </select>
+          {errors.branch && (
+            <div className="error-message">
+              <img src={icons.diamondExclamation} alt="" className="inline-icon" />
+              <span>{errors.branch}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="input-group">
         <label>Password <span className="required-star">*</span></label>

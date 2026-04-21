@@ -22,6 +22,8 @@ const users = [
     phone: "09123456780",
     address: "456 Admin Street",
     role: "admin",
+    assignedBranch: "Bulacan",
+    activeBranch: "Bulacan",
   },
   {
     email: "tech@example.com",
@@ -32,6 +34,8 @@ const users = [
     phone: "09123456781",
     address: "789 Tech Street",
     role: "technician",
+    assignedBranch: "Bulacan",
+    activeBranch: "Bulacan",
     skills: ["Electronics Repair", "AC Repair", "Plumbing"],
   },
   {

@@ -124,7 +124,11 @@ const approveOrder = async (req, res) => {
   const { orderId } = req.params;
   const { assignedTechnician, estimatedArrival, installationDate } = req.body || {};
 
-  const order = await Order.findOne({ $or: [{ _id: orderId }, { orderCode: orderId }] });
+  const baseQuery = { $or: [{ _id: orderId }, { orderCode: orderId }] };
+  if (req.authUser.role !== "superadmin" && req.activeBranch) {
+    baseQuery.stockSourceBranch = req.activeBranch;
+  }
+  const order = await Order.findOne(baseQuery);
   if (!order) {
     return res.status(404).json({ message: "Order not found" });
   }

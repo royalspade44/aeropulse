@@ -9,6 +9,7 @@ import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const { user } = useUser();
+  const activeBranch = localStorage.getItem('activeBranch') || user?.activeBranch || '';
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [statsError, setStatsError] = useState('');
@@ -60,7 +61,7 @@ const AdminDashboard = () => {
   const weeklySalesData = [42, 38, 55, 68, 72, 85, 78];
 
   return (
-    <AdminLayout title="Admin Dashboard" subtitle="Monitor sales, inventory, technicians, and requests">
+    <AdminLayout title="Admin Dashboard" subtitle={`Monitor sales, inventory, technicians, and requests${activeBranch ? ` for ${activeBranch}` : ''}`}>
       <div className="admin-dashboard">
         <div className="welcome-section">
           <h2>Welcome back, {user?.name || 'Admin'}</h2>

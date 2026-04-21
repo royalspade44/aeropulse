@@ -44,6 +44,8 @@ const userSchema = new mongoose.Schema(
     skills: [{ type: String }],
     permissions: [{ type: String }],
     department: { type: String },
+    assignedBranch: { type: String, default: "" },
+    activeBranch: { type: String, default: "" },
     lastLogin: { type: Date },
     failedLoginAttempts: { type: Number, default: 0 },
     lockoutUntil: { type: Date, default: null },

@@ -19,6 +19,7 @@ const taskSchema = new mongoose.Schema(
     scheduledDate: { type: String, required: true },
     timeSlot: { type: String, required: true },
     assignedRole: { type: String, default: "technician" },
+    branch: { type: String, default: "", index: true },
     completedAt: { type: Date, default: null },
   },
   { timestamps: true }

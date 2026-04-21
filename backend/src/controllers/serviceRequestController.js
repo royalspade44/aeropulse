@@ -10,7 +10,10 @@ const requireAdmin = (req, res) => {
 
 const listServiceRequests = async (req, res) => {
   if (!requireAdmin(req, res)) return null;
-  const requests = await ServiceRequest.find({}).sort({ createdAt: -1 }).limit(200);
+  const query = req.authUser.role === "superadmin"
+    ? {}
+    : { $or: [{ branch: req.activeBranch }, { branch: "" }, { branch: { $exists: false } }] };
+  const requests = await ServiceRequest.find(query).sort({ createdAt: -1 }).limit(200);
   return res.json({ requests: requests.map((r) => r.toJSON()) });
 };
 
@@ -24,6 +27,7 @@ const createServiceRequest = async (req, res) => {
     customer,
     issue,
     address,
+    branch: req.authUser.role === "superadmin" ? (req.body?.branch || "") : req.activeBranch,
     status,
     createdBy: req.authUser._id,
   });

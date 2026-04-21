@@ -2,24 +2,26 @@ import React, { useState } from 'react';
 import { useUser } from '../../../context/UserContext';
 import AdminLayout from '../Common/AdminLayout';
 import ChangePassword from './ChangePassword';
+import { loadBranchNetwork } from '../../../domain/branches/branchNetworkStorage';
 import '../adminShared.css';
 import './AdminProfile.css';
 
 const AdminProfile = () => {
   const { user, updateProfile } = useUser();
+  const branchName = localStorage.getItem('activeBranch') || user?.activeBranch || user?.assignedBranch || '';
+  const branchInfo = loadBranchNetwork().find((branch) => branch.name === branchName);
+  const adminLocation = branchInfo?.location || branchName || '-';
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
-    address: user?.address || ''
   });
 
   const openEditModal = () => {
     setForm({
       name: user?.name || '',
       phone: user?.phone || '',
-      address: user?.address || ''
     });
     setIsEditing(true);
   };
@@ -47,7 +49,7 @@ const AdminProfile = () => {
           <p><strong>Email:</strong> {user?.email || 'admin@aeropulse.com'}</p>
           <p><strong>Role:</strong> {user?.role || 'admin'}</p>
           <p><strong>Phone:</strong> {user?.phone || '-'}</p>
-          <p><strong>Address:</strong> {user?.address || '-'}</p>
+          <p><strong>Location:</strong> {adminLocation}</p>
           <button type="button" onClick={openEditModal}>Edit Profile</button>
         </div>
         <ChangePassword />
@@ -58,7 +60,7 @@ const AdminProfile = () => {
             <h3>Edit Admin Profile</h3>
             <input value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} placeholder="Name" />
             <input value={form.phone} onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))} placeholder="Phone" />
-            <input value={form.address} onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))} placeholder="Address" />
+            <input value={adminLocation} readOnly disabled placeholder="Location" />
             <div className="app-modal-actions">
               <button type="button" onClick={() => setIsEditing(false)}>Cancel</button>
               <button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button>

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useUser } from '../../context/UserContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api';
+import { BRANCHES } from '../../domain/branches/branches';
 import './Login.css';
 import icons from '../common/icons';
 import LoginBrandSection from './LoginBrandSection';
@@ -25,6 +26,7 @@ function Login() {
     email: '',
     password: '',
     role: null,
+    branch: '',
   });
   const [errors, setErrors] = useState({});
   const [lockoutInfo, setLockoutInfo] = useState(null);
@@ -75,6 +77,13 @@ function Login() {
     }
   };
 
+  const handleBranchChange = (branch) => {
+    setUser((prev) => ({ ...prev, branch }));
+    if (errors.branch) {
+      setErrors((prev) => ({ ...prev, branch: '' }));
+    }
+  };
+
   const handleForgotPassword = () => {
     if (!user.email) {
       alert('Please enter your email address first.');
@@ -88,9 +97,17 @@ function Login() {
     setErrors({});
     setLoading(true);
 
+    const needsBranch = user.role === 'admin' || user.role === 'technician';
+    if (needsBranch && !user.branch) {
+      setErrors((prev) => ({ ...prev, branch: 'Branch is required' }));
+      alert('Please select a branch before signing in.');
+      setLoading(false);
+      return;
+    }
+
     // Check for empty fields
     for (const [k, v] of Object.entries(user)) {
-      if (k !== 'role' && (!v || v.length < 1)) {
+      if (k !== 'role' && k !== 'branch' && (!v || v.length < 1)) {
         setErrors(prev => ({ ...prev, [k]: 'This field is required' }));
         alert('All fields must be filled!');
         setLoading(false);
@@ -106,10 +123,10 @@ function Login() {
       // Use different login methods based on selected role
       switch(user.role) {
         case 'admin':
-          loggedInUser = await loginAsAdmin(user.email, user.password);
+          loggedInUser = await loginAsAdmin(user.email, user.password, user.branch);
           break;
         case 'technician':
-          loggedInUser = await loginAsTechnician(user.email, user.password);
+          loggedInUser = await loginAsTechnician(user.email, user.password, user.branch);
           break;
         case 'superadmin':
           loggedInUser = await login(user.email, user.password, 'superadmin');
@@ -121,8 +138,11 @@ function Login() {
       console.log('Login successful:', loggedInUser);
       
       // Store user with role in session
-      const userWithRole = { ...loggedInUser, selectedRole: user.role };
+      const userWithRole = { ...loggedInUser, selectedRole: user.role, activeBranch: loggedInUser?.activeBranch || user.branch || '' };
       localStorage.setItem('currentUser', JSON.stringify(userWithRole));
+      if (userWithRole.activeBranch) {
+        localStorage.setItem('activeBranch', userWithRole.activeBranch);
+      }
       
       if (timerRef.current) clearInterval(timerRef.current);
       
@@ -246,9 +266,13 @@ function Login() {
               <LoginForm
                 email={user.email}
                 password={user.password}
+                branch={user.branch}
+                role={user.role}
                 errors={errors}
                 onEmailChange={handleEmailChange}
                 onPasswordChange={handlePasswordChange}
+                onBranchChange={handleBranchChange}
+                branchOptions={BRANCHES}
                 onSubmit={authenticateUser}
                 loading={loading}
                 disabled={!!lockoutInfo}

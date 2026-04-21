@@ -30,13 +30,17 @@ const upsertMyAttendance = async (req, res) => {
     return res.status(400).json({ message: "Status is required" });
   }
 
+  const normalizedBranch = (req.authUser.role === "admin" || req.authUser.role === "technician")
+    ? req.activeBranch
+    : branch;
+
   const attendance = await Attendance.findOneAndUpdate(
     { user: req.authUser._id, day },
     {
       $set: {
         role: req.authUser.role,
         status,
-        branch,
+        branch: normalizedBranch,
         notes,
       },
     },
@@ -47,12 +51,16 @@ const upsertMyAttendance = async (req, res) => {
 };
 
 const getTodayAttendance = async (req, res) => {
-  if (req.authUser.role !== "superadmin") {
+  if (!["admin", "superadmin"].includes(req.authUser.role)) {
     return res.status(403).json({ message: "Forbidden" });
   }
 
   const day = dayKey();
-  const attendance = await Attendance.find({ day }).populate("user").sort({ updatedAt: -1 });
+  const query = { day };
+  if (req.authUser.role !== "superadmin") {
+    query.branch = req.activeBranch;
+  }
+  const attendance = await Attendance.find(query).populate("user").sort({ updatedAt: -1 });
   return res.json({
     attendance: attendance.map((a) => toView(a, a.user)),
   });

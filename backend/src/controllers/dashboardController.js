@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Task = require("../models/Task");
 const Order = require("../models/Order");
+const ServiceRequest = require("../models/ServiceRequest");
 
 const startOfToday = () => {
   const now = new Date();
@@ -8,8 +9,12 @@ const startOfToday = () => {
   return now;
 };
 
-const getTechnicianDashboard = async () => {
-  const tasks = await Task.find({ assignedRole: "technician" }).sort({ createdAt: -1 }).limit(20);
+const getTechnicianDashboard = async (activeBranch = "") => {
+  const taskQuery = { assignedRole: "technician" };
+  if (activeBranch) {
+    taskQuery.$or = [{ branch: activeBranch }, { branch: "" }, { branch: { $exists: false } }];
+  }
+  const tasks = await Task.find(taskQuery).sort({ createdAt: -1 }).limit(20);
   const today = startOfToday();
 
   return {
@@ -18,17 +23,34 @@ const getTechnicianDashboard = async () => {
       inProgressTasks: tasks.filter((t) => t.status === "in-progress").length,
       completedToday: tasks.filter((t) => t.completedAt && t.completedAt >= today).length,
       totalTasks: tasks.length,
+      branchLabel: activeBranch || "All branches",
     },
     tasks: tasks.map((task) => task.toJSON()),
   };
 };
 
-const getAdminDashboard = async () => {
-  const [orders, pendingTasks, activeTechnicians, totalCustomers] = await Promise.all([
-    Order.find({ status: { $ne: "cancelled" } }),
-    Task.countDocuments({ status: { $in: ["pending", "in-progress"] } }),
-    User.countDocuments({ role: "technician" }),
-    User.countDocuments({ role: "customer" }),
+const getAdminDashboard = async (activeBranch = "") => {
+  const orderQuery = { status: { $ne: "cancelled" } };
+  if (activeBranch) {
+    orderQuery.stockSourceBranch = activeBranch;
+  }
+  const taskQuery = { status: { $in: ["pending", "in-progress"] } };
+  const techQuery = { role: "technician" };
+  const customerQuery = { role: "customer" };
+  const serviceQuery = {};
+  if (activeBranch) {
+    taskQuery.$or = [{ branch: activeBranch }, { branch: "" }, { branch: { $exists: false } }];
+    techQuery.$or = [{ assignedBranch: activeBranch }, { assignedBranch: "" }, { assignedBranch: { $exists: false } }];
+    customerQuery.$or = [{ activeBranch }, { activeBranch: "" }, { activeBranch: { $exists: false } }];
+    serviceQuery.$or = [{ branch: activeBranch }, { branch: "" }, { branch: { $exists: false } }];
+  }
+
+  const [orders, pendingTasks, activeTechnicians, totalCustomers, serviceRequests] = await Promise.all([
+    Order.find(orderQuery),
+    Task.countDocuments(taskQuery),
+    User.countDocuments(techQuery),
+    User.countDocuments(customerQuery),
+    ServiceRequest.countDocuments(serviceQuery),
   ]);
 
   const totalSales = orders.reduce((sum, order) => sum + order.totalAmount, 0);
@@ -41,6 +63,8 @@ const getAdminDashboard = async () => {
       activeTechnicians,
       pendingTasks,
       totalCustomers,
+      serviceRequests,
+      branchLabel: activeBranch || "All branches",
     },
   };
 };
@@ -71,11 +95,11 @@ const getMyDashboard = async (req, res) => {
     const role = req.authUser.role;
 
     if (role === "technician") {
-      return res.json({ role, ...(await getTechnicianDashboard()) });
+      return res.json({ role, ...(await getTechnicianDashboard(req.activeBranch)) });
     }
 
     if (role === "admin") {
-      return res.json({ role, ...(await getAdminDashboard()) });
+      return res.json({ role, ...(await getAdminDashboard(req.activeBranch)) });
     }
 
     if (role === "superadmin") {

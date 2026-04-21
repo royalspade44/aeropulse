@@ -3,6 +3,7 @@ import AdminLayout from '../Common/AdminLayout';
 import AddProduct from './AddProduct';
 import InventoryList from './InventoryList';
 import { apiRequest } from '../../../config/api';
+import { ACTIVE_BRANCH_KEY } from '../../../domain/branches/branches';
 import '../adminShared.css';
 import './AdminInventory.css';
 
@@ -10,6 +11,7 @@ const AdminInventory = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeBranch, setActiveBranch] = useState('');
 
   const load = async () => {
     setError('');
@@ -17,6 +19,8 @@ const AdminInventory = () => {
     try {
       const result = await apiRequest('/products');
       setProducts(result.products || []);
+      const selected = localStorage.getItem(ACTIVE_BRANCH_KEY) || '';
+      setActiveBranch(selected);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -29,7 +33,7 @@ const AdminInventory = () => {
   }, []);
 
   return (
-    <AdminLayout title="Inventory" subtitle="Track and update stock">
+    <AdminLayout title="Inventory" subtitle={`Track and update stock${activeBranch ? ` - ${activeBranch} branch` : ''}`}>
       <div className="admin-grid-2">
         <AddProduct onCreated={() => load()} />
         <div>

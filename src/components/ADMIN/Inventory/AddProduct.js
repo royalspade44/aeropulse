@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { apiRequest } from '../../../config/api';
+import { ACTIVE_BRANCH_KEY, BRANCHES } from '../../../domain/branches/branches';
 import './AddProduct.css';
 
 const initialForm = {
@@ -23,6 +24,7 @@ const AddProduct = ({ onCreated }) => {
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const activeBranch = localStorage.getItem(ACTIVE_BRANCH_KEY) || '';
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -49,14 +51,10 @@ const AddProduct = ({ onCreated }) => {
             .filter(Boolean),
           threshold: Number(form.threshold) || 0,
           price: Number(form.price) || 0,
-          branchStock: {
-            Bulacan: Number(form.stockBulacan) || 0,
-            Cavite: Number(form.stockCavite) || 0,
-            Laguna: Number(form.stockLaguna) || 0,
-            Bataan: Number(form.stockBataan) || 0,
-            Pangasinan: Number(form.stockPangasinan) || 0,
-            Ilocos: Number(form.stockIlocos) || 0,
-          },
+          branchStock: BRANCHES.reduce((acc, branchName) => {
+            acc[branchName] = Number(form[`stock${branchName}`]) || 0;
+            return acc;
+          }, {}),
         }),
       });
       onCreated?.(result.product);
@@ -81,12 +79,13 @@ const AddProduct = ({ onCreated }) => {
       </select>
       <input name="specs" value={form.specs} onChange={handleChange} placeholder="Specs (e.g. 1.5HP)" />
       <input name="features" value={form.features} onChange={handleChange} placeholder="Features (comma separated)" />
-      <input name="stockBulacan" value={form.stockBulacan} onChange={handleChange} placeholder="Bulacan stock" type="number" />
-      <input name="stockCavite" value={form.stockCavite} onChange={handleChange} placeholder="Cavite stock" type="number" />
-      <input name="stockLaguna" value={form.stockLaguna} onChange={handleChange} placeholder="Laguna stock" type="number" />
-      <input name="stockBataan" value={form.stockBataan} onChange={handleChange} placeholder="Bataan stock" type="number" />
-      <input name="stockPangasinan" value={form.stockPangasinan} onChange={handleChange} placeholder="Pangasinan stock" type="number" />
-      <input name="stockIlocos" value={form.stockIlocos} onChange={handleChange} placeholder="Ilocos stock" type="number" />
+      <input
+        name={`stock${activeBranch || 'Bulacan'}`}
+        value={form[`stock${activeBranch || 'Bulacan'}`]}
+        onChange={handleChange}
+        placeholder={`${activeBranch || 'Bulacan'} stock`}
+        type="number"
+      />
       <input name="threshold" value={form.threshold} onChange={handleChange} placeholder="Low-stock threshold (optional)" type="number" />
       <input name="price" value={form.price} onChange={handleChange} placeholder="Price" type="number" />
       <button type="submit" disabled={saving}>{saving ? 'Adding…' : 'Add'}</button>

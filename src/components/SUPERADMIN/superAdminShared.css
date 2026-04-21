@@ -3,11 +3,11 @@
    Minimalist, clean, #2563eb primary
    ============================================ */
 
-   .super-layout {
-    min-height: 100vh;
-    background: var(--gray-50, #f9fafb);
-    font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
-  }
+.super-layout {
+   min-height: 100vh;
+   background: linear-gradient(135deg, #f0f4f8 0%, #e8edf3 100%);
+   font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+ }
   
   .super-layout-main {
     margin-left: 320px;
@@ -16,13 +16,13 @@
   }
   
   /* ========== BURGER BUTTON ========== */
-  .super-burger-button {
+ .super-burger-button {
     position: fixed;
     top: 1.25rem;
     left: 1.25rem;
     z-index: 980;
-    background: white;
-    border: 1px solid #e5e7eb;
+   background: linear-gradient(135deg, #0f172a, #1e293b);
+   border: none;
     border-radius: 12px;
     width: 44px;
     height: 44px;
@@ -32,13 +32,12 @@
     align-items: center;
     gap: 5px;
     cursor: pointer;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.07);
+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transition: all 0.2s ease;
   }
   
   .super-burger-button:hover {
-    background: #eff6ff;
-    border-color: #bfdbfe;
+   background: linear-gradient(135deg, #1e293b, #334155);
   }
   
   .super-burger-button:active {
@@ -49,13 +48,13 @@
     display: block;
     width: 18px;
     height: 2px;
-    background-color: #374151;
+   background-color: #ffffff;
     border-radius: 3px;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .super-burger-button:hover span {
-    background-color: #2563eb;
+   background-color: #ffffff;
   }
   
   .super-burger-button.open span:nth-child(1) {
@@ -93,9 +92,9 @@
     width: 300px;
     height: 100vh;
     background: white;
-    border-radius: 0 16px 16px 0;
-    border-right: 1px solid #e5e7eb;
-    box-shadow: 0 10px 30px rgb(15 23 42 / 0.1);
+   border-radius: 0 16px 16px 0;
+   border-right: 1px solid rgba(30, 136, 229, 0.12);
+   box-shadow: 4px 0 20px rgba(15, 23, 42, 0.24);
     padding: 20px 14px;
     z-index: 1000;
     display: flex;
@@ -202,9 +201,9 @@
   .super-header,
   .super-card {
     background: white;
-    border-radius: 14px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+   border-radius: 18px;
+   border: 1px solid rgba(148, 163, 184, 0.2);
+   box-shadow: 0 6px 22px rgba(15, 23, 42, 0.08);
   }
   
   .super-header {
@@ -221,13 +220,13 @@
   }
   
   .super-toggle {
-    border: 1px solid #e5e7eb;
+   border: 1px solid #dbeafe;
     border-radius: 10px;
     width: 36px;
     height: 36px;
     cursor: pointer;
-    background: #eff6ff;
-    color: #2563eb;
+   background: #eff6ff;
+   color: #1d4ed8;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -236,9 +235,9 @@
   }
   
   .super-toggle:hover {
-    background: #2563eb;
+   background: #1e88e5;
     color: white;
-    border-color: #2563eb;
+   border-color: #1e88e5;
   }
   
   /* ========== GRIDS ========== */
@@ -284,7 +283,7 @@
     border-radius: 9px;
     border: none;
     cursor: pointer;
-    background: #2563eb;
+   background: linear-gradient(135deg, #1e88e5, #0d47a1);
     color: white;
     font-weight: 600;
     font-size: 13px;
@@ -292,9 +291,9 @@
   }
   
   .super-card button:hover {
-    background: #1d4ed8;
+   background: linear-gradient(135deg, #1976d2, #0b3f8f);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgb(37 99 235 / 0.25);
+   box-shadow: 0 4px 12px rgba(30, 136, 229, 0.25);
   }
   
   .super-grid-2 {

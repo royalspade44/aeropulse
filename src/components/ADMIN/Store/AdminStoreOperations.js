@@ -5,6 +5,14 @@ import { loadBranchNetwork, updateBranchOps } from '../../../domain/branches/bra
 import '../adminShared.css';
 
 const TOTP_DEMO = '123456';
+const DEFAULT_BRANCH_LOCATIONS = {
+  Bulacan: 'Bulacan',
+  Cavite: 'Cavite',
+  Laguna: 'Laguna',
+  Bataan: 'Bataan',
+  Pangasinan: 'Pangasinan',
+  Ilocos: 'Ilocos',
+};
 
 const AdminStoreOperations = () => {
   const { user } = useUser();
@@ -14,6 +22,21 @@ const AdminStoreOperations = () => {
   const [error, setError] = useState('');
 
   const assignedBranch = useMemo(() => {
+    const pickedBranch = localStorage.getItem('activeBranch') || user?.activeBranch || user?.assignedBranch || '';
+    if (pickedBranch) {
+      const matchedByName = branches.find((branch) => branch.name === pickedBranch);
+      if (matchedByName) return matchedByName;
+      return {
+        id: pickedBranch.toLowerCase().replace(/\s+/g, '-'),
+        name: pickedBranch,
+        location: DEFAULT_BRANCH_LOCATIONS[pickedBranch] || pickedBranch,
+        manager: 'TBD',
+        branchAdmin: String(user?.email || '').toLowerCase(),
+        storeStatus: 'open',
+        serverStatus: 'online',
+        networkHealth: 'stable',
+      };
+    }
     const email = String(user?.email || '').toLowerCase();
     return branches.find((branch) => branch.branchAdmin === email) || branches[0];
   }, [branches, user?.email]);

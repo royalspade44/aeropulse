@@ -1,316 +1,53 @@
 /* ============================================================
-   TECH MAIN SCREEN - ENHANCED MINIMAL DESIGN
-   Base: inherits variables from techShared.css
+   TECH MAIN SCREEN
+   Inherits variables from techShared.css
    ============================================================ */
 
-/* ──────────────── ROOT TONE IMPROVEMENTS ──────────────── */
-:root {
-  --gray-50: #fafafa;
-  --gray-100: #f4f4f5;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
+/* ── NOTES / INFO CARD ── */
 
-  --white: #ffffff;
-  --primary: #2563eb;
-  --primary-light: #eff6ff;
-  --primary-mid: #93c5fd;
-  --primary-dark: #1e3a8a;
-
-  --success: #10b981;
-  --success-light: #ecfdf5;
-  --success-mid: #6ee7b7;
-
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --danger-light: #fee2e2;
-  --danger-mid: #fecaca;
-
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.07);
-
-  --transition: 0.25s ease;
-  --font-sans: 'Inter', 'SF Pro Text', system-ui, sans-serif;
-}
-
-/* ──────────────── DASHBOARD WRAPPER ──────────────── */
-
-.tech-dashboard {
-  padding: 32px 24px;
-  background: var(--gray-50);
-  min-height: 100vh;
-  font-family: var(--font-sans);
-  color: var(--gray-800);
-}
-
-/* ──────────────── HEADER ──────────────── */
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 28px;
-  padding: 16px 22px;
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--gray-200);
-  box-shadow: var(--shadow-sm);
-}
-
-.tech-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.tech-info-text h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--gray-900);
-}
-
-.tech-info-text p {
-  margin-top: 4px;
-  font-size: 13px;
-  color: var(--gray-400);
-}
-
-.logout-btn {
-  padding: 8px 16px;
-  background: var(--danger-light);
-  color: #b91c1c;
-  border: 1px solid var(--danger-mid);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 13px;
-  transition: all var(--transition);
-}
-.logout-btn:hover {
-  background: var(--danger);
-  color: var(--white);
-  border-color: var(--danger);
-}
-
-/* ──────────────── STATS GRID ──────────────── */
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-  margin-bottom: 28px;
-}
-
-.stat-card {
-  background: var(--white);
-  padding: 20px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1px solid var(--gray-200);
-  box-shadow: var(--shadow-xs);
-  transition: box-shadow var(--transition), transform var(--transition);
-  position: relative;
-  overflow: hidden;
-}
-.stat-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 4px;
-  background: var(--primary);
-}
-.stat-card.success::before { background: var(--success); }
-.stat-card.warning::before { background: var(--warning); }
-.stat-card.danger::before { background: var(--danger); }
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-.stat-icon {
-  font-size: 28px;
-  color: var(--primary-dark);
-  opacity: 0.9;
-}
-.stat-info h3 {
-  margin: 0;
-  color: var(--gray-500);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-}
-.stat-info p {
-  margin: 2px 0 0;
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--gray-900);
-}
-
-/* ──────────────── TASKS SECTION ──────────────── */
-
-.tasks-section {
-  background: var(--white);
-  padding: 24px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--gray-200);
-  box-shadow: var(--shadow-sm);
-}
-.tasks-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-.tasks-section h2 {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--gray-900);
-  margin: 0;
-}
-.tasks-section-meta {
-  font-size: 12.5px;
-  color: var(--gray-400);
-  margin-bottom: 16px;
-}
-.tasks-list {
-  margin-top: 16px;
+.tech-notes-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  margin-top: 4px;
 }
 
-/* ──────────────── TASK CARD ──────────────── */
-
-.task-card {
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-md);
-  padding: 16px 18px;
-  transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
-  background: var(--white);
-}
-.task-card:hover {
-  border-color: var(--primary-mid);
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-1px);
-}
-
-.task-header {
+.tech-note-item {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 10px;
   gap: 10px;
-}
-.task-header h3 {
-  margin: 0;
-  color: var(--gray-800);
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  flex: 1;
-}
-.badges {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-/* ──────────────── TASK DETAILS ──────────────── */
-
-.task-details p {
-  margin: 4px 0;
-  color: var(--gray-500);
-  font-size: 12.5px;
-  line-height: 1.6;
-}
-.task-details strong {
-  color: var(--gray-600);
-  font-weight: 500;
-}
-
-/* ──────────────── TASK ACTIONS ──────────────── */
-
-.task-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-  flex-wrap: wrap;
-}
-.task-actions button {
-  padding: 7px 14px;
+  padding: 10px 12px;
+  background: var(--gray-50);
   border-radius: var(--radius-sm);
+  border: 0.5px solid var(--gray-200);
   font-size: 12.5px;
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all var(--transition);
-}
-
-/* button variants */
-.view-btn {
-  background: var(--primary-light);
-  color: var(--primary-dark);
-  border-color: var(--primary-mid);
-}
-.view-btn:hover {
-  background: var(--primary);
-  color: var(--white);
-}
-
-.start-btn {
-  background: var(--success-light);
-  color: #047857;
-  border-color: var(--success-mid);
-}
-.start-btn:hover {
-  background: var(--success);
-  color: var(--white);
-}
-
-.complete-btn {
-  background: var(--gray-100);
   color: var(--gray-600);
-  border-color: var(--gray-200);
-}
-.complete-btn:hover {
-  background: var(--gray-200);
-  color: var(--gray-800);
+  line-height: 1.55;
 }
 
-/* ──────────────── RESPONSIVE ──────────────── */
-
-@media (max-width: 768px) {
-  .tech-dashboard {
-    padding: 16px;
-  }
-
-  .dashboard-header {
-    flex-direction: column;
-    gap: 12px;
-    text-align: center;
-  }
-
-  .task-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .task-actions button {
-    flex: 1;
-    text-align: center;
-  }
+.tech-note-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
+
+.tech-note-label.goal     { background: var(--primary-50);  color: var(--primary-800); }
+.tech-note-label.safety   { background: var(--warning-50);  color: var(--warning-800); }
+.tech-note-label.escalate { background: var(--danger-50);   color: var(--danger-800); }
+
+/* ── SECTION SPACING ── */
+
+.tech-main-section {
+  margin-top: 14px;
+}
+
+/* ── STAT CARD ICON COLOR VARIANTS ── */
+
+.tech-stat-card .tech-stat-icon-wrap.warning { background: var(--warning-50); }
+.tech-stat-card .tech-stat-icon-wrap.success { background: var(--success-50); }
+.tech-stat-card .tech-stat-icon-wrap.neutral { background: var(--gray-100); }

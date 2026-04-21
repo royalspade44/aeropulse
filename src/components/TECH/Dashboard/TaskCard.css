@@ -3,183 +3,65 @@
    Inherits variables from techShared.css
    ============================================================ */
 
-   .task-card-container {
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-md);
-    background: var(--white);
-    overflow: hidden;
-    transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
-  }
-  
-  .task-card-container:hover {
-    border-color: var(--primary-mid);
-    box-shadow: var(--shadow-sm);
-    transform: translateY(-1px);
-  }
-  
-  /* ── Top accent bar by priority ── */
-  .task-card-container.priority-high    { border-top: 2.5px solid var(--danger);  }
-  .task-card-container.priority-medium  { border-top: 2.5px solid var(--warning); }
-  .task-card-container.priority-low     { border-top: 2.5px solid var(--success); }
-  
-  /* ── Card body ── */
-  .task-card-body {
-    padding: 14px 16px;
-  }
-  
-  /* ── Header row ── */
-  .task-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-  
-  .task-card-title {
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--gray-800);
-    letter-spacing: -0.01em;
-    margin: 0;
-    flex: 1;
-    line-height: 1.4;
-  }
-  
-  .task-card-badges {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-    flex-wrap: wrap;
-  }
-  
-  /* ── Meta row ── */
-  .task-card-meta {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-  }
-  
-  .task-card-meta-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    color: var(--gray-500);
-  }
-  
-  .task-card-meta-icon {
-    font-size: 13px;
-    opacity: 0.7;
-  }
-  
-  /* ── Description ── */
-  .task-card-description {
-    font-size: 12.5px;
-    color: var(--gray-500);
-    line-height: 1.55;
-    margin: 0 0 12px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  /* ── Footer / actions ── */
-  .task-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--gray-100);
-    flex-wrap: wrap;
-  }
-  
-  .task-card-actions {
-    display: flex;
-    gap: 6px;
-  }
-  
-  .task-card-btn {
-    padding: 6px 12px;
-    border-radius: var(--radius-xs);
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    font-family: inherit;
-    transition: all var(--transition);
-    border: 1px solid transparent;
-  }
-  
-  .task-card-btn.primary {
-    background: var(--primary-light);
-    color: var(--primary-dark);
-    border-color: var(--primary-mid);
-  }
-  
-  .task-card-btn.primary:hover {
-    background: var(--primary);
-    color: var(--white);
-    border-color: var(--primary);
-  }
-  
-  .task-card-btn.success {
-    background: var(--success-light);
-    color: #065f46;
-    border-color: var(--success-mid);
-  }
-  
-  .task-card-btn.success:hover {
-    background: var(--success);
-    color: var(--white);
-    border-color: var(--success);
-  }
-  
-  .task-card-btn.ghost {
-    background: var(--gray-100);
-    color: var(--gray-600);
-    border-color: var(--gray-200);
-  }
-  
-  .task-card-btn.ghost:hover {
-    background: var(--gray-200);
-    color: var(--gray-800);
-  }
-  
-  /* ── Due date warning ── */
-  .task-card-due {
-    font-size: 11.5px;
-    color: var(--gray-400);
-    font-weight: 500;
-  }
-  
-  .task-card-due.overdue  { color: var(--danger); }
-  .task-card-due.due-soon { color: var(--warning); }
-  
-  /* ── Skeleton / loading state ── */
-  .task-card-skeleton {
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-md);
-    padding: 14px 16px;
-    background: var(--white);
-  }
-  
-  .skeleton-line {
-    height: 12px;
-    background: var(--gray-100);
-    border-radius: 6px;
-    animation: skeleton-pulse 1.5s ease-in-out infinite;
-  }
-  
-  .skeleton-line.short  { width: 40%; }
-  .skeleton-line.medium { width: 65%; margin-top: 8px; }
-  .skeleton-line.full   { width: 100%; margin-top: 8px; }
-  
-  @keyframes skeleton-pulse {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.5; }
-  }
+/*
+  The .tech-task-card base styles, .tech-task-actions, and
+  priority variants are defined in techShared.css.
+  This file adds layout helpers for the card's internal structure.
+*/
+
+/* ── Badge + priority row ── */
+
+.tech-task-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  padding-left: 6px;
+  margin-bottom: 8px;
+}
+
+/* ── Card header row (title + badges side by side) ── */
+
+.tech-task-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.tech-task-card-header h3 {
+  margin: 0;
+  padding-left: 6px;
+}
+
+.tech-task-card-header .tech-task-card-badges {
+  padding-left: 0;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+/* ── Skeleton loader ── */
+
+.tech-task-card-skeleton {
+  border: 0.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  background: var(--white);
+}
+
+.skeleton-line {
+  height: 11px;
+  background: var(--gray-100);
+  border-radius: 6px;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-line.short  { width: 38%; }
+.skeleton-line.medium { width: 62%; margin-top: 8px; }
+.skeleton-line.full   { width: 100%; margin-top: 8px; }
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
