@@ -1,92 +1,118 @@
-/* Chart Component Styles */
-.admin-chart {
+/* ============================================
+   CHARTS — Weekly Sales Bar Chart
+   ============================================ */
+
+   .admin-chart {
     width: 100%;
-    padding: 8px 0;
+    padding: 4px 0;
   }
   
   .admin-chart h3 {
-    font-size: 18px;
-    color: #0a2540;
-    margin-bottom: 24px;
-    font-weight: 700;
+    font-size: 14px;
+    color: var(--gray-800, #363330);
+    margin-bottom: 20px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 8px;
+    letter-spacing: -0.01em;
   }
   
+  .admin-chart-title-icon {
+    opacity: 0.6;
+  }
   
+  /* Chart canvas */
   .admin-chart-bars {
     display: flex;
     justify-content: space-around;
     align-items: flex-end;
-    gap: 16px;
-    height: 280px;
-    padding: 20px 0;
-    background: linear-gradient(180deg, #fafcff 0%, #ffffff 100%);
-    border-radius: 16px;
+    gap: 12px;
+    height: 220px;
+    padding: 16px 8px 0;
+    background: var(--gray-50, #fafaf8);
+    border: 1px solid var(--gray-150, #ece9e0);
+    border-radius: var(--radius-lg, 14px);
+    position: relative;
   }
   
+  /* Horizontal guide lines */
+  .admin-chart-bars::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to bottom, transparent calc(25% - 0.5px), var(--gray-200, #e0ddd4) calc(25%)),
+      linear-gradient(to bottom, transparent calc(50% - 0.5px), var(--gray-200, #e0ddd4) calc(50%)),
+      linear-gradient(to bottom, transparent calc(75% - 0.5px), var(--gray-200, #e0ddd4) calc(75%));
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  
+  /* Bar column */
   .admin-chart-bar-wrap {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     height: 100%;
     justify-content: flex-end;
+    position: relative;
+    z-index: 1;
   }
   
+  /* Bar itself */
   .admin-chart-bar {
     width: 100%;
-    max-width: 60px;
-    background: linear-gradient(180deg, #2563eb, #1e40af);
-    border-radius: 12px 12px 8px 8px;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 48px;
+    background: linear-gradient(180deg, #4f46e5 0%, #7c3aed 100%);
+    border-radius: 6px 6px 4px 4px;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     position: relative;
     min-height: 4px;
   }
   
   .admin-chart-bar:hover {
-    transform: scaleX(1.08);
-    background: linear-gradient(180deg, #3b82f6, #2563eb);
-    box-shadow: 0 -4px 12px rgba(37, 99, 235, 0.3);
+    background: linear-gradient(180deg, #7c3aed 0%, #4f46e5 100%);
+    box-shadow: 0 -6px 16px rgba(79, 70, 229, 0.3);
+    transform: scaleX(1.06);
   }
   
+  /* Day label */
   .admin-chart-bar-wrap span {
     font-size: 11px;
-    color: #64748b;
+    color: var(--gray-400, #b0ab9f);
     font-weight: 500;
     text-align: center;
+    padding-bottom: 6px;
     transition: color 0.2s ease;
   }
   
   .admin-chart-bar-wrap:hover span {
-    color: #2563eb;
+    color: var(--primary, #4f46e5);
     font-weight: 600;
   }
   
-  /* Tooltip effect on hover */
-  .admin-chart-bar {
-    position: relative;
-  }
-  
+  /* Tooltip */
   .admin-chart-bar::before {
     content: attr(data-value);
     position: absolute;
     top: -30px;
     left: 50%;
     transform: translateX(-50%);
-    background: #0a2540;
+    background: var(--gray-900, #1e1c1a);
     color: white;
-    padding: 4px 8px;
-    border-radius: 8px;
+    padding: 4px 9px;
+    border-radius: 7px;
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.18s ease;
   }
   
   .admin-chart-bar:hover::before {
@@ -95,27 +121,12 @@
   
   /* Responsive */
   @media (max-width: 768px) {
-    .admin-chart-bars {
-      height: 220px;
-      gap: 12px;
-    }
-    
-    .admin-chart-bar {
-      max-width: 40px;
-    }
-    
-    .admin-chart-bar-wrap span {
-      font-size: 9px;
-    }
+    .admin-chart-bars { height: 180px; gap: 8px; }
+    .admin-chart-bar  { max-width: 36px; }
+    .admin-chart-bar-wrap span { font-size: 9.5px; }
   }
   
   @media (max-width: 480px) {
-    .admin-chart-bars {
-      height: 180px;
-      gap: 8px;
-    }
-    
-    .admin-chart-bar {
-      max-width: 30px;
-    }
+    .admin-chart-bars { height: 150px; gap: 6px; }
+    .admin-chart-bar  { max-width: 28px; }
   }

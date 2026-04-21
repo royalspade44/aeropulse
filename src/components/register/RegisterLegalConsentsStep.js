@@ -1,8 +1,13 @@
 import icons from '../common/icons';
 
 function RegisterLegalConsentsStep({ formData, errors, onFieldChange, onNext }) {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onNext();
+  };
+
   return (
-    <div className="register-step">
+    <form className="register-step" onSubmit={handleSubmit}>
       <h3 className="register-step-title">Terms &amp; privacy</h3>
       <p className="register-step-desc">Review and accept each item before continuing.</p>
 
@@ -68,10 +73,10 @@ function RegisterLegalConsentsStep({ formData, errors, onFieldChange, onNext }) 
         )}
       </div>
 
-      <button type="button" className="register-button" onClick={onNext}>
+      <button type="submit" className="register-button">
         Continue
       </button>
-    </div>
+    </form>
   );
 }
 

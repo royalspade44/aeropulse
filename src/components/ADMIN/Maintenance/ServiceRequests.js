@@ -1,4 +1,5 @@
 import React from 'react';
+import './ServiceRequests.css';
 
 const ServiceRequests = ({ requests, onSelect }) => {
   return (

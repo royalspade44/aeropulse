@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../../../config/api';
+import './UpdateTaskStatus.css';
 
 const UpdateTaskStatus = ({ task, onStatusChange }) => {
   const [status, setStatus] = useState(task?.status || 'pending');
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setStatus(task?.status || 'pending');
+  }, [task?.status]);
 
   const handleSave = () => {
     if (!task?.id) return;

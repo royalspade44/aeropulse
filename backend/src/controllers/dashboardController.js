@@ -67,26 +67,31 @@ const getSuperAdminDashboard = async () => {
 };
 
 const getMyDashboard = async (req, res) => {
-  const role = req.authUser.role;
+  try {
+    const role = req.authUser.role;
 
-  if (role === "technician") {
-    return res.json({ role, ...(await getTechnicianDashboard()) });
+    if (role === "technician") {
+      return res.json({ role, ...(await getTechnicianDashboard()) });
+    }
+
+    if (role === "admin") {
+      return res.json({ role, ...(await getAdminDashboard()) });
+    }
+
+    if (role === "superadmin") {
+      return res.json({ role, ...(await getSuperAdminDashboard()) });
+    }
+
+    return res.json({
+      role,
+      stats: {
+        message: "Customer dashboard uses storefront pages.",
+      },
+    });
+  } catch (error) {
+    console.error("Failed to load dashboard:", error);
+    return res.status(500).json({ message: "Unable to load dashboard right now." });
   }
-
-  if (role === "admin") {
-    return res.json({ role, ...(await getAdminDashboard()) });
-  }
-
-  if (role === "superadmin") {
-    return res.json({ role, ...(await getSuperAdminDashboard()) });
-  }
-
-  return res.json({
-    role,
-    stats: {
-      message: "Customer dashboard uses storefront pages.",
-    },
-  });
 };
 
 module.exports = { getMyDashboard };

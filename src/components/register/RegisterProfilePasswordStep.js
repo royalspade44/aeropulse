@@ -40,8 +40,13 @@ function RegisterProfilePasswordStep({ formData, errors, onFieldChange, onNext, 
     onNext();
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleNext();
+  };
+
   return (
-    <div className="register-step">
+    <form className="register-step" onSubmit={handleSubmit}>
       <h3 className="register-step-title">Profile &amp; security</h3>
       <p className="register-step-desc">Alias, password, and rolling passcode (TOTP).</p>
 
@@ -153,11 +158,11 @@ function RegisterProfilePasswordStep({ formData, errors, onFieldChange, onNext, 
         <button type="button" className="cancel-btn" onClick={onBack}>
           Back
         </button>
-        <button type="button" className="register-button" onClick={handleNext}>
+        <button type="submit" className="register-button">
           Continue
         </button>
       </div>
-    </div>
+    </form>
   );
 }
 

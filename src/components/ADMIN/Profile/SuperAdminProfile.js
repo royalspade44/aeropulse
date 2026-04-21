@@ -1,6 +1,7 @@
 import React from 'react';
 import AdminLayout from '../Common/AdminLayout';
 import '../adminShared.css';
+import './SuperAdminProfile.css';
 
 const SuperAdminProfile = () => {
   return (

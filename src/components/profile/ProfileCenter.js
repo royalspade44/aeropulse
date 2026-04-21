@@ -1,17 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import { useCart } from '../../context/CartContext';
 import { apiRequest } from '../../config/api';
+import CartSidebar from '../shop/CartSidebar';
 import './ProfileCenter.css';
 
 function ProfileCenter() {
   const navigate = useNavigate();
   const { user, updateProfile } = useUser();
-  const { cart, getCartCount, getCartTotal } = useCart();
+  const { cart, updateQuantity, removeFromCart, getCartCount, getCartTotal } = useCart();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const profilePicInputRef = useRef(null);
   const [summary, setSummary] = useState({
     toPay: 0,
     toDeliver: 0,
@@ -60,6 +63,28 @@ function ProfileCenter() {
     }
   };
 
+  const handlePickProfilePicture = () => {
+    if (!isEditing) return;
+    profilePicInputRef.current?.click();
+  };
+
+  const handleProfilePictureChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setForm((prev) => ({ ...prev, avatarUrl: String(reader.result || '') }));
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
+  };
+
   return (
     <div className="profile-page">
 
@@ -101,6 +126,29 @@ function ProfileCenter() {
                 profileInitial
               )}
             </div>
+            {isEditing && (
+              <div className="profile-pic-actions">
+                <input
+                  ref={profilePicInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePictureChange}
+                  style={{ display: 'none' }}
+                />
+                <button type="button" className="ghost-btn" onClick={handlePickProfilePicture}>
+                  Change Profile Picture
+                </button>
+                {form.avatarUrl && (
+                  <button
+                    type="button"
+                    className="ghost-btn"
+                    onClick={() => setForm((prev) => ({ ...prev, avatarUrl: '' }))}
+                  >
+                    Remove Picture
+                  </button>
+                )}
+              </div>
+            )}
 
             <div className="profile-form">
               <input
@@ -124,14 +172,6 @@ function ProfileCenter() {
                 value={form.address}
                 placeholder="Address"
                 onChange={(e) => setForm(p => ({ ...p, address: e.target.value }))}
-                disabled={!isEditing}
-              />
-
-              <input
-                className="input"
-                value={form.avatarUrl}
-                placeholder="Profile picture URL"
-                onChange={(e) => setForm(p => ({ ...p, avatarUrl: e.target.value }))}
                 disabled={!isEditing}
               />
 
@@ -170,7 +210,7 @@ function ProfileCenter() {
               <strong>₱ {getCartTotal().toLocaleString()}</strong>
             </div>
 
-            <button className="primary-btn" onClick={() => navigate('/shop')}>
+            <button className="primary-btn" onClick={() => setIsCartOpen(true)}>
               View Cart
             </button>
           </div>
@@ -193,6 +233,17 @@ function ProfileCenter() {
 
         </div>
       </div>
+
+      {isCartOpen && <div className="profile-cart-overlay" onClick={() => setIsCartOpen(false)} />}
+      <CartSidebar
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cart={cart}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeFromCart}
+        onCheckout={() => navigate('/checkout')}
+        getCartTotal={getCartTotal}
+      />
     </div>
   );
 }

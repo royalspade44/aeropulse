@@ -27,8 +27,13 @@ function RegisterEmailOtpStep({ formData, errors, onFieldChange, onNext, onBack 
     onNext();
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    verifyAndNext();
+  };
+
   return (
-    <div className="register-step">
+    <form className="register-step" onSubmit={handleSubmit}>
       <h3 className="register-step-title">Verify email</h3>
       <p className="register-step-desc">We will send a one-time code to confirm your address.</p>
 
@@ -69,11 +74,11 @@ function RegisterEmailOtpStep({ formData, errors, onFieldChange, onNext, onBack 
         <button type="button" className="cancel-btn" onClick={onBack}>
           Back
         </button>
-        <button type="button" className="register-button" onClick={verifyAndNext}>
+        <button type="submit" className="register-button">
           Continue
         </button>
       </div>
-    </div>
+    </form>
   );
 }
 

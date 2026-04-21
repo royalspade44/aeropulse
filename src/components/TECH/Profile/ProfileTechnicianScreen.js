@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useUser } from '../../../context/UserContext';
 import TechLayout from '../Common/TechLayout';
 import '../techShared.css';
+import './ProfileTechnicianScreen.css';
 
 const ProfileTechnicianScreen = () => {
   const { user, updateProfile } = useUser();
@@ -40,9 +41,9 @@ const ProfileTechnicianScreen = () => {
     <TechLayout title="Technician Profile" subtitle="View your account information">
       <div className="tech-card">
         <h3>Profile Summary</h3>
-        <p><strong>Name:</strong> {user?.name || 'Technician'}</p>
-        <p><strong>Email:</strong> {user?.email || 'tech@aeropulse.com'}</p>
-        <p><strong>Role:</strong> {user?.role || 'technician'}</p>
+        <p><strong>Name:</strong> {user?.name || '-'}</p>
+        <p><strong>Email:</strong> {user?.email || '-'}</p>
+        <p><strong>Role:</strong> {user?.role || '-'}</p>
         <p><strong>Phone:</strong> {user?.phone || '-'}</p>
         <p><strong>Address:</strong> {user?.address || '-'}</p>
         <button type="button" onClick={openEdit}>Edit Profile</button>

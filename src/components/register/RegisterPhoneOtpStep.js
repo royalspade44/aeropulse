@@ -29,8 +29,13 @@ function RegisterPhoneOtpStep({ formData, errors, onFieldChange, onSubmit, onBac
     onSubmit();
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleCreate();
+  };
+
   return (
-    <div className="register-step">
+    <form className="register-step" onSubmit={handleSubmit}>
       <h3 className="register-step-title">Mobile number</h3>
       <p className="register-step-desc">PH mobile; carrier confirmation allows 2 SMS sends per hour (demo).</p>
 
@@ -79,11 +84,11 @@ function RegisterPhoneOtpStep({ formData, errors, onFieldChange, onSubmit, onBac
         <button type="button" className="cancel-btn" onClick={onBack} disabled={loading}>
           Back
         </button>
-        <button type="button" className="register-button" onClick={handleCreate} disabled={loading}>
+        <button type="submit" className="register-button" disabled={loading}>
           {loading ? 'Creating account…' : 'Create account'}
         </button>
       </div>
-    </div>
+    </form>
   );
 }
 

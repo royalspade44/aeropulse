@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { apiRequest } from '../../config/api';
 import icons from '../common/icons';
 import './Shop.css';
 import CategoryFilter from './CategoryFilter';
@@ -21,25 +22,34 @@ function Shop() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [serviceAreaLabel, setServiceAreaLabel] = useState('');
+  const [backendProducts, setBackendProducts] = useState([]);
 
   const onServiceAreaChange = useCallback((area) => {
     setServiceAreaLabel(area?.label || '');
   }, []);
 
-  const categories = [
-    { id: 'all', name: 'All Products', count: 40 },
-    { id: 'split', name: 'Split Type AC', count: 33 },
-    { id: 'window', name: 'Window Type AC', count: 4 },
-    { id: 'floor', name: 'Floor Mounted AC', count: 3 }
-  ];
-
-  const brands = [
-    'American Home', 'TCL', 'Midea', 'Aux', 'Samsung', 
-    'LG', 'Carrier', 'Daikin'
-  ];
+  useEffect(() => {
+    apiRequest('/products/public')
+      .then((response) => {
+        const mapped = (response.products || []).map((product) => ({
+          id: product.id,
+          name: product.name,
+          brand: product.brand || 'Generic',
+          category: product.category || 'split',
+          price: Number(product.price) || 0,
+          specs: product.specs || '',
+          description: Array.isArray(product.features) ? product.features.join(', ') : '',
+          inStock: Number(product.stock) > 0,
+          model: product.sku || '',
+          imageUrl: '',
+        }));
+        setBackendProducts(mapped);
+      })
+      .catch(() => setBackendProducts([]));
+  }, []);
 
   // Products with imageUrl support only (no productUrl)
-  const products = [
+  const fallbackProducts = [
     // ===== AMERICAN HOME INVERTER (Split Type) =====
     { 
       id: 1, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
@@ -379,6 +389,27 @@ function Shop() {
     }
   ];
 
+  const products = backendProducts.length > 0 ? backendProducts : fallbackProducts;
+
+  const categories = useMemo(() => {
+    const counts = products.reduce((acc, product) => {
+      const key = product.category || 'split';
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+    return [
+      { id: 'all', name: 'All Products', count: products.length },
+      { id: 'split', name: 'Split Type AC', count: counts.split || 0 },
+      { id: 'window', name: 'Window Type AC', count: counts.window || 0 },
+      { id: 'floor', name: 'Floor Mounted AC', count: counts.floor || 0 },
+    ];
+  }, [products]);
+
+  const brands = useMemo(
+    () => ['all', ...Array.from(new Set(products.map((product) => product.brand).filter(Boolean)))],
+    [products]
+  );
+
   const getFilteredProducts = () => {
     let filtered = products;
     
@@ -484,7 +515,7 @@ function Shop() {
                 />
                 <span>All Brands</span>
               </label>
-              {brands.map(brand => (
+              {brands.filter((brand) => brand !== 'all').map(brand => (
                 <label key={brand} className="brand-checkbox">
                   <input
                     type="radio"

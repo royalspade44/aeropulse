@@ -4,6 +4,7 @@ import TechLayout from '../Common/TechLayout';
 import UpdateTaskStatus from './UpdateTaskStatus';
 import { apiRequest } from '../../../config/api';
 import '../techShared.css';
+import './TaskDetails.css';
 
 const TaskDetails = () => {
   const { taskId } = useParams();
@@ -35,7 +36,7 @@ const TaskDetails = () => {
           <p><strong>Address:</strong> {task.address}</p>
           <p><strong>Priority:</strong> {task.priority}</p>
           <p><strong>Status:</strong> {task.status}</p>
-          <p><strong>Notes:</strong> {task.notes || 'No notes available.'}</p>
+          <p><strong>Notes:</strong> {task.notes || '-'}</p>
           <button type="button" onClick={() => navigate('/tech/tasks')}>Back to Tasks</button>
         </div>
         <UpdateTaskStatus task={task} onStatusChange={(status) => setTask((prev) => ({ ...prev, status }))} />

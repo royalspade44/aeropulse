@@ -2,7 +2,7 @@ import React from 'react';
 import { useUser } from '../../../context/UserContext';
 import icons from '../../common/icons';
 
-const TechHeader = ({ title = 'Technician', subtitle = 'Field operations', onMenuToggle }) => {
+const TechHeader = ({ title = 'Technician Workspace', subtitle = 'Field operations', onMenuToggle }) => {
   const { user } = useUser();
 
   return (
@@ -17,8 +17,8 @@ const TechHeader = ({ title = 'Technician', subtitle = 'Field operations', onMen
         </div>
       </div>
       <div className="tech-user-chip">
-        <span className="tech-user-avatar">{(user?.name || 'T').charAt(0).toUpperCase()}</span>
-        <span>{user?.name || 'Technician'}</span>
+        <span className="tech-user-avatar">{(user?.name?.charAt(0) || '?').toUpperCase()}</span>
+        <span>{user?.name || '-'}</span>
       </div>
     </header>
   );

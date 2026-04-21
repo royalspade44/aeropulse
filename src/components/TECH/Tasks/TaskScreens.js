@@ -4,6 +4,7 @@ import TechLayout from '../Common/TechLayout';
 import TaskCard from '../Dashboard/TaskCard';
 import { apiRequest } from '../../../config/api';
 import '../techShared.css';
+import './TaskScreens.css';
 
 const TaskScreens = () => {
   const navigate = useNavigate();
@@ -20,7 +21,11 @@ const TaskScreens = () => {
       <div className="tech-card">
         <h3>All Tasks</h3>
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onView={(selectedTask) => navigate(`/tech/tasks/${selectedTask.id}`)} />
+          <TaskCard
+            key={task.id || task.taskCode}
+            task={task}
+            onView={(selectedTask) => navigate(`/tech/tasks/${selectedTask.taskCode || selectedTask.id}`)}
+          />
         ))}
       </div>
     </TechLayout>

@@ -1,7 +1,23 @@
 import React, { useState } from 'react';
 import { apiRequest } from '../../../config/api';
+import './AddProduct.css';
 
-const initialForm = { name: '', sku: '', stock: '', threshold: '', price: '' };
+const initialForm = {
+  name: '',
+  sku: '',
+  brand: '',
+  category: 'split',
+  specs: '',
+  features: '',
+  threshold: '',
+  price: '',
+  stockBulacan: '',
+  stockCavite: '',
+  stockLaguna: '',
+  stockBataan: '',
+  stockPangasinan: '',
+  stockIlocos: '',
+};
 
 const AddProduct = ({ onCreated }) => {
   const [form, setForm] = useState(initialForm);
@@ -24,9 +40,23 @@ const AddProduct = ({ onCreated }) => {
         body: JSON.stringify({
           name: form.name,
           sku: form.sku,
-          stock: Number(form.stock) || 0,
+          brand: form.brand,
+          category: form.category,
+          specs: form.specs,
+          features: form.features
+            .split(',')
+            .map((feature) => feature.trim())
+            .filter(Boolean),
           threshold: Number(form.threshold) || 0,
           price: Number(form.price) || 0,
+          branchStock: {
+            Bulacan: Number(form.stockBulacan) || 0,
+            Cavite: Number(form.stockCavite) || 0,
+            Laguna: Number(form.stockLaguna) || 0,
+            Bataan: Number(form.stockBataan) || 0,
+            Pangasinan: Number(form.stockPangasinan) || 0,
+            Ilocos: Number(form.stockIlocos) || 0,
+          },
         }),
       });
       onCreated?.(result.product);
@@ -43,7 +73,20 @@ const AddProduct = ({ onCreated }) => {
       <h3>Add Product</h3>
       <input name="name" value={form.name} onChange={handleChange} placeholder="Product name" />
       <input name="sku" value={form.sku} onChange={handleChange} placeholder="SKU" />
-      <input name="stock" value={form.stock} onChange={handleChange} placeholder="Stock" type="number" />
+      <input name="brand" value={form.brand} onChange={handleChange} placeholder="Brand" />
+      <select name="category" value={form.category} onChange={handleChange}>
+        <option value="split">Split</option>
+        <option value="window">Window</option>
+        <option value="floor">Floor Mounted</option>
+      </select>
+      <input name="specs" value={form.specs} onChange={handleChange} placeholder="Specs (e.g. 1.5HP)" />
+      <input name="features" value={form.features} onChange={handleChange} placeholder="Features (comma separated)" />
+      <input name="stockBulacan" value={form.stockBulacan} onChange={handleChange} placeholder="Bulacan stock" type="number" />
+      <input name="stockCavite" value={form.stockCavite} onChange={handleChange} placeholder="Cavite stock" type="number" />
+      <input name="stockLaguna" value={form.stockLaguna} onChange={handleChange} placeholder="Laguna stock" type="number" />
+      <input name="stockBataan" value={form.stockBataan} onChange={handleChange} placeholder="Bataan stock" type="number" />
+      <input name="stockPangasinan" value={form.stockPangasinan} onChange={handleChange} placeholder="Pangasinan stock" type="number" />
+      <input name="stockIlocos" value={form.stockIlocos} onChange={handleChange} placeholder="Ilocos stock" type="number" />
       <input name="threshold" value={form.threshold} onChange={handleChange} placeholder="Low-stock threshold (optional)" type="number" />
       <input name="price" value={form.price} onChange={handleChange} placeholder="Price" type="number" />
       <button type="submit" disabled={saving}>{saving ? 'Adding…' : 'Add'}</button>

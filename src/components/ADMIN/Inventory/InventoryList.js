@@ -1,4 +1,5 @@
 import React from 'react';
+import './InventoryList.css';
 
 const InventoryList = ({ products, loading, onRefresh }) => {
   return (

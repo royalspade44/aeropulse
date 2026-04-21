@@ -48,6 +48,26 @@ function OrderCard({ order, onTrack, onReorder }) {
       </div>
 
       <div className="order-body">
+        {order.receipt?.receiptNumber && (
+          <div className="order-meta-line">
+            <strong>E-Receipt:</strong> {order.receipt.receiptNumber}
+          </div>
+        )}
+        {order.assignedTechnician && (
+          <div className="order-meta-line">
+            <strong>Assigned Technician:</strong> {order.assignedTechnician}
+          </div>
+        )}
+        {order.estimatedArrival && (
+          <div className="order-meta-line">
+            <strong>Estimated Arrival:</strong> {new Date(order.estimatedArrival).toLocaleString()}
+          </div>
+        )}
+        {order.installationDate && (
+          <div className="order-meta-line">
+            <strong>Estimated Installation:</strong> {new Date(order.installationDate).toLocaleDateString()}
+          </div>
+        )}
         <div className="order-items">
           {order.items.map((item, idx) => (
             <div key={idx} className="order-item">

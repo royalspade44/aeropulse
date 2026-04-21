@@ -1,116 +1,117 @@
 /* ============================================
-   STATS CARDS - ENHANCED STYLES
+   STATS CARDS
    ============================================ */
 
    .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 24px;
-    margin-bottom: 32px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
   }
   
-  /* Individual Stat Card */
   .stat-card {
-    background: white;
-    padding: 24px 28px;
-    border-radius: var(--radius-lg, 20px);
+    background: var(--white, #ffffff);
+    padding: 18px 20px;
+    border-radius: var(--radius-lg, 14px);
+    border: 1px solid var(--gray-200, #e0ddd4);
+    box-shadow: var(--shadow-xs, 0 1px 3px rgb(0 0 0 / 0.05));
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    box-shadow: var(--shadow-md, 0 4px 6px -1px rgb(0 0 0 / 0.1));
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 14px;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    cursor: pointer;
+    cursor: default;
+    animation: cardFadeInUp 0.45s ease backwards;
   }
+  
+  .stat-card:nth-child(1) { animation-delay: 0.05s; }
+  .stat-card:nth-child(2) { animation-delay: 0.10s; }
+  .stat-card:nth-child(3) { animation-delay: 0.15s; }
+  .stat-card:nth-child(4) { animation-delay: 0.20s; }
+  
+  @keyframes cardFadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Top stripe per card */
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: var(--radius-lg, 14px) var(--radius-lg, 14px) 0 0;
+  }
+  
+  .stat-card:nth-child(1)::before { background: linear-gradient(90deg, #4f46e5, #7c3aed); }
+  .stat-card:nth-child(2)::before { background: linear-gradient(90deg, #059669, #10b981); }
+  .stat-card:nth-child(3)::before { background: linear-gradient(90deg, #d97706, #f59e0b); }
+  .stat-card:nth-child(4)::before { background: linear-gradient(90deg, #db2777, #ec4899); }
+  
+  /* Warning / success modifier variants (used inline in AdminDashboard.jsx) */
+  .stat-card.warning::before { background: linear-gradient(90deg, #d97706, #f59e0b); }
+  .stat-card.success::before { background: linear-gradient(90deg, #059669, #10b981); }
   
   .stat-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-xl, 0 20px 25px -5px rgb(0 0 0 / 0.1));
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md, 0 6px 16px -3px rgb(0 0 0 / 0.1));
   }
   
-  /* Colorful accent bar on the left */
-  .stat-card::before {
-    content: "";
+  /* Watermark icon (used in StatsCards.jsx) */
+  .stat-watermark {
     position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 4px;
-    background: linear-gradient(135deg, #2563eb, #1e40af);
-    border-radius: 20px 0 0 20px;
+    right: 16px;
+    bottom: 12px;
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    opacity: 0.07;
+    pointer-events: none;
+    filter: grayscale(1);
   }
   
-  /* Different accent colors for each card based on position */
-  .stat-card:nth-child(1)::before {
-    background: linear-gradient(135deg, #2563eb, #1e40af);
+  /* Icon container (used in AdminDashboard.jsx inline <div className="stat-icon">) */
+  .stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
   
-  .stat-card:nth-child(2)::before {
-    background: linear-gradient(135deg, #10b981, #059669);
-  }
+  .stat-card:nth-child(1) .stat-icon { background: #ede9fe; }
+  .stat-card:nth-child(2) .stat-icon { background: #d1fae5; }
+  .stat-card:nth-child(3) .stat-icon { background: #fef3c7; }
+  .stat-card:nth-child(4) .stat-icon { background: #fce7f3; }
   
-  .stat-card:nth-child(3)::before {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-  }
+  .stat-card.warning .stat-icon { background: #fef3c7; }
+  .stat-card.success .stat-icon { background: #d1fae5; }
   
-  .stat-card:nth-child(4)::before {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-  }
-  
-  /* Stat Info Container */
-  .stat-info {
-    flex: 1;
-    text-align: left;
-  }
+  /* Text content */
+  .stat-info { flex: 1; }
   
   .stat-info h3 {
-    margin: 0 0 8px 0;
-    color: #64748b;
-    font-size: 12px;
+    margin: 0 0 6px;
+    color: var(--gray-400, #b0ab9f);
+    font-size: 10.5px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.07em;
     font-weight: 600;
   }
   
   .stat-info p {
     margin: 0;
-    font-size: 32px;
-    font-weight: 800;
-    color: #0f172a;
-    line-height: 1.2;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--gray-900, #1e1c1a);
+    letter-spacing: -0.04em;
+    line-height: 1.1;
   }
   
-  /* Optional: Add icons to each card */
-  .stat-card {
-    position: relative;
-  }
-  
-/* Loading state */
-  .stat-card.loading {
-    opacity: 0.6;
-    pointer-events: none;
-  }
-  
-  .stat-card.loading .stat-info p {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .stat-card.loading .stat-info p::after {
-    content: "...";
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-  
-  /* Empty state */
-  .stat-card.empty .stat-info p {
-    color: #94a3b8;
-  }
-  
-  /* Trend indicator (optional addition) */
+  /* Trend */
   .stat-trend {
     display: flex;
     align-items: center;
@@ -120,118 +121,34 @@
     font-weight: 500;
   }
   
-  .stat-trend.up {
-    color: #10b981;
+  .stat-trend.up     { color: #059669; }
+  .stat-trend.down   { color: #dc2626; }
+  .stat-trend.steady { color: #d97706; }
+  
+  /* States */
+  .stat-card.loading {
+    opacity: 0.55;
+    pointer-events: none;
   }
   
-  .stat-trend.down {
-    color: #ef4444;
+  .stat-card.empty .stat-info p {
+    color: var(--gray-300, #d5d0c4);
   }
   
-  .stat-trend.steady {
-    color: #f59e0b;
-  }
-  
-  /* Animation for cards appearing */
-  @keyframes cardFadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .stat-card {
-    animation: cardFadeInUp 0.5s ease backwards;
-  }
-  
-  .stat-card:nth-child(1) { animation-delay: 0.05s; }
-  .stat-card:nth-child(2) { animation-delay: 0.1s; }
-  .stat-card:nth-child(3) { animation-delay: 0.15s; }
-  .stat-card:nth-child(4) { animation-delay: 0.2s; }
-  
-  /* ========== RESPONSIVE DESIGN ========== */
+  /* Responsive */
   @media (max-width: 1024px) {
-    .stats-grid {
-      gap: 16px;
-    }
-    
-    .stat-card {
-      padding: 20px 24px;
-    }
-    
-    .stat-info p {
-      font-size: 28px;
-    }
-    
-    .stat-info h3 {
-      font-size: 11px;
-    }
+    .stats-grid { gap: 12px; }
+    .stat-info p { font-size: 24px; }
   }
   
   @media (max-width: 768px) {
-    .stats-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-    
-    .stat-card {
-      padding: 16px 20px;
-    }
-    
-    .stat-info p {
-      font-size: 24px;
-    }
-    
-    .stat-info h3 {
-      font-size: 10px;
-      letter-spacing: 0.5px;
-    }
-    
-    
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-card { padding: 15px 16px; }
+    .stat-info p { font-size: 22px; }
+    .stat-icon { width: 36px; height: 36px; }
   }
   
   @media (max-width: 480px) {
-    .stats-grid {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    
-    .stat-card {
-      padding: 18px 20px;
-    }
-    
-    .stat-info p {
-      font-size: 28px;
-    }
-    
-  }
-  
-  /* Optional: Dark mode support */
-  @media (prefers-color-scheme: dark) {
-    .stat-card {
-      background: #1e293b;
-      border-color: rgba(255, 255, 255, 0.05);
-    }
-    
-    .stat-info h3 {
-      color: #94a3b8;
-    }
-    
-    .stat-info p {
-      color: #f1f5f9;
-    }
-  }
-  
-  /* ========== UTILITY CLASSES ========== */
-  @keyframes pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.5;
-    }
+    .stats-grid { grid-template-columns: 1fr; }
+    .stat-info p { font-size: 26px; }
   }

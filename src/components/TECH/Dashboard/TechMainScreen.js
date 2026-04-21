@@ -7,6 +7,7 @@ import TaskCard from './TaskCard';
 import TaskFilters from './TaskFilters';
 import TechDispatchMetrics from './TechDispatchMetrics';
 import '../techShared.css';
+import './TechMainScreen.css';
 
 const TechMainScreen = () => {
   const { user } = useUser();
@@ -44,7 +45,7 @@ const TechMainScreen = () => {
   const filteredTasks = filter === 'all' ? tasks : tasks.filter((task) => task.status === filter);
 
   return (
-    <TechLayout title="Technician Dashboard" subtitle={`Welcome back, ${user?.name?.split(' ')[0] || 'Tech'}`}>
+    <TechLayout title="Technician Dashboard" subtitle={user?.name ? `Welcome back, ${user.name.split(' ')[0]}` : 'Technician workspace'}>
       <TechDispatchMetrics tasks={tasks} />
       <p className="tech-dispatch-note">
         New jobs are auto-assigned by availability and workload balancing when the dispatcher API is connected; tickets capture visit history, warranty flags, and return visits.

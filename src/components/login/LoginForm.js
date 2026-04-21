@@ -86,7 +86,7 @@ function LoginForm({
       )}
 
       <Button
-        onClick={onSubmit}
+        type="submit"
         disabled={disabled || loading}
         className="login-button"
       >

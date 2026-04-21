@@ -24,6 +24,17 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: { type: String, default: "cod" },
     trackingNumber: { type: String, default: "" },
     estimatedDelivery: { type: String, default: "" },
+    estimatedArrival: { type: String, default: "" },
+    installationDate: { type: String, default: "" },
+    assignedTechnician: { type: String, default: "" },
+    stockSourceBranch: { type: String, default: "" },
+    receipt: {
+      receiptNumber: { type: String, default: "" },
+      issuedAt: { type: String, default: "" },
+      paymentMethod: { type: String, default: "" },
+      amountPaid: { type: Number, default: 0 },
+      itemsSummary: { type: String, default: "" },
+    },
     totalAmount: { type: Number, required: true, min: 0 },
     workflowStatus: {
       type: String,

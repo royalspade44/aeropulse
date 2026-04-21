@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../../../config/api';
+import './ReorderForm.css';
 
 const ReorderForm = ({ item, onSubmitted }) => {
   const [quantity, setQuantity] = useState('');
@@ -23,6 +24,10 @@ const ReorderForm = ({ item, onSubmitted }) => {
       await apiRequest('/reorders', {
         method: 'POST',
         body: JSON.stringify({ productId: item.id, quantity: Number(quantity) || 0 }),
+      });
+      await apiRequest(`/products/${item.id}/restock`, {
+        method: 'PATCH',
+        body: JSON.stringify({ quantity: Number(quantity) || 0 }),
       });
       setMessage(`Reorder submitted for ${item.name}: ${quantity || 0} units.`);
       onSubmitted?.();

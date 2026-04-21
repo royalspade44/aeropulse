@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './ChangePassword.css';
 
 const ChangePassword = () => {
   const [form, setForm] = useState({ current: '', next: '', confirm: '' });

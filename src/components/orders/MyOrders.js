@@ -26,6 +26,10 @@ function MyOrders() {
           items: order.items || [],
           trackingNumber: order.trackingNumber || 'Pending',
           estimatedDelivery: order.estimatedDelivery || '',
+          estimatedArrival: order.estimatedArrival || '',
+          installationDate: order.installationDate || '',
+          assignedTechnician: order.assignedTechnician || '',
+          receipt: order.receipt || null,
         }));
         setOrders(normalized);
       })
@@ -45,7 +49,7 @@ function MyOrders() {
   const handleReorder = (order) => {
     order.items.forEach(item => {
       addToCart({
-        id: item.id,
+        id: item.productId || item.id,
         name: item.name,
         icon: item.icon,
         price: item.price,

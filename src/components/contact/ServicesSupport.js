@@ -11,9 +11,9 @@ function ServicesSupport() {
   ];
 
   const support = [
-    { title: 'Sales', phone: '+65 6760 0083', email: 'sales@coldair.com.sg', icon: icons.cartShoppingFast },
-    { title: 'Customer Service', phone: '+65 9123 4567', email: 'support@coldair.com.sg', icon: icons.memberList },
-    { title: 'Technical Support', phone: '+65 8888 9999', email: 'tech@coldair.com.sg', icon: icons.tools }
+    { title: 'Sales', phone: '09086854532', email: 'coldairairconditionaing@yahoo.com', icon: icons.cartShoppingFast },
+    { title: 'Customer Service', phone: '09086854532', email: 'coldairairconditionaing@yahoo.com', icon: icons.memberList },
+    { title: 'Technical Support', phone: '09086854532', email: 'coldairairconditionaing@yahoo.com', icon: icons.tools }
   ];
 
   return (

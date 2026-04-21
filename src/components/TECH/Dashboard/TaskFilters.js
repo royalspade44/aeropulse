@@ -1,4 +1,5 @@
 import React from 'react';
+import './TaskFilters.css';
 
 const TaskFilters = ({ filter, setFilter }) => (
   <div className="tech-task-filters">

@@ -4,7 +4,16 @@ const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     sku: { type: String, required: true, trim: true, unique: true, index: true },
+    brand: { type: String, default: "" },
+    category: { type: String, default: "split" },
+    specs: { type: String, default: "" },
+    features: [{ type: String }],
     stock: { type: Number, default: 0 },
+    branchStock: {
+      type: Map,
+      of: Number,
+      default: {},
+    },
     threshold: { type: Number, default: 0 },
     price: { type: Number, default: 0 },
   },

@@ -5,6 +5,7 @@ import { apiRequest } from '../../../config/api';
 import SuperAdminLayout from '../Common/SuperAdminLayout';
 import icons from '../../common/icons';
 import '../superAdminShared.css';
+import './SuperAdminDashboard.css';
 
 function SuperAdminDashboard() {
   const navigate = useNavigate();

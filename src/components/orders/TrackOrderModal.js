@@ -52,6 +52,10 @@ function TrackOrderModal({ order, onClose }) {
             <div>Order ID: <strong>{order.id}</strong></div>
             <div>Tracking #: <div className="tracking-number">{order.trackingNumber}</div></div>
             <div>Estimated Delivery: <span className="delivery-date">{order.estimatedDelivery}</span></div>
+            {order.receipt?.receiptNumber && <div>E-Receipt: <strong>{order.receipt.receiptNumber}</strong></div>}
+            {order.assignedTechnician && <div>Assigned Technician: <strong>{order.assignedTechnician}</strong></div>}
+            {order.estimatedArrival && <div>Estimated Arrival: <strong>{new Date(order.estimatedArrival).toLocaleString()}</strong></div>}
+            {order.installationDate && <div>Estimated Installation: <strong>{new Date(order.installationDate).toLocaleDateString()}</strong></div>}
           </div>
 
           <div style={{ marginTop: '20px' }}>

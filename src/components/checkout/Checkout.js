@@ -81,13 +81,16 @@ function Checkout() {
     })
       .then((response) => {
         const created = response.order;
+        const receiptText = created?.receipt?.receiptNumber
+          ? `\nE-Receipt: ${created.receipt.receiptNumber}`
+          : '';
         if (order.paymentStatus === PAYMENT_PROCESSING_GATEWAY) {
           alert(
-            `Order received (${created.orderCode}). We are processing stock allocation for your branch and reserved this cart for 15 minutes. Complete payment in the ${selectedPayment === 'gcash' ? 'GCash' : 'card'} gateway once checkout approval is ready.`
+            `Order received (${created.orderCode}).${receiptText}\nWe are processing stock allocation for your branch and reserved this cart for 15 minutes. Complete payment in the ${selectedPayment === 'gcash' ? 'GCash' : 'card'} gateway once checkout approval is ready.`
           );
         } else {
           alert(
-            `Order received (${created.orderCode}). Your order is now processing in our POS queue and a payment reminder will be sent once dispatch confirms your slot.`
+            `Order received (${created.orderCode}).${receiptText}\nYour order is now processing in our POS queue and a payment reminder will be sent once dispatch confirms your slot.`
           );
         }
       })

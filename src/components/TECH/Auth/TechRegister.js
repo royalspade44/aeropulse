@@ -1,0 +1,1 @@
+import './TechRegister.css';

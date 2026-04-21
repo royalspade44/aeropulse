@@ -1,4 +1,5 @@
 import React from 'react';
+import './TechnicianList.css';
 
 const TechnicianList = ({ technicians, onSelect }) => {
   return (

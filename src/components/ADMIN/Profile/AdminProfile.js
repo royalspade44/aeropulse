@@ -3,6 +3,7 @@ import { useUser } from '../../../context/UserContext';
 import AdminLayout from '../Common/AdminLayout';
 import ChangePassword from './ChangePassword';
 import '../adminShared.css';
+import './AdminProfile.css';
 
 const AdminProfile = () => {
   const { user, updateProfile } = useUser();

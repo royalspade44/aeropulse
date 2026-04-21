@@ -4,6 +4,7 @@ import AddProduct from './AddProduct';
 import InventoryList from './InventoryList';
 import { apiRequest } from '../../../config/api';
 import '../adminShared.css';
+import './AdminInventory.css';
 
 const AdminInventory = () => {
   const [products, setProducts] = useState([]);

@@ -2,9 +2,9 @@ import icons from '../common/icons';
 
 function ContactInfo() {
   const contactItems = [
-    { iconSrc: icons.phoneCall, title: 'Phone Number', details: ['+65 6760 0083', '+65 9123 4567'] },
-    { iconSrc: icons.envelope, title: 'Email Address', details: ['info@coldair.com.sg', 'support@coldair.com.sg'] },
-    { iconSrc: icons.globePointer, title: 'Website', details: ['www.coldair.com.sg'] },
+    { iconSrc: icons.phoneCall, title: 'Phone Number', details: ['09086854532'] },
+    { iconSrc: icons.envelope, title: 'Email Address', details: ['coldairairconditionaing@yahoo.com'] },
+    { iconSrc: icons.clipboardList, title: 'Office Hours', details: ['8:00am - 5:00pm (Monday - Friday)', 'Operations: Monday - Sunday (Online & Technician Tasks)'] },
     { iconSrc: icons.marker, title: 'Address', details: ['192 Pandan Loop #06-29', 'Singapore 128381'] }
   ];
 
