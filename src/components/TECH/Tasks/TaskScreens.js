@@ -4,7 +4,7 @@ import TechLayout from '../Common/TechLayout';
 import TaskCard from '../Dashboard/TaskCard';
 import { apiRequest } from '../../../config/api';
 import '../techShared.css';
-import './TaskScreens.css';
+import './styles.css';
 
 const TaskScreens = () => {
   const navigate = useNavigate();

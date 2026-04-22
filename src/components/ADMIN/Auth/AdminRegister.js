@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../adminShared.css';
-import './Adminregister.css';
+import './styles.css';
 
 const AdminRegister = () => {
   const navigate = useNavigate();

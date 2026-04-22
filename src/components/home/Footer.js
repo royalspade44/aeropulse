@@ -1,6 +1,6 @@
 import icons from '../common/icons';
 import { Link } from 'react-router-dom';
-import './Footer.css';
+import './styles.css';
 
 function Footer() {
   return (

@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { useUser } from '../../../context/UserContext';
 import AdminSidebar from './AdminSidebar';
 import '../adminShared.css';
-import './AdminLayout.css';
+import './styles.css';
 
 const AdminLayout = ({ title, subtitle, children }) => {
   const { user } = useUser();

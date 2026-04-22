@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import './GlobalDialog.css';
+import './styles.css';
 
 function GlobalDialog() {
   const [dialog, setDialog] = useState(null);

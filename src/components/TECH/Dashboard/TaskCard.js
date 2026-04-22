@@ -1,5 +1,5 @@
 import React from 'react';
-import './TaskCard.css';
+import './styles.css';
 
 const TaskCard = ({ task, onView }) => {
   return (

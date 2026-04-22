@@ -1,3 +1,75 @@
+/* ===== TaskCard.css ===== */
+
+/* ============================================================
+   TASK CARD
+   Inherits variables from techShared.css
+   ============================================================ */
+
+/*
+  The .tech-task-card base styles, .tech-task-actions, and
+  priority variants are defined in techShared.css.
+  This file adds layout helpers for the card's internal structure.
+*/
+
+/* ── Badge + priority row ── */
+
+.tech-task-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  padding-left: 6px;
+  margin-bottom: 8px;
+}
+
+/* ── Card header row (title + badges side by side) ── */
+
+.tech-task-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.tech-task-card-header h3 {
+  margin: 0;
+  padding-left: 6px;
+}
+
+.tech-task-card-header .tech-task-card-badges {
+  padding-left: 0;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+/* ── Skeleton loader ── */
+
+.tech-task-card-skeleton {
+  border: 0.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  background: var(--white);
+}
+
+.skeleton-line {
+  height: 11px;
+  background: var(--gray-100);
+  border-radius: 6px;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-line.short  { width: 38%; }
+.skeleton-line.medium { width: 62%; margin-top: 8px; }
+.skeleton-line.full   { width: 100%; margin-top: 8px; }
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+/* ===== TaskFilters.css ===== */
+
 /* ============================================================
    TASK FILTERS
    Inherits variables from techShared.css
@@ -291,3 +363,59 @@
     height: 0.5px;
   }
 }
+
+/* ===== TechMainScreen.css ===== */
+
+/* ============================================================
+   TECH MAIN SCREEN
+   Inherits variables from techShared.css
+   ============================================================ */
+
+/* ── NOTES / INFO CARD ── */
+
+.tech-notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.tech-note-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--gray-50);
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--gray-200);
+  font-size: 12.5px;
+  color: var(--gray-600);
+  line-height: 1.55;
+}
+
+.tech-note-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.tech-note-label.goal     { background: var(--primary-50);  color: var(--primary-800); }
+.tech-note-label.safety   { background: var(--warning-50);  color: var(--warning-800); }
+.tech-note-label.escalate { background: var(--danger-50);   color: var(--danger-800); }
+
+/* ── SECTION SPACING ── */
+
+.tech-main-section {
+  margin-top: 14px;
+}
+
+/* ── STAT CARD ICON COLOR VARIANTS ── */
+
+.tech-stat-card .tech-stat-icon-wrap.warning { background: var(--warning-50); }
+.tech-stat-card .tech-stat-icon-wrap.success { background: var(--success-50); }
+.tech-stat-card .tech-stat-icon-wrap.neutral { background: var(--gray-100); }

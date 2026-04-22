@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../../../config/api';
-import './ReorderForm.css';
+import './styles.css';
 
 const ReorderForm = ({ item, onSubmitted }) => {
   const [quantity, setQuantity] = useState('');

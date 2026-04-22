@@ -1,7 +1,7 @@
 import React from 'react';
 import { useUser } from '../../../context/UserContext';
 import icons from '../../common/icons';
-import './AdminHeader.css';
+import './styles.css';
 
 const AdminHeader = ({ title = 'Admin Module', subtitle = 'Control panel', onMenuToggle }) => {
   const { user } = useUser();

@@ -4,7 +4,7 @@ import TechLayout from '../Common/TechLayout';
 import UpdateTaskStatus from './UpdateTaskStatus';
 import { apiRequest } from '../../../config/api';
 import '../techShared.css';
-import './TaskDetails.css';
+import './styles.css';
 
 const TaskDetails = () => {
   const { taskId } = useParams();

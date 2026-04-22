@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../../../config/api';
-import './UpdateTaskStatus.css';
+import './styles.css';
 
 const UpdateTaskStatus = ({ task, onStatusChange }) => {
   const [status, setStatus] = useState(task?.status || 'pending');

@@ -4,7 +4,7 @@ import ServiceRequests from './ServiceRequests';
 import RequestDetails from './RequestDetails';
 import { apiRequest } from '../../../config/api';
 import '../adminShared.css';
-import './AdminMaintenance.css';
+import './styles.css';
 
 const AdminMaintenance = () => {
   const [selected, setSelected] = useState(null);

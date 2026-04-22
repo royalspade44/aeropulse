@@ -4,6 +4,9 @@ const { signAccessToken } = require("../utils/token");
 const env = require("../config/env");
 const { BRANCHES } = require("../domain/branchRouting");
 
+const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "");
+const isValidPhMobile = (phone = "") => /^09\d{9}$/.test(normalizePhone(phone));
+
 const lockoutSecondsForAttemptCount = (attempts) => {
   if (attempts < 3) return 0;
   const ms = 60_000 + (attempts - 3) * 30_000;
@@ -26,8 +29,13 @@ const register = async (req, res) => {
   if (!normalizedEmail || !password || !name_first || !name_last || !phone) {
     return res.status(400).json({ message: "Missing required fields" });
   }
+  if (!isValidPhMobile(phone)) {
+    return res.status(400).json({ message: "Invalid phone number format. Use 09XXXXXXXXX." });
+  }
 
-  const existing = await User.findOne({ $or: [{ email: normalizedEmail }, { phone }] });
+  const normalizedPhone = normalizePhone(phone);
+
+  const existing = await User.findOne({ $or: [{ email: normalizedEmail }, { phone: normalizedPhone }] });
   if (existing) {
     return res.status(409).json({ message: "Email or phone already registered" });
   }
@@ -39,7 +47,7 @@ const register = async (req, res) => {
     name: name || `${name_first} ${name_last}`.trim(),
     name_first,
     name_last,
-    phone,
+    phone: normalizedPhone,
     address,
     role,
   });

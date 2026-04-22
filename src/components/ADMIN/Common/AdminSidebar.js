@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useUser } from '../../../context/UserContext';
 import { confirmDialog } from '../../../utils/dialog';
 import icons from '../../common/icons';
-import './AdminSidebar.css';
+import './styles.css';
 
 const navItems = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: icons.clipboardList },
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/admin/maintenance', label: 'Maintenance', icon: icons.tools },
   { to: '/admin/technicians', label: 'Technicians', icon: icons.memberList },
   { to: '/admin/attendance', label: 'Attendance', icon: icons.visit },
+  { to: '/admin/orders', label: 'Orders', icon: icons.clipboardList },
   { to: '/admin/store', label: 'Store', icon: icons.houseChimney },
   { to: '/admin/unlock-users', label: 'Unlock Users', icon: icons.lock },
   { to: '/admin/reorder', label: 'Reorder', icon: icons.cartShoppingFast },

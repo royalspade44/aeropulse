@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './AssignTask.css';
+import './styles.css';
 
 const AssignTask = ({ technician }) => {
   const [task, setTask] = useState('');

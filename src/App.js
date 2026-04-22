@@ -25,6 +25,7 @@ import AdminProfile from './components/ADMIN/Profile/AdminProfile';
 import AdminAttendance from './components/ADMIN/Attendance/AdminAttendance';
 import AdminUnlockUsers from './components/ADMIN/Users/AdminUnlockUsers';
 import AdminStoreOperations from './components/ADMIN/Store/AdminStoreOperations';
+import AdminOrders from './components/ADMIN/Orders/AdminOrders';
 import TechMainScreen from './components/TECH/Dashboard/TechMainScreen';
 import TaskScreens from './components/TECH/Tasks/TaskScreens';
 import TaskDetails from './components/TECH/Tasks/TaskDetails';
@@ -297,6 +298,14 @@ function AppContent() {
         element={
           <RoleRoute allowedRoles={['admin']}>
             <AdminUnlockUsers />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/admin/orders"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminOrders />
           </RoleRoute>
         }
       />

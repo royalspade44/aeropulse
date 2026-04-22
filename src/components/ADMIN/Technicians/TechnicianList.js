@@ -1,5 +1,5 @@
 import React from 'react';
-import './TechnicianList.css';
+import './styles.css';
 
 const TechnicianList = ({ technicians, onSelect }) => {
   return (

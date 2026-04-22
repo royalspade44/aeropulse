@@ -1,5 +1,5 @@
 import React from 'react';
-import './LowStockItems.css';
+import './styles.css';
 
 const LowStockItems = ({ items, onSelect }) => {
   return (

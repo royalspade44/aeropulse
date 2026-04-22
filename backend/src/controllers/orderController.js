@@ -1,5 +1,6 @@
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const mongoose = require("mongoose");
 const { getBranchSearchOrder, resolvePreferredBranch } = require("../domain/branchRouting");
 
 const workflowLabel = (status) => {
@@ -17,103 +18,141 @@ const workflowLabel = (status) => {
   }
 };
 
-const createOrder = async (req, res) => {
-  const user = req.authUser;
-  const { items = [], address = {}, paymentMethod = "cod", total = 0 } = req.body;
+const normalizeAddress = (address = {}) => ({
+  name: String(address.name || "").trim(),
+  phone: String(address.phone || "").trim(),
+  street: String(address.street || "").trim(),
+  city: String(address.city || "").trim(),
+  postalCode: String(address.postalCode || "").trim(),
+});
 
-  if (!Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ message: "Order items are required." });
+const isValidAddress = (address = {}) => {
+  if (!address.name || !address.phone || !address.street || !address.city) return false;
+  const phoneDigits = address.phone.replace(/\D/g, "");
+  if (!/^09\d{9}$/.test(phoneDigits)) return false;
+  if (address.postalCode && !/^\d{4}$/.test(address.postalCode)) return false;
+  return true;
+};
+
+const resolveProductForOrderItem = async (item) => {
+  const productId = String(item.id || "").trim();
+  if (mongoose.Types.ObjectId.isValid(productId)) {
+    const byId = await Product.findById(productId);
+    if (byId) return byId;
   }
+  const sku = String(item.model || item.sku || "").trim();
+  if (sku) {
+    const bySku = await Product.findOne({ sku });
+    if (bySku) return bySku;
+  }
+  return null;
+};
 
-  const orderCode = `ORD-${Date.now()}`;
-  const receiptNumber = `RCP-${Date.now()}`;
-  const trackingNumber = `TRK-${Math.floor(Math.random() * 1000000000)}`;
-  const eta = new Date();
-  eta.setDate(eta.getDate() + 7);
-  const installDate = new Date(eta);
-  installDate.setDate(installDate.getDate() + 1);
+const createOrder = async (req, res) => {
+  try {
+    const user = req.authUser;
+    const { items = [], address = {}, paymentMethod = "cod", total = 0 } = req.body;
+    const normalizedAddress = normalizeAddress(address);
 
-  const preferredBranch = resolvePreferredBranch(address);
-  const branchSearchOrder = getBranchSearchOrder(preferredBranch);
-  const mutableProducts = [];
-  const resolvedItems = [];
-
-  for (const item of items) {
-    const quantityNeeded = Number(item.quantity) || 0;
-    if (!item.id || quantityNeeded < 1) {
-      return res.status(400).json({ message: "Invalid cart item payload." });
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: "Order items are required." });
+    }
+    if (!isValidAddress(normalizedAddress)) {
+      return res.status(400).json({ message: "Invalid delivery address." });
     }
 
-    const product = await Product.findById(item.id);
-    if (!product) {
-      return res.status(404).json({ message: `Product not found: ${item.name || item.id}` });
-    }
+    const orderCode = `ORD-${Date.now()}`;
+    const receiptNumber = `RCP-${Date.now()}`;
+    const trackingNumber = `TRK-${Math.floor(Math.random() * 1000000000)}`;
+    const eta = new Date();
+    eta.setDate(eta.getDate() + 7);
+    const installDate = new Date(eta);
+    installDate.setDate(installDate.getDate() + 1);
 
-    const selectedBranch = branchSearchOrder.find((branch) => {
-      return Number(product.branchStock?.get(branch) || 0) >= quantityNeeded;
-    });
+    const preferredBranch = resolvePreferredBranch(normalizedAddress);
+    const branchSearchOrder = getBranchSearchOrder(preferredBranch);
+    const mutableProducts = [];
+    const resolvedItems = [];
 
-    const hasBranchSnapshot = branchSearchOrder.some((branch) => Number(product.branchStock?.get(branch) || 0) > 0);
-    const fallbackBranch = !hasBranchSnapshot && Number(product.stock || 0) >= quantityNeeded ? preferredBranch : null;
-    const finalBranch = selectedBranch || fallbackBranch;
+    for (const item of items) {
+      const quantityNeeded = Number(item.quantity) || 0;
+      if (quantityNeeded < 1) {
+        return res.status(400).json({ message: "Invalid cart item payload." });
+      }
+      const product = await resolveProductForOrderItem(item);
+      if (!product) {
+        return res.status(404).json({ message: `Product not found: ${item.name || item.id || item.model}` });
+      }
 
-    if (!finalBranch) {
-      return res.status(409).json({
-        message: `Insufficient branch stock for ${product.name}. Tried preferred and nearby branches.`,
+      const selectedBranch = branchSearchOrder.find((branch) => {
+        return Number(product.branchStock?.get(branch) || 0) >= quantityNeeded;
+      });
+
+      const hasBranchSnapshot = branchSearchOrder.some((branch) => Number(product.branchStock?.get(branch) || 0) > 0);
+      const fallbackBranch = !hasBranchSnapshot && Number(product.stock || 0) >= quantityNeeded ? preferredBranch : null;
+      const finalBranch = selectedBranch || fallbackBranch;
+
+      if (!finalBranch) {
+        return res.status(409).json({
+          message: `Insufficient branch stock for ${product.name}. Tried preferred and nearby branches.`,
+        });
+      }
+
+      const branchStock = Number(product.branchStock?.get(finalBranch) || 0);
+      product.branchStock.set(finalBranch, Math.max(0, branchStock - quantityNeeded));
+      product.stock = Math.max(0, Number(product.stock || 0) - quantityNeeded);
+      mutableProducts.push(product);
+
+      resolvedItems.push({
+        productId: String(product.id || ""),
+        name: item.name || product.name,
+        price: Number(item.price) || Number(product.price || 0),
+        quantity: quantityNeeded,
+        specs: item.specs || product.specs || "",
+        sourceBranch: finalBranch,
       });
     }
 
-    const branchStock = Number(product.branchStock?.get(finalBranch) || 0);
-    product.branchStock.set(finalBranch, Math.max(0, branchStock - quantityNeeded));
-    product.stock = Math.max(0, Number(product.stock || 0) - quantityNeeded);
-    mutableProducts.push(product);
+    await Promise.all(mutableProducts.map((product) => product.save()));
 
-    resolvedItems.push({
-      productId: String(item.id || ""),
-      name: item.name,
-      price: item.price,
-      quantity: quantityNeeded,
-      specs: item.specs || "",
-      sourceBranch: finalBranch,
-    });
-  }
+    const assignedTechnician = preferredBranch ? `${preferredBranch} Technician Team` : "";
+    const itemsSummary = resolvedItems.map((item) => `${item.name} x${item.quantity}`).join(", ");
 
-  await Promise.all(mutableProducts.map((product) => product.save()));
-
-  const assignedTechnician = preferredBranch ? `${preferredBranch} Technician Team` : "";
-  const itemsSummary = resolvedItems.map((item) => `${item.name} x${item.quantity}`).join(", ");
-
-  const order = await Order.create({
-    orderCode,
-    customer: user._id,
-    customerName: user.name || `${user.name_first} ${user.name_last}`.trim(),
-    items: resolvedItems,
-    address,
-    paymentMethod,
-    trackingNumber,
-    estimatedDelivery: eta.toISOString().split("T")[0],
-    estimatedArrival: eta.toISOString(),
-    installationDate: installDate.toISOString(),
-    assignedTechnician,
-    stockSourceBranch: preferredBranch,
-    receipt: {
-      receiptNumber,
-      issuedAt: new Date().toISOString(),
+    const order = await Order.create({
+      orderCode,
+      customer: user._id,
+      customerName: user.name || `${user.name_first} ${user.name_last}`.trim(),
+      items: resolvedItems,
+      address: normalizedAddress,
       paymentMethod,
-      amountPaid: Number(total) || 0,
-      itemsSummary,
-    },
-    totalAmount: total,
-    workflowStatus: "to_pay",
-    status: "pending",
-  });
+      trackingNumber,
+      estimatedDelivery: eta.toISOString().split("T")[0],
+      estimatedArrival: eta.toISOString(),
+      installationDate: installDate.toISOString(),
+      assignedTechnician,
+      stockSourceBranch: preferredBranch,
+      receipt: {
+        receiptNumber,
+        issuedAt: new Date().toISOString(),
+        paymentMethod,
+        amountPaid: Number(total) || 0,
+        itemsSummary,
+      },
+      totalAmount: total,
+      workflowStatus: "to_pay",
+      status: "pending",
+    });
 
-  return res.status(201).json({
-    order: {
-      ...order.toJSON(),
-      workflowLabel: workflowLabel(order.workflowStatus),
-    },
-  });
+    return res.status(201).json({
+      order: {
+        ...order.toJSON(),
+        workflowLabel: workflowLabel(order.workflowStatus),
+      },
+    });
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    return res.status(500).json({ message: "Unable to create order right now." });
+  }
 };
 
 const approveOrder = async (req, res) => {
@@ -177,4 +216,69 @@ const getMyOrderSummary = async (req, res) => {
   return res.json({ summary });
 };
 
-module.exports = { createOrder, listMyOrders, getMyOrderSummary, approveOrder };
+const listOrdersForAdmin = async (req, res) => {
+  if (!["admin", "superadmin"].includes(req.authUser.role)) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const query = {};
+  if (req.authUser.role !== "superadmin" && req.activeBranch) {
+    query.stockSourceBranch = req.activeBranch;
+  }
+  const orders = await Order.find(query).sort({ createdAt: -1 });
+  return res.json({
+    orders: orders.map((order) => ({
+      ...order.toJSON(),
+      workflowLabel: workflowLabel(order.workflowStatus),
+    })),
+  });
+};
+
+const processOrder = async (req, res) => {
+  if (!["admin", "superadmin"].includes(req.authUser.role)) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  const { orderId } = req.params;
+  const { action = "approve" } = req.body || {};
+  const query = { $or: [{ _id: orderId }, { orderCode: orderId }] };
+  if (req.authUser.role !== "superadmin" && req.activeBranch) {
+    query.stockSourceBranch = req.activeBranch;
+  }
+  const order = await Order.findOne(query);
+  if (!order) {
+    return res.status(404).json({ message: "Order not found" });
+  }
+
+  if (action === "approve") {
+    order.workflowStatus = "to_deliver";
+    order.status = "paid";
+  } else if (action === "dispatch") {
+    order.workflowStatus = "to_install";
+    order.status = "paid";
+  } else if (action === "complete") {
+    order.workflowStatus = "complete";
+    order.status = "paid";
+  } else if (action === "cancel") {
+    order.workflowStatus = "cancelled";
+    order.status = "cancelled";
+  } else {
+    return res.status(400).json({ message: "Invalid action." });
+  }
+
+  await order.save();
+  return res.json({
+    order: {
+      ...order.toJSON(),
+      workflowLabel: workflowLabel(order.workflowStatus),
+    },
+  });
+};
+
+module.exports = {
+  createOrder,
+  listMyOrders,
+  getMyOrderSummary,
+  approveOrder,
+  listOrdersForAdmin,
+  processOrder,
+};

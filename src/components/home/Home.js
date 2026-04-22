@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useUser } from '../../context/UserContext';
-import './Home.css';
+import './styles.css';
 import Header from './Header';
 import SideMenu from './SideMenu';
 import NotificationsModal from './NotificationsModal';

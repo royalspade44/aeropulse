@@ -4,7 +4,7 @@ import LowStockItems from './LowStockItems';
 import ReorderForm from './ReorderForm';
 import { apiRequest } from '../../../config/api';
 import '../adminShared.css';
-import './AdminReoder.css';
+import './styles.css';
 
 const AdminReoder = () => {
   const [selectedItem, setSelectedItem] = useState(null);

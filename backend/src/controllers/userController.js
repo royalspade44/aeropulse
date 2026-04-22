@@ -1,6 +1,9 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 
+const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "");
+const isValidPhMobile = (phone = "") => /^09\d{9}$/.test(normalizePhone(phone));
+
 const updateProfile = async (req, res) => {
   const { name, name_first, name_last, phone, address, avatarUrl } = req.body;
   const user = req.authUser;
@@ -8,7 +11,12 @@ const updateProfile = async (req, res) => {
   if (name !== undefined) user.name = name;
   if (name_first !== undefined) user.name_first = name_first;
   if (name_last !== undefined) user.name_last = name_last;
-  if (phone !== undefined) user.phone = phone;
+  if (phone !== undefined) {
+    if (!isValidPhMobile(phone)) {
+      return res.status(400).json({ message: "Invalid phone number format. Use 09XXXXXXXXX." });
+    }
+    user.phone = normalizePhone(phone);
+  }
   if (address !== undefined) user.address = address;
   if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
 

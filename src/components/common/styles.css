@@ -1,3 +1,5 @@
+/* ===== GlobalDialog.css ===== */
+
 .global-dialog-overlay {
   position: fixed;
   inset: 0;
@@ -55,4 +57,45 @@
 .global-dialog-btn.secondary {
   background: #e2e8f0;
   color: #334155;
+}
+
+/* ===== iconStyles.css ===== */
+
+/* Consistent sizing for PNG icons from common/icons */
+.inline-icon {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  object-fit: contain;
+  vertical-align: -0.2em;
+}
+
+.inline-icon--md {
+  width: 1.5rem;
+  height: 1.5rem;
+  vertical-align: middle;
+}
+
+.inline-icon--lg {
+  width: 2rem;
+  height: 2rem;
+  vertical-align: middle;
+}
+
+.inline-icon--xl {
+  width: 2.75rem;
+  height: 2.75rem;
+  vertical-align: middle;
+}
+
+.stat-watermark {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  opacity: 0.12;
+  pointer-events: none;
 }

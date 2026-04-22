@@ -1,1 +1,1 @@
-import './TechRegister.css';
+import './styles.css';

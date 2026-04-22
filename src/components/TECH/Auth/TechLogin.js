@@ -1,1 +1,1 @@
-import './TechLogin.css';
+import './styles.css';

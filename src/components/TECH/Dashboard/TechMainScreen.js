@@ -7,7 +7,7 @@ import TaskCard from './TaskCard';
 import TaskFilters from './TaskFilters';
 import TechDispatchMetrics from './TechDispatchMetrics';
 import '../techShared.css';
-import './TechMainScreen.css';
+import './styles.css';
 
 const TechMainScreen = () => {
   const { user } = useUser();

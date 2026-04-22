@@ -4,7 +4,7 @@ import AdminLayout from '../Common/AdminLayout';
 import ChangePassword from './ChangePassword';
 import { loadBranchNetwork } from '../../../domain/branches/branchNetworkStorage';
 import '../adminShared.css';
-import './AdminProfile.css';
+import './styles.css';
 
 const AdminProfile = () => {
   const { user, updateProfile } = useUser();

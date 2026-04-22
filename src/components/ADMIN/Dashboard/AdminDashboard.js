@@ -5,7 +5,7 @@ import AdminLayout from '../Common/AdminLayout';
 import { apiRequest } from '../../../config/api';
 import Charts from './Charts';
 import icons from '../../common/icons';
-import './AdminDashboard.css';
+import './styles.css';
 
 const AdminDashboard = () => {
   const { user } = useUser();
@@ -53,6 +53,7 @@ const AdminDashboard = () => {
     { label: 'Manage Inventory', action: () => navigate('/admin/inventory'), icon: icons.boxOpen },
     { label: 'View Profile', action: () => navigate('/admin/profile'), icon: icons.memberList },
     { label: 'Manage Technicians', action: () => navigate('/admin/technicians'), icon: icons.memberList },
+    { label: 'Process Orders', action: () => navigate('/admin/orders'), icon: icons.clipboardList },
     { label: 'Reorder Stock', action: () => navigate('/admin/reorder'), icon: icons.cartShoppingFast },
     { label: 'Service Requests', action: () => navigate('/admin/maintenance'), icon: icons.tools },
     { label: 'Store Operations', action: () => navigate('/admin/store'), icon: icons.houseChimney }

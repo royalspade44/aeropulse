@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TechLayout from '../Common/TechLayout';
 import '../techShared.css';
-import './TechEditProfile.css';
+import './styles.css';
 
 const TechEditProfile = () => {
   const navigate = useNavigate();

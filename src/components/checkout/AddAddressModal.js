@@ -1,5 +1,28 @@
 import { useState } from 'react';
 
+const PHONE_MAX_DIGITS = 11;
+
+const sanitizePhone = (value) => value.replace(/\D/g, '').slice(0, PHONE_MAX_DIGITS);
+
+const validateAddress = (address) => {
+  const errors = [];
+  if (!address.name?.trim()) errors.push('Recipient name is required.');
+  if (!address.street?.trim()) errors.push('Street address is required.');
+  if (!address.city?.trim()) errors.push('City is required.');
+  if (!address.phone?.trim()) errors.push('Phone number is required.');
+
+  const phoneDigits = sanitizePhone(address.phone || '');
+  if (phoneDigits && !/^09\d{9}$/.test(phoneDigits)) {
+    errors.push('Phone number must be a valid PH mobile format (09XXXXXXXXX).');
+  }
+
+  if (address.postalCode?.trim() && !/^\d{4}$/.test(address.postalCode.trim())) {
+    errors.push('Postal code must be 4 digits.');
+  }
+
+  return errors;
+};
+
 function AddAddressModal({ onClose, onSave }) {
   const [address, setAddress] = useState({
     type: 'home',
@@ -11,11 +34,20 @@ function AddAddressModal({ onClose, onSave }) {
   });
 
   const handleSubmit = () => {
-    if (!address.name || !address.street || !address.city || !address.phone) {
-      alert('Please fill in all required fields');
+    const normalized = {
+      ...address,
+      name: address.name.trim(),
+      street: address.street.trim(),
+      city: address.city.trim(),
+      postalCode: address.postalCode.trim(),
+      phone: sanitizePhone(address.phone)
+    };
+    const errors = validateAddress(normalized);
+    if (errors.length > 0) {
+      alert(errors[0]);
       return;
     }
-    onSave({ ...address, id: Date.now() });
+    onSave({ ...normalized, id: Date.now() });
   };
 
   return (
@@ -68,7 +100,9 @@ function AddAddressModal({ onClose, onSave }) {
                 type="text"
                 placeholder="Postal code"
                 value={address.postalCode}
-                onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}
+              maxLength={4}
+              inputMode="numeric"
+              onChange={(e) => setAddress({ ...address, postalCode: e.target.value.replace(/\D/g, '').slice(0, 4) })}
               />
             </div>
           </div>
@@ -78,7 +112,9 @@ function AddAddressModal({ onClose, onSave }) {
               type="tel"
               placeholder="Contact number"
               value={address.phone}
-              onChange={(e) => setAddress({ ...address, phone: e.target.value })}
+              inputMode="numeric"
+              maxLength={PHONE_MAX_DIGITS}
+              onChange={(e) => setAddress({ ...address, phone: sanitizePhone(e.target.value) })}
             />
           </div>
         </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import './Charts.css';
+import './styles.css';
 import icons from '../../common/icons';
 
 const Charts = ({ sales = [35, 40, 25, 50, 65, 72, 80] }) => {

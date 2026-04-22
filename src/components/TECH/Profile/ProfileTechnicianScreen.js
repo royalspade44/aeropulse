@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useUser } from '../../../context/UserContext';
 import TechLayout from '../Common/TechLayout';
 import '../techShared.css';
-import './ProfileTechnicianScreen.css';
+import './styles.css';
 
 const ProfileTechnicianScreen = () => {
   const { user, updateProfile } = useUser();

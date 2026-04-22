@@ -1,6 +1,6 @@
 import React from 'react';
 import { apiRequest } from '../../../config/api';
-import './InventoryList.css';
+import './styles.css';
 
 const InventoryList = ({ products, loading, onRefresh }) => {
   const [pendingId, setPendingId] = React.useState('');

@@ -16,6 +16,16 @@ import { consumePostRegistrationCheckoutIntent } from '../../domain/checkout/pos
 import { apiRequest } from '../../config/api';
 import Footer from '../home/Footer';
 
+const isValidCheckoutAddress = (address) => {
+  if (!address) return false;
+  const hasRequired = address.name?.trim() && address.street?.trim() && address.city?.trim() && address.phone?.trim();
+  if (!hasRequired) return false;
+  const phoneDigits = String(address.phone || '').replace(/\D/g, '');
+  if (!/^09\d{9}$/.test(phoneDigits)) return false;
+  if (address.postalCode?.trim() && !/^\d{4}$/.test(address.postalCode.trim())) return false;
+  return true;
+};
+
 function Checkout() {
   const navigate = useNavigate();
   const { cart, clearCart, getCartTotal } = useCart();
@@ -49,9 +59,13 @@ function Checkout() {
     setShowAddressModal(false);
   }, [addresses]);
 
-  const handlePlaceOrder = useCallback(() => {
+  const handlePlaceOrder = useCallback(async () => {
     if (!selectedAddress) {
-      alert('Please select a delivery address');
+      alert('Please select a delivery address.');
+      return;
+    }
+    if (!isValidCheckoutAddress(selectedAddress)) {
+      alert('Please provide a valid address. Phone must be 11 digits (09XXXXXXXXX) and postal code must be 4 digits.');
       return;
     }
 
@@ -70,40 +84,44 @@ function Checkout() {
       fromPostRegistrationCheckout: fromPostReg
     });
 
-    apiRequest('/orders', {
-      method: 'POST',
-      body: JSON.stringify({
-        items: order.items,
-        address: selectedAddress,
-        paymentMethod: selectedPayment,
-        total: order.total
-      })
-    })
-      .then((response) => {
-        const created = response.order;
-        const receiptText = created?.receipt?.receiptNumber
-          ? `\nE-Receipt: ${created.receipt.receiptNumber}`
-          : '';
-        if (order.paymentStatus === PAYMENT_PROCESSING_GATEWAY) {
-          alert(
-            `Order received (${created.orderCode}).${receiptText}\nWe are processing stock allocation for your branch and reserved this cart for 15 minutes. Complete payment in the ${selectedPayment === 'gcash' ? 'GCash' : 'card'} gateway once checkout approval is ready.`
-          );
-        } else {
-          alert(
-            `Order received (${created.orderCode}).${receiptText}\nYour order is now processing in our POS queue and a payment reminder will be sent once dispatch confirms your slot.`
-          );
-        }
-      })
-      .catch(() => {
+    try {
+      const response = await apiRequest('/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          items: order.items,
+          address: selectedAddress,
+          paymentMethod: selectedPayment,
+          total: order.total
+        })
+      });
+      const created = response.order;
+      const receiptText = created?.receipt?.receiptNumber
+        ? `\nE-Receipt: ${created.receipt.receiptNumber}`
+        : '';
+      if (order.paymentStatus === PAYMENT_PROCESSING_GATEWAY) {
+        alert(
+          `Order received (${created.orderCode}).${receiptText}\nWe are processing stock allocation for your branch and reserved this cart for 15 minutes. Complete payment in the ${selectedPayment === 'gcash' ? 'GCash' : 'card'} gateway once checkout approval is ready.`
+        );
+      } else {
+        alert(
+          `Order received (${created.orderCode}).${receiptText}\nYour order is now processing in our POS queue and a payment reminder will be sent once dispatch confirms your slot.`
+        );
+      }
+      clearCart();
+      navigate('/my-orders');
+    } catch (error) {
+      const isNetworkIssue = !error?.status;
+      if (isNetworkIssue) {
         const orders = loadOrdersFromStorage();
         orders.unshift(order);
         saveOrdersToStorage(orders);
-        alert(`Order received (${orderId}). Saved locally because backend could not be reached.`);
-      })
-      .finally(() => {
         clearCart();
         navigate('/my-orders');
-      });
+        alert(`Order received (${orderId}). Saved locally because backend could not be reached.`);
+        return;
+      }
+      alert(error?.message || 'Unable to place order right now. Please review your cart and try again.');
+    }
   }, [selectedAddress, cart, selectedPayment, serviceAreaId, totals, clearCart, navigate]);
 
   if (cart.length === 0) {

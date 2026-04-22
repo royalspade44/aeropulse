@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { apiRequest } from '../../../config/api';
 import { ACTIVE_BRANCH_KEY, BRANCHES } from '../../../domain/branches/branches';
-import './AddProduct.css';
+import './styles.css';
 
 const initialForm = {
   name: '',

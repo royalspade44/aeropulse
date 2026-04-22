@@ -1,5 +1,5 @@
 import React from 'react';
-import './StatsCards.css';
+import './styles.css';
 import icons from '../../common/icons';
 
 const StatsCards = ({ stats, loading = false }) => {

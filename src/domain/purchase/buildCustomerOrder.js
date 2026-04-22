@@ -44,6 +44,7 @@ export function buildCustomerOrder({
     estimatedDelivery: estimatedDelivery.toISOString().split('T')[0],
     items: cartItems.map((item) => ({
       id: item.id,
+      model: item.model || '',
       name: item.name,
       price: item.price,
       quantity: item.quantity,

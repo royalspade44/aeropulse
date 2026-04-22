@@ -5,7 +5,7 @@ import InventoryList from './InventoryList';
 import { apiRequest } from '../../../config/api';
 import { ACTIVE_BRANCH_KEY } from '../../../domain/branches/branches';
 import '../adminShared.css';
-import './AdminInventory.css';
+import './styles.css';
 
 const AdminInventory = () => {
   const [products, setProducts] = useState([]);

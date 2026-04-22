@@ -4,7 +4,7 @@ import TechnicianList from './TechnicianList';
 import AssignTask from './AssignTask';
 import { apiRequest } from '../../../config/api';
 import '../adminShared.css';
-import './AdminTechnician.css';
+import './styles.css';
 
 const AdminTechnician = () => {
   const [selectedTech, setSelectedTech] = useState(null);
