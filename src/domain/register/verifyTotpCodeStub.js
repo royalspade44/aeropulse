@@ -4,5 +4,6 @@
  * @returns {boolean}
  */
 export function verifyTotpCodeStub(code) {
-  return String(code).trim() === '000000';
+  const normalized = String(code).trim();
+  return /^\d{6}$/.test(normalized) && normalized === '000000';
 }

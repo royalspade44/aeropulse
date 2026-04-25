@@ -5,7 +5,23 @@ const env = require("../config/env");
 const { BRANCHES } = require("../domain/branchRouting");
 
 const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "");
-const isValidPhMobile = (phone = "") => /^09\d{9}$/.test(normalizePhone(phone));
+const canonicalizePhMobile = (phone = "") => {
+  const digits = normalizePhone(phone);
+  if (/^639\d{9}$/.test(digits)) {
+    return `09${digits.slice(3)}`;
+  }
+  return digits;
+};
+const isValidPhMobile = (phone = "") => /^09\d{9}$/.test(canonicalizePhMobile(phone));
+const isValidSixDigitCode = (value = "") => /^\d{6}$/.test(String(value).trim());
+
+const detectRoleFromEmail = (email = "") => {
+  const normalizedEmail = String(email).trim().toLowerCase();
+  if (normalizedEmail.includes("superadmin")) return "superadmin";
+  if (normalizedEmail.includes("admin")) return "admin";
+  if (normalizedEmail.includes("tech")) return "technician";
+  return "customer";
+};
 
 const lockoutSecondsForAttemptCount = (attempts) => {
   if (attempts < 3) return 0;
@@ -22,21 +38,48 @@ const register = async (req, res) => {
     name_last,
     phone,
     address = "",
-    role = "customer",
+    emailOtp,
+    totpCode,
+    smsCode,
   } = req.body;
   const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
+  console.log("[Auth][Register] Request received", {
+    email: normalizedEmail || "(missing)",
+    hasPhone: Boolean(phone),
+    hasEmailOtp: Boolean(emailOtp),
+    hasTotpCode: Boolean(totpCode),
+    hasSmsCode: Boolean(smsCode),
+  });
+
   if (!normalizedEmail || !password || !name_first || !name_last || !phone) {
+    console.warn("[Auth][Register] Missing required fields", { email: normalizedEmail || "(missing)" });
     return res.status(400).json({ message: "Missing required fields" });
   }
   if (!isValidPhMobile(phone)) {
+    console.warn("[Auth][Register] Invalid phone format", { email: normalizedEmail, phone });
     return res.status(400).json({ message: "Invalid phone number format. Use 09XXXXXXXXX." });
   }
 
-  const normalizedPhone = normalizePhone(phone);
+  const normalizedPhone = canonicalizePhMobile(phone);
+  const detectedRole = detectRoleFromEmail(normalizedEmail);
+  const normalizedAddress = typeof address === "string" ? address.trim() : "";
+
+  if (!isValidSixDigitCode(emailOtp) || !isValidSixDigitCode(totpCode) || !isValidSixDigitCode(smsCode)) {
+    console.warn("[Auth][Register] Invalid code format", { email: normalizedEmail });
+    return res.status(400).json({
+      message: "Invalid demo code format. Email OTP, authenticator code, and SMS code must be exactly 6 digits.",
+    });
+  }
+
+  if (detectedRole === "customer" && !normalizedAddress) {
+    console.warn("[Auth][Register] Missing customer billing address", { email: normalizedEmail, detectedRole });
+    return res.status(400).json({ message: "Billing address is required for customer accounts." });
+  }
 
   const existing = await User.findOne({ $or: [{ email: normalizedEmail }, { phone: normalizedPhone }] });
   if (existing) {
+    console.warn("[Auth][Register] Duplicate account", { email: normalizedEmail, phone: normalizedPhone });
     return res.status(409).json({ message: "Email or phone already registered" });
   }
 
@@ -48,16 +91,22 @@ const register = async (req, res) => {
     name_first,
     name_last,
     phone: normalizedPhone,
-    address,
-    role,
+    address: detectedRole === "customer" ? normalizedAddress : "",
+    role: detectedRole,
   });
 
   const token = signAccessToken({ sub: user.id, role: user.role });
+  console.log("[Auth][Register] User created", {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    hasAddress: Boolean(user.address),
+  });
   return res.status(201).json({ token, user: user.toJSON() });
 };
 
 const login = async (req, res) => {
-  const { email, password, role, branch } = req.body;
+  const { email, password, branch } = req.body;
   const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
   if (!normalizedEmail || !password) {
@@ -73,6 +122,11 @@ const login = async (req, res) => {
     return res.status(400).json({
       message: "This account uses Google Sign-In. Please continue with Google.",
     });
+  }
+
+  const detectedRole = detectRoleFromEmail(normalizedEmail);
+  if (user.role !== detectedRole) {
+    user.role = detectedRole;
   }
 
   if (user.lockoutUntil && user.lockoutUntil.getTime() > Date.now()) {
@@ -101,19 +155,19 @@ const login = async (req, res) => {
     return res.status(401).json({ message: "Incorrect password. Please try again.", attempts: user.failedLoginAttempts });
   }
 
-  if (role && user.role !== role) {
-    return res.status(403).json({ message: `Access denied. This account is not registered as a ${role}.` });
-  }
-
   const isBranchScopedRole = user.role === "admin" || user.role === "technician";
   if (isBranchScopedRole) {
     const selectedBranch = typeof branch === "string" ? branch.trim() : "";
-    if (!selectedBranch || !BRANCHES.includes(selectedBranch)) {
+    const effectiveBranch = BRANCHES.includes(selectedBranch)
+      ? selectedBranch
+      : (BRANCHES.includes(user.activeBranch) ? user.activeBranch : user.assignedBranch);
+
+    if (!effectiveBranch || !BRANCHES.includes(effectiveBranch)) {
       return res.status(400).json({ message: "A valid branch is required for this account." });
     }
-    user.activeBranch = selectedBranch;
+    user.activeBranch = effectiveBranch;
     if (!user.assignedBranch) {
-      user.assignedBranch = selectedBranch;
+      user.assignedBranch = effectiveBranch;
     }
   } else if (user.role === "superadmin") {
     user.activeBranch = "";
@@ -137,8 +191,6 @@ const googleStart = async (req, res) => {
     return res.status(500).json({ message: "Google OAuth is not configured on server." });
   }
 
-  const role = req.query.role || "customer";
-  const state = Buffer.from(JSON.stringify({ role }), "utf8").toString("base64url");
   const params = new URLSearchParams({
     client_id: env.googleClientId,
     redirect_uri: env.googleRedirectUri,
@@ -146,7 +198,6 @@ const googleStart = async (req, res) => {
     scope: "openid email profile",
     access_type: "offline",
     prompt: "select_account",
-    state,
   });
 
   return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
@@ -190,9 +241,7 @@ const googleCallback = async (req, res, next) => {
       return res.redirect(`${env.frontendUrl}/login?google_error=missing_email`);
     }
 
-    const parsedState = state
-      ? JSON.parse(Buffer.from(state, "base64url").toString("utf8"))
-      : { role: "customer" };
+    const detectedRole = detectRoleFromEmail(email);
 
     let user = await User.findOne({ email });
     if (!user) {
@@ -202,7 +251,7 @@ const googleCallback = async (req, res, next) => {
         name: profile.name || "Google User",
         name_first: profile.given_name || firstName,
         name_last: profile.family_name || rest.join(" ") || "User",
-        role: parsedState.role || "customer",
+        role: detectedRole,
         authProvider: "google",
         googleId: profile.sub,
         avatarUrl: profile.picture || "",
@@ -211,8 +260,8 @@ const googleCallback = async (req, res, next) => {
       user.authProvider = "google";
       user.googleId = profile.sub || user.googleId;
       user.avatarUrl = profile.picture || user.avatarUrl;
-      if (parsedState?.role && user.role !== parsedState.role) {
-        user.role = parsedState.role;
+      if (user.role !== detectedRole) {
+        user.role = detectedRole;
       }
       await user.save();
     }

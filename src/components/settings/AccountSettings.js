@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import icons from '../common/icons';
 
-function AccountSettings() {
+function AccountSettings({ onChangePassword, onDeleteAccount }) {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [passwordData, setPasswordData] = useState({
     current: '',
@@ -9,7 +9,7 @@ function AccountSettings() {
     confirm: ''
   });
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (passwordData.new !== passwordData.confirm) {
       alert('New passwords do not match!');
       return;
@@ -18,6 +18,8 @@ function AccountSettings() {
       alert('Password must be at least 8 characters!');
       return;
     }
+    const ok = await onChangePassword?.(passwordData.current, passwordData.new);
+    if (!ok) return;
     alert('Password changed successfully!');
     setShowChangePassword(false);
     setPasswordData({ current: '', new: '', confirm: '' });
@@ -57,7 +59,7 @@ function AccountSettings() {
           <span className="chevron">→</span>
         </div>
 
-        <div className="setting-item">
+        <div className="setting-item" onClick={onDeleteAccount}>
           <div className="setting-info">
             <div className="setting-label">Delete Account</div>
             <div className="setting-description">Permanently delete your account</div>

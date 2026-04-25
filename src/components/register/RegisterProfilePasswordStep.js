@@ -1,21 +1,22 @@
 import { useState, useEffect } from 'react';
 import InputField from '../common/InputField';
 import icons from '../common/icons';
-import RoleSelector from '../login/RoleSelector';
 import { defaultAliasFromEmail } from '../../domain/register/defaultAliasFromEmail';
 import { generateTotpSecretStub } from '../../domain/register/generateTotpSecretStub';
 import { verifyTotpCodeStub } from '../../domain/register/verifyTotpCodeStub';
 
-const REGISTER_ROLES = [
-  { id: 'customer', label: 'Customer', iconSrc: icons.memberList },
-  { id: 'technician', label: 'Technician', iconSrc: icons.tools }
-];
-
-function RegisterProfilePasswordStep({ formData, errors, onFieldChange, onNext, onBack, totpSecret, onTotpSecret }) {
+function RegisterProfilePasswordStep({ formData, errors, onFieldChange, detectedRole, detectedRoleLabel, onNext, onBack, totpSecret, onTotpSecret }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [totpCode, setTotpCode] = useState('');
   const [totpError, setTotpError] = useState('');
+
+  const handleTotpChange = (value) => {
+    const normalized = String(value).replace(/\D/g, '').slice(0, 6);
+    onFieldChange('totpCode', normalized);
+    if (totpError) {
+      setTotpError('');
+    }
+  };
 
   useEffect(() => {
     if (!formData.alias && formData.email) {
@@ -29,10 +30,12 @@ function RegisterProfilePasswordStep({ formData, errors, onFieldChange, onNext, 
     }
   }, [totpSecret, onTotpSecret]);
 
-  const selectedRole = REGISTER_ROLES.find((r) => r.id === formData.role) || REGISTER_ROLES[0];
-
   const handleNext = () => {
-    if (!verifyTotpCodeStub(totpCode)) {
+    if (!/^\d{6}$/.test(formData.totpCode || '')) {
+      setTotpError('Code must be exactly 6 digits.');
+      return;
+    }
+    if (!verifyTotpCodeStub(formData.totpCode)) {
       setTotpError('Enter the 6-digit code from your authenticator app. Demo: use 000000 after saving the secret.');
       return;
     }
@@ -81,12 +84,11 @@ function RegisterProfilePasswordStep({ formData, errors, onFieldChange, onNext, 
         required
       />
 
-      <RoleSelector
-        selectedRole={selectedRole}
-        roles={REGISTER_ROLES}
-        onRoleChange={(roleId) => onFieldChange('role', roleId)}
-        disabled={false}
-      />
+      {detectedRole !== 'customer' && (
+        <div className="register-role-inline">
+          Detected account type: <strong>{detectedRoleLabel}</strong>
+        </div>
+      )}
 
       <div className="input-group">
         <label>Password <span className="required-star">*</span></label>
@@ -142,8 +144,9 @@ function RegisterProfilePasswordStep({ formData, errors, onFieldChange, onNext, 
             type="text"
             inputMode="numeric"
             placeholder="6 digits (demo: 000000)"
-            value={totpCode}
-            onChange={(e) => setTotpCode(e.target.value)}
+            value={formData.totpCode}
+            onChange={(e) => handleTotpChange(e.target.value)}
+            maxLength={6}
           />
         </div>
         {totpError && (

@@ -1,11 +1,22 @@
 import { useCart } from '../../context/CartContext';
 import icons from '../common/icons';
 
-function Header({ onMenuToggle, onNotificationClick, onCartClick, notificationCount }) {
+function Header({ onMenuToggle, onNotificationClick, onCartClick, notificationCount, scrolled }) {
   const { getCartCount } = useCart();
+  const cartCount = getCartCount();
+
+  const formatBadgeCount = (count) => {
+    const normalized = Number(count) || 0;
+    if (normalized <= 0) return '';
+    if (normalized > 99) return '99+';
+    return String(normalized);
+  };
+
+  const notificationBadge = formatBadgeCount(notificationCount);
+  const cartBadge = formatBadgeCount(cartCount);
 
   return (
-    <header className="home-header">
+    <header className={`home-header ${scrolled ? 'scrolled' : ''}`}>
       <div className="header-content">
         <div className="header-left">
           <button type="button" className="menu-toggle" onClick={onMenuToggle} aria-label="Open menu">
@@ -19,16 +30,16 @@ function Header({ onMenuToggle, onNotificationClick, onCartClick, notificationCo
             </div>
           </div>
         </div>
-        <div className="header-right">
-          <button type="button" className="icon-btn" onClick={onNotificationClick} aria-label="Notifications">
+        <div className="header-right" aria-label="Header actions">
+          <button type="button" className="icon-btn header-action-btn" onClick={onNotificationClick} aria-label="Notifications">
             <img src={icons.visit} alt="" className="inline-icon inline-icon--md" />
-            {notificationCount > 0 && (
-              <span className="badge">{notificationCount}</span>
+            {notificationBadge && (
+              <span className="badge" aria-live="polite">{notificationBadge}</span>
             )}
           </button>
-          <button type="button" className="icon-btn" onClick={onCartClick} aria-label="Cart">
+          <button type="button" className="icon-btn header-action-btn" onClick={onCartClick} aria-label="Cart">
             <img src={icons.cartShoppingFast} alt="" className="inline-icon inline-icon--md" />
-            {getCartCount() > 0 && <span className="badge">{getCartCount()}</span>}
+            {cartBadge && <span className="badge" aria-live="polite">{cartBadge}</span>}
           </button>
         </div>
       </div>

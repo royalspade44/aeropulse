@@ -43,6 +43,7 @@ function Home() {
       .then((response) => {
         const normalized = (response.notifications || []).map((item) => ({
           ...item,
+          unread: Boolean(item.unread),
           time: new Date(item.createdAt).toLocaleString()
         }));
         setNotifications(normalized);
@@ -160,6 +161,29 @@ function Home() {
     setShowNotifications(false);
   };
 
+  const handleNotificationItemClick = async (notificationId) => {
+    const existing = notifications.find((item) => item.id === notificationId);
+    setNotifications((prev) => prev.filter((item) => item.id !== notificationId));
+    try {
+      await apiRequest(`/notifications/${notificationId}/read`, { method: 'PATCH' });
+    } catch (_error) {
+      if (existing) {
+        setNotifications((prev) => [existing, ...prev]);
+      }
+    }
+  };
+
+  const handleMarkAllNotificationsRead = async () => {
+    if (!notifications.length) return;
+    const snapshot = notifications;
+    setNotifications([]);
+    try {
+      await apiRequest('/notifications/me/read-all', { method: 'PATCH' });
+    } catch (_error) {
+      setNotifications(snapshot);
+    }
+  };
+
   const handleMenuClose = () => {
     setIsMenuOpen(false);
   };
@@ -200,6 +224,8 @@ function Home() {
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
         notifications={notifications}
+        onNotificationClick={handleNotificationItemClick}
+        onMarkAllAsRead={handleMarkAllNotificationsRead}
       />
 
       {/* Cart Modal */}

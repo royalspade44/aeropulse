@@ -23,4 +23,31 @@ const listMyNotifications = async (req, res) => {
   return res.json({ notifications: notifications.map((item) => item.toJSON()) });
 };
 
-module.exports = { listMyNotifications };
+const markNotificationRead = async (req, res) => {
+  const userId = req.authUser._id;
+  const { id } = req.params;
+
+  const notification = await Notification.findOne({ _id: id, user: userId });
+  if (!notification) {
+    return res.status(404).json({ message: "Notification not found" });
+  }
+
+  notification.unread = false;
+  await notification.save();
+  return res.json({ notification: notification.toJSON() });
+};
+
+const markAllNotificationsRead = async (req, res) => {
+  const userId = req.authUser._id;
+  const result = await Notification.updateMany(
+    { user: userId, unread: true },
+    { $set: { unread: false } }
+  );
+
+  return res.json({
+    message: "Notifications marked as read",
+    modifiedCount: Number(result.modifiedCount || 0),
+  });
+};
+
+module.exports = { listMyNotifications, markNotificationRead, markAllNotificationsRead };

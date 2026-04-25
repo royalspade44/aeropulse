@@ -5,6 +5,8 @@ import './styles.css';
 const InventoryList = ({ products, loading, onRefresh }) => {
   const [pendingId, setPendingId] = React.useState('');
   const [rowState, setRowState] = React.useState({});
+  const [editingId, setEditingId] = React.useState('');
+  const [editForm, setEditForm] = React.useState({ name: '', brand: '', category: '', specs: '', price: '', threshold: '' });
 
   const getRowState = (productId) => rowState[productId] || { action: 'add', quantity: '' };
   const setRowValue = (productId, next) => {
@@ -35,6 +37,52 @@ const InventoryList = ({ products, loading, onRefresh }) => {
     }
   };
 
+  const startEdit = (product) => {
+    setEditingId(product.id);
+    setEditForm({
+      name: product.name || '',
+      brand: product.brand || '',
+      category: product.category || 'split',
+      specs: product.specs || '',
+      price: String(product.price ?? ''),
+      threshold: String(product.threshold ?? ''),
+    });
+  };
+
+  const saveEdit = async (productId) => {
+    try {
+      setPendingId(productId);
+      await apiRequest(`/products/${productId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          ...editForm,
+          price: Number(editForm.price) || 0,
+          threshold: Number(editForm.threshold) || 0,
+        }),
+      });
+      setEditingId('');
+      onRefresh?.();
+    } catch (error) {
+      alert(error.message || 'Unable to update product');
+    } finally {
+      setPendingId('');
+    }
+  };
+
+  const removeProduct = async (productId) => {
+    const proceed = window.confirm('Remove this item from inventory?');
+    if (!proceed) return;
+    try {
+      setPendingId(productId);
+      await apiRequest(`/products/${productId}`, { method: 'DELETE' });
+      onRefresh?.();
+    } catch (error) {
+      alert(error.message || 'Unable to delete product');
+    } finally {
+      setPendingId('');
+    }
+  };
+
   return (
     <div className="admin-card">
       <h3>Inventory List</h3>
@@ -49,15 +97,24 @@ const InventoryList = ({ products, loading, onRefresh }) => {
             <th>Stock</th>
             <th>Price</th>
             <th>Stock Actions</th>
+            <th>Item Actions</th>
           </tr>
         </thead>
         <tbody>
           {products.map((product) => (
             <tr key={product.id}>
-              <td>{product.name}</td>
+              <td>
+                {editingId === product.id ? (
+                  <input value={editForm.name} onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))} />
+                ) : product.name}
+              </td>
               <td>{product.sku}</td>
               <td>{product.stock}</td>
-              <td>PHP {product.price}</td>
+              <td>
+                {editingId === product.id ? (
+                  <input type="number" min="0" value={editForm.price} onChange={(e) => setEditForm((prev) => ({ ...prev, price: e.target.value }))} style={{ width: 90 }} />
+                ) : `PHP ${product.price}`}
+              </td>
               <td style={{ minWidth: 210 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <select value={getRowState(product.id).action} onChange={(event) => setRowValue(product.id, { action: event.target.value })}>
@@ -77,6 +134,29 @@ const InventoryList = ({ products, loading, onRefresh }) => {
                     {pendingId === product.id ? 'Saving...' : 'Apply'}
                   </button>
                 </div>
+              </td>
+              <td style={{ minWidth: 220 }}>
+                {editingId === product.id ? (
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input
+                      value={editForm.threshold}
+                      type="number"
+                      min="0"
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, threshold: e.target.value }))}
+                      placeholder="Threshold"
+                      style={{ width: 90 }}
+                    />
+                    <button type="button" onClick={() => saveEdit(product.id)} disabled={pendingId === product.id}>
+                      {pendingId === product.id ? 'Saving...' : 'Save'}
+                    </button>
+                    <button type="button" onClick={() => setEditingId('')}>Cancel</button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <button type="button" onClick={() => startEdit(product)} disabled={pendingId === product.id}>Edit</button>
+                    <button type="button" onClick={() => removeProduct(product.id)} disabled={pendingId === product.id}>Delete</button>
+                  </div>
+                )}
               </td>
             </tr>
           ))}

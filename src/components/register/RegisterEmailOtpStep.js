@@ -3,10 +3,17 @@ import InputField from '../common/InputField';
 import icons from '../common/icons';
 import { verifyEmailOtpStub } from '../../domain/register/emailOtpStub';
 
-function RegisterEmailOtpStep({ formData, errors, onFieldChange, onNext, onBack }) {
-  const [emailOtp, setEmailOtp] = useState('');
+function RegisterEmailOtpStep({ formData, errors, onFieldChange, detectedRole, detectedRoleLabel, onNext, onBack }) {
   const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [localError, setLocalError] = useState('');
+
+  const handleEmailOtpChange = (value) => {
+    const normalized = String(value).replace(/\D/g, '').slice(0, 6);
+    onFieldChange('emailOtp', normalized);
+    if (localError) {
+      setLocalError('');
+    }
+  };
 
   const sendOtp = () => {
     if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -19,7 +26,11 @@ function RegisterEmailOtpStep({ formData, errors, onFieldChange, onNext, onBack 
   };
 
   const verifyAndNext = () => {
-    if (!verifyEmailOtpStub(formData.email, emailOtp)) {
+    if (!/^\d{6}$/.test(formData.emailOtp || '')) {
+      setLocalError('Code must be exactly 6 digits.');
+      return;
+    }
+    if (!verifyEmailOtpStub(formData.email, formData.emailOtp)) {
       setLocalError('Invalid code. Demo code is 123456.');
       return;
     }
@@ -47,6 +58,12 @@ function RegisterEmailOtpStep({ formData, errors, onFieldChange, onNext, onBack 
         required
       />
 
+      {detectedRole !== 'customer' && (
+        <div className="register-role-inline">
+          Detected account type: <strong>{detectedRoleLabel}</strong>
+        </div>
+      )}
+
       <button type="button" className="cancel-btn" style={{ marginBottom: 12 }} onClick={sendOtp}>
         {emailOtpSent ? 'Resend code' : 'Send one-time code'}
       </button>
@@ -58,8 +75,9 @@ function RegisterEmailOtpStep({ formData, errors, onFieldChange, onNext, onBack 
           inputMode="numeric"
           autoComplete="one-time-code"
           placeholder="6-digit code"
-          value={emailOtp}
-          onChange={(e) => setEmailOtp(e.target.value)}
+          value={formData.emailOtp}
+          onChange={(e) => handleEmailOtpChange(e.target.value)}
+          maxLength={6}
         />
       </div>
 

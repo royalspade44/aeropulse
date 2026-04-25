@@ -115,10 +115,12 @@ export const UserProvider = ({ children }) => {
     return () => window.removeEventListener("storage", onStorage);
   }, [isAuthenticated, user]);
 
-  const login = async (email, password, role = null, branch = "") => {
+  const login = async (email, password, roleOrBranch = "", branchMaybe = "") => {
+    const knownRoles = new Set(["customer", "admin", "technician", "superadmin"]);
+    const branch = knownRoles.has(roleOrBranch) ? branchMaybe : roleOrBranch;
     const result = await apiRequest("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password, role, branch }),
+      body: JSON.stringify({ email, password, branch }),
     });
     const userBranch = result.user?.activeBranch || result.user?.assignedBranch || branch || "";
     saveSession(result.token, result.user, userBranch);
@@ -130,17 +132,11 @@ export const UserProvider = ({ children }) => {
     return result.user;
   };
 
-  const register = async (userData, role = "customer") => {
+  const register = async (userData) => {
     const result = await apiRequest("/auth/register", {
       method: "POST",
-      body: JSON.stringify({ ...userData, role: userData.role || role }),
+      body: JSON.stringify(userData),
     });
-    saveSession(result.token, result.user);
-    activateSingleSession(result.user);
-    setUser(result.user);
-    setUserRole(result.user.role || null);
-    setCurrentSession(result.user);
-    setIsAuthenticated(true);
     return result.user;
   };
 

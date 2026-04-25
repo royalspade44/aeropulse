@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useUser } from '../../context/UserContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api';
@@ -10,22 +10,21 @@ import LoginForm from './LoginForm';
 import LockoutWarning from './LockOutWarning';
 import GoogleButton from './GoogleButton';
 
-const LOGIN_ROLES = [
-  { id: 'customer', label: 'Customer', icon: icons.memberList, redirectTo: '/home' },
-  { id: 'technician', label: 'Technician', icon: icons.tools, redirectTo: '/tech/dashboard' },
-  { id: 'admin', label: 'Admin', icon: icons.customize, redirectTo: '/admin/dashboard' },
-  { id: 'superadmin', label: 'Super Admin', icon: icons.shieldKeyhole, redirectTo: '/superadmin/dashboard' },
-];
+const getRoleHomePath = (role) => {
+  if (role === 'technician') return '/tech/dashboard';
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'superadmin') return '/superadmin/dashboard';
+  return '/home';
+};
 
 function Login() {
-  const { login, loginAsAdmin, loginAsTechnician } = useUser();
+  const { login } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
   
   const [user, setUser] = useState({
     email: '',
     password: '',
-    role: null,
     branch: '',
   });
   const [errors, setErrors] = useState({});
@@ -33,8 +32,6 @@ function Login() {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [step, setStep] = useState('role'); // role | login
-  const [adminKindStep, setAdminKindStep] = useState(false);
   
   const timerRef = useRef(null);
 
@@ -53,15 +50,6 @@ function Login() {
       }) : prev);
     }
   }, [secondsLeft]);
-
-  const selectRole = (roleId) => {
-    setUser((prev) => ({ ...prev, role: roleId }));
-    setStep('login');
-    setAdminKindStep(false);
-    setLockoutInfo(null);
-    setSecondsLeft(0);
-    if (timerRef.current) clearInterval(timerRef.current);
-  };
 
   const handleEmailChange = (email) => {
     setUser(prev => ({ ...prev, email }));
@@ -97,17 +85,9 @@ function Login() {
     setErrors({});
     setLoading(true);
 
-    const needsBranch = user.role === 'admin' || user.role === 'technician';
-    if (needsBranch && !user.branch) {
-      setErrors((prev) => ({ ...prev, branch: 'Branch is required' }));
-      alert('Please select a branch before signing in.');
-      setLoading(false);
-      return;
-    }
-
     // Check for empty fields
     for (const [k, v] of Object.entries(user)) {
-      if (k !== 'role' && k !== 'branch' && (!v || v.length < 1)) {
+      if (k !== 'branch' && (!v || v.length < 1)) {
         setErrors(prev => ({ ...prev, [k]: 'This field is required' }));
         alert('All fields must be filled!');
         setLoading(false);
@@ -116,41 +96,18 @@ function Login() {
     }
 
     try {
-      console.log('Attempting login for:', user.email, 'with role:', user.role);
-      
-      let loggedInUser;
-      
-      // Use different login methods based on selected role
-      switch(user.role) {
-        case 'admin':
-          loggedInUser = await loginAsAdmin(user.email, user.password, user.branch);
-          break;
-        case 'technician':
-          loggedInUser = await loginAsTechnician(user.email, user.password, user.branch);
-          break;
-        case 'superadmin':
-          loggedInUser = await login(user.email, user.password, 'superadmin');
-          break;
-        default:
-          loggedInUser = await login(user.email, user.password);
-      }
-      
-      console.log('Login successful:', loggedInUser);
-      
-      // Store user with role in session
-      const userWithRole = { ...loggedInUser, selectedRole: user.role, activeBranch: loggedInUser?.activeBranch || user.branch || '' };
-      localStorage.setItem('currentUser', JSON.stringify(userWithRole));
-      if (userWithRole.activeBranch) {
-        localStorage.setItem('activeBranch', userWithRole.activeBranch);
+      const loggedInUser = await login(user.email, user.password, user.branch);
+      const activeBranch = loggedInUser?.activeBranch || loggedInUser?.assignedBranch || user.branch || '';
+
+      if (activeBranch) {
+        localStorage.setItem('activeBranch', activeBranch);
       }
       
       if (timerRef.current) clearInterval(timerRef.current);
       
       setLoading(false);
       
-      // Redirect based on role
-      const selectedRoleConfig = LOGIN_ROLES.find(r => r.id === user.role);
-      navigate(selectedRoleConfig.redirectTo);
+      navigate(getRoleHomePath(loggedInUser?.role));
       
     } catch (err) {
       console.error('Login error details:', err);
@@ -182,20 +139,14 @@ function Login() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!user.role) {
-      alert('Please choose a role before using Google sign-in.');
-      return;
-    }
     setGoogleLoading(true);
-    window.location.href = `${API_BASE_URL}/auth/google/start?role=${encodeURIComponent(user.role)}`;
+    window.location.href = `${API_BASE_URL}/auth/google/start`;
   };
 
   const handleSignUp = () => {
     const fromCheckout = location.state?.from?.pathname === '/checkout';
     navigate('/register', { state: { returnToCheckout: fromCheckout } });
   };
-
-  const selectedRole = useMemo(() => LOGIN_ROLES.find((r) => r.id === user.role) || null, [user.role]);
 
   return (
     <div className="login-container">
@@ -204,8 +155,8 @@ function Login() {
         
         <div className="login-form-section">
           <div className="form-header">
-            <h2>{step === 'role' ? 'Choose your portal' : 'Welcome Back'}</h2>
-            <p>{step === 'role' ? 'Select how you want to sign in' : 'Sign in to your account to continue'}</p>
+            <h2>Welcome Back</h2>
+            <p>Sign in to your account to continue</p>
           </div>
 
           <LockoutWarning
@@ -213,96 +164,43 @@ function Login() {
             secondsLeft={secondsLeft}
           />
 
-          {step === 'role' ? (
-            <div className="role-cards">
-              {!adminKindStep ? (
-                <>
-                  <button type="button" className="role-card" onClick={() => selectRole('customer')}>
-                    <span className="role-card-icon"><img src={icons.memberList} alt="" className="inline-icon inline-icon--xl" /></span>
-                    <span className="role-card-title">Customer</span>
-                  </button>
-                  <button type="button" className="role-card" onClick={() => selectRole('technician')}>
-                    <span className="role-card-icon"><img src={icons.tools} alt="" className="inline-icon inline-icon--xl" /></span>
-                    <span className="role-card-title">Technician</span>
-                  </button>
-                  <button type="button" className="role-card" onClick={() => setAdminKindStep(true)}>
-                    <span className="role-card-icon"><img src={icons.shieldKeyhole} alt="" className="inline-icon inline-icon--xl" /></span>
-                    <span className="role-card-title">Admin</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button type="button" className="role-card" onClick={() => selectRole('admin')}>
-                    <span className="role-card-icon"><img src={icons.customize} alt="" className="inline-icon inline-icon--xl" /></span>
-                    <span className="role-card-title">Admin</span>
-                  </button>
-                  <button type="button" className="role-card" onClick={() => selectRole('superadmin')}>
-                    <span className="role-card-icon"><img src={icons.shieldKeyhole} alt="" className="inline-icon inline-icon--xl" /></span>
-                    <span className="role-card-title">Super Admin</span>
-                  </button>
-                  <button type="button" className="cancel-btn" onClick={() => setAdminKindStep(false)}>
-                    Back
-                  </button>
-                </>
-              )}
+          <LoginForm
+            email={user.email}
+            password={user.password}
+            branch={user.branch}
+            errors={errors}
+            onEmailChange={handleEmailChange}
+            onPasswordChange={handlePasswordChange}
+            onBranchChange={handleBranchChange}
+            branchOptions={BRANCHES}
+            onSubmit={authenticateUser}
+            loading={loading}
+            disabled={!!lockoutInfo}
+            onForgotPassword={handleForgotPassword}
+            showAccountRecovery={true}
+          />
+
+          <div className="divider">
+            <span>or</span>
+          </div>
+
+          <GoogleButton onClick={handleGoogleSignIn} loading={googleLoading} />
+
+          <div className="signup-link">
+            Don't have an account? <button onClick={handleSignUp}>Sign up</button>
+          </div>
+
+          <div className="tips-card">
+            <div className="tips-header">
+              <img src={icons.lock} alt="" className="inline-icon inline-icon--md" />
+              Security Information
             </div>
-          ) : (
-            <>
-              <div style={{ marginBottom: 16, color: '#64748b', fontWeight: 600 }}>
-                Signing in as: <span style={{ color: '#1e293b' }}>{selectedRole?.label || 'User'}</span>{' '}
-                <button
-                  type="button"
-                  className="forgot-link"
-                  onClick={() => {
-                    setStep('role');
-                    setUser((prev) => ({ ...prev, role: null }));
-                  }}
-                  style={{ marginLeft: 10 }}
-                >
-                  change
-                </button>
-              </div>
-
-              <LoginForm
-                email={user.email}
-                password={user.password}
-                branch={user.branch}
-                role={user.role}
-                errors={errors}
-                onEmailChange={handleEmailChange}
-                onPasswordChange={handlePasswordChange}
-                onBranchChange={handleBranchChange}
-                branchOptions={BRANCHES}
-                onSubmit={authenticateUser}
-                loading={loading}
-                disabled={!!lockoutInfo}
-                onForgotPassword={handleForgotPassword}
-                showAccountRecovery={user.role === 'customer'}
-              />
-
-              <div className="divider">
-                <span>or</span>
-              </div>
-
-              <GoogleButton onClick={handleGoogleSignIn} loading={googleLoading} />
-
-              <div className="signup-link">
-                Don't have an account? <button onClick={handleSignUp}>Sign up</button>
-              </div>
-
-              <div className="tips-card">
-                <div className="tips-header">
-                  <img src={icons.lock} alt="" className="inline-icon inline-icon--md" />
-                  Security Information
-                </div>
-                <div className="tips-list">
-                  <span>• 3 login attempts before temporary lockout</span>
-                  <span>• Lockout duration increases with failed attempts</span>
-                  <span>• Only Admins can manually unlock accounts early</span>
-                </div>
-              </div>
-            </>
-          )}
+            <div className="tips-list">
+              <span>• 3 login attempts before temporary lockout</span>
+              <span>• Lockout duration increases with failed attempts</span>
+              <span>• Branch-scoped accounts reuse the branch you enter here</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

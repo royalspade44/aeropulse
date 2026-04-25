@@ -1,10 +1,16 @@
 const express = require("express");
 const { requireAuth } = require("../middleware/auth");
-const { listMyNotifications } = require("../controllers/notificationController");
+const {
+	listMyNotifications,
+	markNotificationRead,
+	markAllNotificationsRead,
+} = require("../controllers/notificationController");
 
 const router = express.Router();
 
 router.use(requireAuth);
 router.get("/me", listMyNotifications);
+router.patch("/me/read-all", markAllNotificationsRead);
+router.patch("/:id/read", markNotificationRead);
 
 module.exports = router;

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useUser } from '../../context/UserContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Register.css';
@@ -7,8 +7,9 @@ import RegisterLegalConsentsStep from './RegisterLegalConsentsStep';
 import RegisterEmailOtpStep from './RegisterEmailOtpStep';
 import RegisterProfilePasswordStep from './RegisterProfilePasswordStep';
 import RegisterPhoneOtpStep from './RegisterPhoneOtpStep';
-import { validateRegistrationProfile } from '../../domain/register/validateRegistrationProfile';
-import { consumePostRegistrationCheckoutIntent, setPostRegistrationCheckoutIntent } from '../../domain/checkout/postRegistrationIntent';
+import { validateRegistrationProfile, validateProfileAndSecurityStep } from '../../domain/register/validateRegistrationProfile';
+import { setPostRegistrationCheckoutIntent } from '../../domain/checkout/postRegistrationIntent';
+import { detectRoleFromEmail, getRoleLabel } from '../../domain/register/detectRoleFromEmail';
 
 const STEPS = ['legal', 'email', 'profile', 'phone'];
 
@@ -27,7 +28,9 @@ function Register() {
     phone: '',
     password: '',
     confirmPassword: '',
-    role: 'customer',
+    emailOtp: '',
+    totpCode: '',
+    smsCode: '',
     address: '',
     agreeTermsWarranty: false,
     agreeTermsService: false,
@@ -37,6 +40,9 @@ function Register() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const detectedRole = useMemo(() => detectRoleFromEmail(formData.email), [formData.email]);
+  const detectedRoleLabel = useMemo(() => getRoleLabel(detectedRole), [detectedRole]);
 
   useEffect(() => {
     if (location.state?.returnToCheckout) {
@@ -66,6 +72,16 @@ function Register() {
     if (validateLegal()) goNext();
   };
 
+  const handleProfileNext = () => {
+    const { errors: stepErrors, valid } = validateProfileAndSecurityStep(formData);
+    if (!valid) {
+      console.warn('[Register] Profile step validation failed', stepErrors);
+      setErrors((prev) => ({ ...prev, ...stepErrors }));
+      return;
+    }
+    goNext();
+  };
+
   const persistLocalSecurity = (email) => {
     try {
       const key = 'aeropulse_user_security';
@@ -78,31 +94,53 @@ function Register() {
   };
 
   const handleFinalSubmit = async () => {
-    const { errors: vErrors, valid } = validateRegistrationProfile(formData);
+    const { errors: vErrors, valid } = validateRegistrationProfile(formData, detectedRole);
     if (!valid) {
+      console.warn('[Register] Validation failed before submit', vErrors);
       setErrors(vErrors);
+      const firstError = Object.values(vErrors)[0];
+      if (firstError) {
+        alert(firstError);
+      }
       return;
     }
 
     setLoading(true);
     try {
-      await register({
+      const normalizedPhone = String(formData.phone || '').replace(/\D/g, '');
+      const normalizedAddress = String(formData.address || '').trim();
+      const payload = {
         name: `${formData.firstName} ${formData.lastName}`,
         name_first: formData.firstName,
         name_last: formData.lastName,
         email: formData.email,
-        phone: formData.phone,
+        phone: normalizedPhone,
         password: formData.password,
-        role: formData.role,
-        address: formData.address || ''
+        address: detectedRole === 'customer' ? normalizedAddress : '',
+        emailOtp: formData.emailOtp,
+        totpCode: formData.totpCode,
+        smsCode: formData.smsCode,
+      };
+
+      console.log('[Register] Sending registration request', {
+        email: payload.email,
+        detectedRole,
+        hasPhone: Boolean(payload.phone),
+        hasAddress: Boolean(payload.address),
       });
+
+      await register({
+        ...payload,
+      });
+
+      console.log('[Register] Registration succeeded', { email: formData.email, detectedRole });
       persistLocalSecurity(formData.email);
-      const returnCheckout = consumePostRegistrationCheckoutIntent();
-      alert(returnCheckout ? 'Account created. Continue to checkout to finish your purchase.' : 'Registration successful!');
-      navigate(returnCheckout ? '/checkout' : '/home');
+      alert('Registration successful! Please sign in to continue.');
+      navigate('/login');
     } catch (err) {
+      console.error('[Register] Registration failed', err);
       setErrors((prev) => ({ ...prev, email: err.message }));
-      alert(err.message);
+      alert(`Registration failed: ${err.message || 'Please try again.'}`);
     } finally {
       setLoading(false);
     }
@@ -120,6 +158,12 @@ function Register() {
             <h2>Create an account</h2>
             <p>Step {stepIndex + 1} of {STEPS.length}</p>
           </div>
+
+          {detectedRole !== 'customer' && (
+            <div className="register-role-pill">
+              Detected account type: <strong>{detectedRoleLabel}</strong>
+            </div>
+          )}
 
           <div className="register-step-indicator">
             {STEPS.map((s, i) => (
@@ -140,6 +184,8 @@ function Register() {
               formData={formData}
               errors={errors}
               onFieldChange={handleFieldChange}
+              detectedRole={detectedRole}
+              detectedRoleLabel={detectedRoleLabel}
               onNext={goNext}
               onBack={goBack}
             />
@@ -149,7 +195,9 @@ function Register() {
               formData={formData}
               errors={errors}
               onFieldChange={handleFieldChange}
-              onNext={goNext}
+              detectedRole={detectedRole}
+              detectedRoleLabel={detectedRoleLabel}
+              onNext={handleProfileNext}
               onBack={goBack}
               totpSecret={totpSecret}
               onTotpSecret={setTotpSecret}
@@ -160,6 +208,7 @@ function Register() {
               formData={formData}
               errors={errors}
               onFieldChange={handleFieldChange}
+              detectedRole={detectedRole}
               onSubmit={handleFinalSubmit}
               onBack={goBack}
               loading={loading}

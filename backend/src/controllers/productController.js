@@ -1,6 +1,52 @@
 const Product = require("../models/Product");
 const { BRANCHES } = require("../domain/branchRouting");
 
+const SAMPLE_PRODUCTS = [
+  { name: "American Home Inverter AC", sku: "AHAC-MINV1023EHW", brand: "American Home", category: "split", specs: "1.0HP", price: 18499, threshold: 3, stock: 14 },
+  { name: "TCL Full DC Inverter AC", sku: "TAC-10CSD-KEI-S-2", brand: "TCL", category: "split", specs: "1.0HP", price: 21500, threshold: 3, stock: 12 },
+  { name: "Midea Celest Pro AC", sku: "MSCE-10CRFN8", brand: "Midea", category: "split", specs: "1.0HP", price: 22999, threshold: 3, stock: 10 },
+  { name: "LG Premium Dual Inverter AC", sku: "HSN09IPX3", brand: "LG", category: "split", specs: "1.0HP", price: 31499, threshold: 2, stock: 8 },
+  { name: "TCL Full DC Inverter Window AC", sku: "TAC09-CWI-UJE2", brand: "TCL", category: "window", specs: "1.0HP", price: 21995, threshold: 2, stock: 9 },
+  { name: "Samsung Digital Inverter AC", sku: "AR09TYHYE", brand: "Samsung", category: "split", specs: "1.0HP", price: 22999, threshold: 2, stock: 7 },
+];
+
+let sampleSeedPromise = null;
+
+const ensureSampleInventory = async () => {
+  if (sampleSeedPromise) {
+    return sampleSeedPromise;
+  }
+
+  sampleSeedPromise = (async () => {
+    const existing = await Product.countDocuments({});
+    if (existing > 0) {
+      return;
+    }
+
+    const docs = SAMPLE_PRODUCTS.map((item) => {
+      const perBranch = Math.max(1, Math.floor((Number(item.stock) || 0) / BRANCHES.length));
+      const branchStock = BRANCHES.reduce((acc, branch) => {
+        acc[branch] = perBranch;
+        return acc;
+      }, {});
+
+      const computedTotal = Object.values(branchStock).reduce((sum, value) => sum + Number(value || 0), 0);
+      return {
+        ...item,
+        stock: computedTotal,
+        branchStock,
+        features: [],
+      };
+    });
+
+    await Product.insertMany(docs, { ordered: false });
+  })().finally(() => {
+    sampleSeedPromise = null;
+  });
+
+  return sampleSeedPromise;
+};
+
 const toBranchStockObject = (product) => BRANCHES.reduce((acc, branch) => {
   acc[branch] = Number(product.branchStock?.get(branch) || 0);
   return acc;
@@ -30,11 +76,13 @@ const requireAdmin = (req, res) => {
 };
 
 const listProducts = async (req, res) => {
+  await ensureSampleInventory();
   const products = await Product.find({}).sort({ createdAt: -1 });
   return res.json({ products: products.map((p) => toRoleAwareProduct(p, req)) });
 };
 
 const listPublicProducts = async (_req, res) => {
+  await ensureSampleInventory();
   const products = await Product.find({ stock: { $gt: 0 } }).sort({ createdAt: -1 });
   return res.json({ products: products.map((p) => p.toJSON()) });
 };
@@ -186,5 +234,50 @@ const updateBranchStock = async (req, res) => {
   return res.json({ product: toRoleAwareProduct(product, req) });
 };
 
-module.exports = { listProducts, listPublicProducts, listLowStockProducts, createProduct, restockProduct, updateBranchStock };
+const updateProduct = async (req, res) => {
+  if (!requireAdmin(req, res)) return null;
+
+  const { productId } = req.params;
+  const product = await Product.findById(productId);
+  if (!product) {
+    return res.status(404).json({ message: "Product not found" });
+  }
+
+  const { name, brand, category, specs, features, threshold, price } = req.body || {};
+
+  if (name !== undefined) product.name = String(name).trim();
+  if (brand !== undefined) product.brand = String(brand).trim();
+  if (category !== undefined) product.category = String(category).trim();
+  if (specs !== undefined) product.specs = String(specs).trim();
+  if (Array.isArray(features)) product.features = features.filter(Boolean);
+  if (threshold !== undefined) product.threshold = Math.max(0, Number(threshold) || 0);
+  if (price !== undefined) product.price = Math.max(0, Number(price) || 0);
+
+  await product.save();
+  return res.json({ product: toRoleAwareProduct(product, req) });
+};
+
+const deleteProduct = async (req, res) => {
+  if (!requireAdmin(req, res)) return null;
+
+  const { productId } = req.params;
+  const product = await Product.findById(productId);
+  if (!product) {
+    return res.status(404).json({ message: "Product not found" });
+  }
+
+  await product.deleteOne();
+  return res.json({ message: "Product deleted successfully" });
+};
+
+module.exports = {
+  listProducts,
+  listPublicProducts,
+  listLowStockProducts,
+  createProduct,
+  restockProduct,
+  updateBranchStock,
+  updateProduct,
+  deleteProduct,
+};
 

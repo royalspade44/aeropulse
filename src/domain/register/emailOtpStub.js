@@ -5,5 +5,6 @@
  * @returns {boolean}
  */
 export function verifyEmailOtpStub(_email, code) {
-  return String(code).trim() === '123456';
+  const normalized = String(code).trim();
+  return /^\d{6}$/.test(normalized) && normalized === '123456';
 }

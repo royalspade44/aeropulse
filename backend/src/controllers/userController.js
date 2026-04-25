@@ -3,6 +3,15 @@ const User = require("../models/User");
 
 const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "");
 const isValidPhMobile = (phone = "") => /^09\d{9}$/.test(normalizePhone(phone));
+const isStrongPassword = (value = "") => {
+  const password = String(value);
+  if (password.length < 8) return false;
+  if (!/(?=.*[a-z])/.test(password)) return false;
+  if (!/(?=.*[A-Z])/.test(password)) return false;
+  if (!/(?=.*\d)/.test(password)) return false;
+  if (!/(?=.*[@$!%*?&])/.test(password)) return false;
+  return true;
+};
 
 const updateProfile = async (req, res) => {
   const { name, name_first, name_last, phone, address, avatarUrl } = req.body;
@@ -44,10 +53,29 @@ const updateNotifications = async (req, res) => {
 
 const changePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: "Current password and new password are required" });
+  }
+
+  if (!req.authUser.passwordHash) {
+    return res.status(400).json({ message: "This account uses OAuth. Set a local password from account recovery flow." });
+  }
+
   const valid = await bcrypt.compare(currentPassword, req.authUser.passwordHash);
   if (!valid) {
     return res.status(400).json({ message: "Current password is incorrect" });
   }
+
+  if (!isStrongPassword(newPassword)) {
+    return res.status(400).json({
+      message: "New password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+    });
+  }
+
+  if (currentPassword === newPassword) {
+    return res.status(400).json({ message: "New password must be different from current password" });
+  }
+
   req.authUser.passwordHash = await bcrypt.hash(newPassword, 10);
   await req.authUser.save();
   return res.json({ message: "Password changed successfully" });

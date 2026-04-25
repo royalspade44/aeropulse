@@ -4,5 +4,6 @@
  * @returns {boolean}
  */
 export function verifySmsOtpStub(code) {
-  return String(code).trim() === '654321';
+  const normalized = String(code).trim();
+  return /^\d{6}$/.test(normalized) && normalized === '654321';
 }

@@ -1,13 +1,7 @@
 import { useState } from 'react';
 import InputField from '../common/InputField';
 import Button from '../common/Button';
-import RoleSelector from '../login/RoleSelector';
 import icons from '../common/icons';
-
-const REGISTER_ROLES = [
-  { id: 'customer', label: 'Customer', iconSrc: icons.memberList },
-  { id: 'technician', label: 'Technician', iconSrc: icons.tools }
-];
 
 function RegisterForm({
   formData,
@@ -18,12 +12,6 @@ function RegisterForm({
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const selectedRole = REGISTER_ROLES.find(r => r.id === formData.role) || REGISTER_ROLES[0];
-
-  const handleRoleChange = (roleId) => {
-    onFieldChange('role', roleId);
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -72,13 +60,6 @@ function RegisterForm({
         onChange={(value) => onFieldChange('phone', value)}
         error={errors.phone}
         required
-      />
-
-      <RoleSelector
-        selectedRole={selectedRole}
-        roles={REGISTER_ROLES}
-        onRoleChange={handleRoleChange}
-        disabled={false}
       />
 
       <div className="input-group">
