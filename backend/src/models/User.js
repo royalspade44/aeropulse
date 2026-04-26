@@ -1,5 +1,19 @@
 const mongoose = require("mongoose");
 
+const addressSchema = new mongoose.Schema(
+  {
+    label: { type: String, default: "" },
+    type: { type: String, enum: ["home", "office", "other"], default: "home" },
+    name: { type: String, default: "", trim: true },
+    phone: { type: String, default: "", trim: true },
+    street: { type: String, default: "", trim: true },
+    city: { type: String, default: "", trim: true },
+    postalCode: { type: String, default: "", trim: true },
+    isDefault: { type: Boolean, default: false },
+  },
+  { _id: true }
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, trim: true },
@@ -21,6 +35,7 @@ const userSchema = new mongoose.Schema(
       default: "customer",
     },
     address: { type: String, default: "" },
+    addresses: [addressSchema],
     preferences: {
       language: { type: String, default: "English" },
       currency: { type: String, default: "PHP" },

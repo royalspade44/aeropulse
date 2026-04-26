@@ -73,6 +73,35 @@
   margin: 0;
 }
 
+.address-select-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.address-select-wrap label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.address-select {
+  width: 100%;
+  border: 1px solid #d9dee7;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #2f3440;
+  background: #fff;
+}
+
+.address-select:focus {
+  outline: none;
+  border-color: #1E88E5;
+  box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.14);
+}
+
 .add-btn {
   background: none;
   border: none;
@@ -100,6 +129,25 @@
 .address-card.selected {
   border-color: #1E88E5;
   background: #e3f2fd;
+}
+
+.default-tag {
+  color: #0b7c4a;
+  background: rgba(11, 124, 74, 0.12);
+  border-radius: 999px;
+  font-size: 12px;
+  padding: 4px 10px;
+  margin-left: auto;
+}
+
+.address-actions-row {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+}
+
+.add-btn.danger {
+  color: #d32f2f;
 }
 
 .address-type {
@@ -286,6 +334,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: fadeIn 0.2s ease;
 }
 
 .address-modal {
@@ -295,7 +344,7 @@
   max-width: 500px;
   max-height: 85vh;
   overflow-y: auto;
-  animation: slideUp 0.3s ease;
+  animation: modalPop 0.28s ease;
 }
 
 .modal-header {
@@ -352,6 +401,26 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 

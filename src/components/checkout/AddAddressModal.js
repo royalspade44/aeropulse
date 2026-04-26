@@ -23,14 +23,23 @@ const validateAddress = (address) => {
   return errors;
 };
 
-function AddAddressModal({ onClose, onSave }) {
+function AddAddressModal({
+  onClose,
+  onSave,
+  initialAddress = null,
+  title = 'Add New Address',
+  saveLabel = 'Save Address',
+  isSaving = false
+}) {
   const [address, setAddress] = useState({
-    type: 'home',
-    name: '',
-    street: '',
-    city: '',
-    postalCode: '',
-    phone: ''
+    type: initialAddress?.type || 'home',
+    label: initialAddress?.label || '',
+    name: initialAddress?.name || '',
+    street: initialAddress?.street || '',
+    city: initialAddress?.city || '',
+    postalCode: initialAddress?.postalCode || '',
+    phone: initialAddress?.phone || '',
+    isDefault: Boolean(initialAddress?.isDefault)
   });
 
   const handleSubmit = () => {
@@ -47,17 +56,26 @@ function AddAddressModal({ onClose, onSave }) {
       alert(errors[0]);
       return;
     }
-    onSave({ ...normalized, id: Date.now() });
+    onSave(normalized);
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="address-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Add New Address</h3>
+          <h3>{title}</h3>
           <button className="close-modal" onClick={onClose}>×</button>
         </div>
         <div className="modal-body">
+          <div className="form-group">
+            <label>Label</label>
+            <input
+              type="text"
+              placeholder="Home, Office, Condo"
+              value={address.label}
+              onChange={(e) => setAddress({ ...address, label: e.target.value })}
+            />
+          </div>
           <div className="form-group">
             <label>Address Type</label>
             <select value={address.type} onChange={(e) => setAddress({ ...address, type: e.target.value })}>
@@ -117,10 +135,20 @@ function AddAddressModal({ onClose, onSave }) {
               onChange={(e) => setAddress({ ...address, phone: sanitizePhone(e.target.value) })}
             />
           </div>
+          <div className="form-group">
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 0 }}>
+              <input
+                type="checkbox"
+                checked={address.isDefault}
+                onChange={(e) => setAddress({ ...address, isDefault: e.target.checked })}
+              />
+              Set as default delivery address
+            </label>
+          </div>
         </div>
         <div className="modal-footer">
-          <button className="cancel-btn" onClick={onClose}>Cancel</button>
-          <button className="confirm-btn" onClick={handleSubmit}>Save Address</button>
+          <button className="cancel-btn" onClick={onClose} disabled={isSaving}>Cancel</button>
+          <button className="confirm-btn" onClick={handleSubmit} disabled={isSaving}>{isSaving ? 'Saving...' : saveLabel}</button>
         </div>
       </div>
     </div>

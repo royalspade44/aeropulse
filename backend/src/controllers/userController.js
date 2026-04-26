@@ -3,6 +3,47 @@ const User = require("../models/User");
 
 const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "");
 const isValidPhMobile = (phone = "") => /^09\d{9}$/.test(normalizePhone(phone));
+const sanitizeAddressPayload = (payload = {}) => {
+  const label = String(payload.label || "").trim();
+  const type = ["home", "office", "other"].includes(payload.type) ? payload.type : "other";
+  const name = String(payload.name || "").trim();
+  const street = String(payload.street || "").trim();
+  const city = String(payload.city || "").trim();
+  const postalCode = String(payload.postalCode || "").trim();
+  const phone = normalizePhone(payload.phone || "");
+
+  return {
+    label,
+    type,
+    name,
+    street,
+    city,
+    postalCode,
+    phone,
+    isDefault: Boolean(payload.isDefault),
+  };
+};
+const validateAddress = (address = {}) => {
+  if (!address.name) return "Recipient name is required.";
+  if (!address.street) return "Street address is required.";
+  if (!address.city) return "City is required.";
+  if (!address.phone) return "Phone number is required.";
+  if (!/^09\d{9}$/.test(address.phone)) {
+    return "Phone number must be in 09XXXXXXXXX format.";
+  }
+  if (address.postalCode && !/^\d{4}$/.test(address.postalCode)) {
+    return "Postal code must be 4 digits.";
+  }
+  return "";
+};
+const normalizeDefaultAddress = (addresses = []) => {
+  if (addresses.length === 0) return;
+  const requestedDefaultIndex = addresses.findIndex((item) => item.isDefault);
+  const defaultIndex = requestedDefaultIndex >= 0 ? requestedDefaultIndex : 0;
+  addresses.forEach((item, index) => {
+    item.isDefault = index === defaultIndex;
+  });
+};
 const isStrongPassword = (value = "") => {
   const password = String(value);
   if (password.length < 8) return false;
@@ -31,6 +72,89 @@ const updateProfile = async (req, res) => {
 
   await user.save();
   return res.json({ user: user.toJSON() });
+};
+
+const listAddresses = async (req, res) => {
+  const addresses = Array.isArray(req.authUser.addresses) ? req.authUser.addresses : [];
+  return res.json({ addresses });
+};
+
+const addAddress = async (req, res) => {
+  const normalizedAddress = sanitizeAddressPayload(req.body || {});
+  const validationError = validateAddress(normalizedAddress);
+  if (validationError) {
+    return res.status(400).json({ message: validationError });
+  }
+
+  const user = req.authUser;
+  const nextAddresses = Array.isArray(user.addresses) ? [...user.addresses] : [];
+  const shouldSetDefault = normalizedAddress.isDefault || nextAddresses.length === 0;
+  nextAddresses.push({ ...normalizedAddress, isDefault: shouldSetDefault });
+  normalizeDefaultAddress(nextAddresses);
+  user.addresses = nextAddresses;
+
+  await user.save();
+  return res.status(201).json({ addresses: user.addresses });
+};
+
+const updateAddress = async (req, res) => {
+  const addressId = String(req.params.addressId || "").trim();
+  const user = req.authUser;
+  const nextAddresses = Array.isArray(user.addresses) ? [...user.addresses] : [];
+  const index = nextAddresses.findIndex((item) => String(item._id) === addressId);
+  if (index < 0) {
+    return res.status(404).json({ message: "Address not found." });
+  }
+
+  const normalizedAddress = sanitizeAddressPayload(req.body || {});
+  const validationError = validateAddress(normalizedAddress);
+  if (validationError) {
+    return res.status(400).json({ message: validationError });
+  }
+
+  nextAddresses[index] = {
+    ...nextAddresses[index].toObject(),
+    ...normalizedAddress,
+  };
+  normalizeDefaultAddress(nextAddresses);
+  user.addresses = nextAddresses;
+
+  await user.save();
+  return res.json({ addresses: user.addresses });
+};
+
+const deleteAddress = async (req, res) => {
+  const addressId = String(req.params.addressId || "").trim();
+  const user = req.authUser;
+  const nextAddresses = (Array.isArray(user.addresses) ? user.addresses : []).filter(
+    (item) => String(item._id) !== addressId
+  );
+
+  if (nextAddresses.length === (user.addresses || []).length) {
+    return res.status(404).json({ message: "Address not found." });
+  }
+
+  normalizeDefaultAddress(nextAddresses);
+  user.addresses = nextAddresses;
+  await user.save();
+  return res.json({ addresses: user.addresses });
+};
+
+const setDefaultAddress = async (req, res) => {
+  const addressId = String(req.params.addressId || "").trim();
+  const user = req.authUser;
+  const nextAddresses = Array.isArray(user.addresses) ? [...user.addresses] : [];
+  const exists = nextAddresses.some((item) => String(item._id) === addressId);
+  if (!exists) {
+    return res.status(404).json({ message: "Address not found." });
+  }
+
+  nextAddresses.forEach((item) => {
+    item.isDefault = String(item._id) === addressId;
+  });
+  user.addresses = nextAddresses;
+  await user.save();
+  return res.json({ addresses: user.addresses });
 };
 
 const updatePreferences = async (req, res) => {
@@ -119,6 +243,11 @@ const unlockUser = async (req, res) => {
 module.exports = {
   listUsers,
   updateProfile,
+  listAddresses,
+  addAddress,
+  updateAddress,
+  deleteAddress,
+  setDefaultAddress,
   updatePreferences,
   updatePrivacy,
   updateNotifications,

@@ -26,6 +26,29 @@ const isValidCheckoutAddress = (address) => {
   return true;
 };
 
+const normalizeAddress = (address = {}) => ({
+  id: String(address.id || address._id || ''),
+  label: String(address.label || ''),
+  type: String(address.type || 'other'),
+  name: String(address.name || ''),
+  street: String(address.street || ''),
+  city: String(address.city || ''),
+  postalCode: String(address.postalCode || ''),
+  phone: String(address.phone || ''),
+  isDefault: Boolean(address.isDefault)
+});
+
+const findBestSelectedAddress = (items, currentId = '') => {
+  if (!Array.isArray(items) || items.length === 0) return null;
+  if (currentId) {
+    const current = items.find((item) => item.id === currentId);
+    if (current) return current;
+  }
+  const defaultAddress = items.find((item) => item.isDefault);
+  if (defaultAddress) return defaultAddress;
+  return items[0];
+};
+
 function Checkout() {
   const navigate = useNavigate();
   const { cart, clearCart, getCartTotal } = useCart();
@@ -33,6 +56,9 @@ function Checkout() {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState('cod');
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(null);
+  const [addressBusy, setAddressBusy] = useState(false);
+  const [addressLoadFailed, setAddressLoadFailed] = useState(false);
   const [discountAmount] = useState(0);
 
   const serviceAreaId = getStoredServiceAreaId() || DEFAULT_SERVICE_AREA_ID;
@@ -42,24 +68,116 @@ function Checkout() {
     return computePurchaseTotals({ subtotal, serviceAreaId, discountAmount });
   }, [getCartTotal, serviceAreaId, discountAmount]);
 
-  useEffect(() => {
-    const savedAddresses = localStorage.getItem('addresses');
-    if (savedAddresses) {
-      const parsed = JSON.parse(savedAddresses);
-      setAddresses(parsed);
-      if (parsed.length > 0) setSelectedAddress(parsed[0]);
+  const syncAddresses = useCallback((nextAddresses, currentId = '') => {
+    const normalized = (nextAddresses || []).map(normalizeAddress);
+    setAddresses(normalized);
+    setSelectedAddress(findBestSelectedAddress(normalized, currentId || selectedAddress?.id || ''));
+    return normalized;
+  }, [selectedAddress?.id]);
+
+  const loadAddresses = useCallback(async () => {
+    try {
+      const response = await apiRequest('/users/addresses');
+      setAddressLoadFailed(false);
+      return syncAddresses(response.addresses || []);
+    } catch (_error) {
+      setAddressLoadFailed(true);
+      return syncAddresses([]);
     }
+  }, [syncAddresses]);
+
+  useEffect(() => {
+    loadAddresses();
+  }, [loadAddresses]);
+
+  const redirectToAddressForm = useCallback(() => {
+    navigate('/profile', {
+      state: {
+        focusAddressForm: true,
+        highlightAddressForm: true,
+        highlightSource: 'checkout'
+      }
+    });
+  }, [navigate]);
+
+  const ensureHasAddressBeforeCheckout = useCallback(async () => {
+    const latestAddresses = await loadAddresses();
+    if (latestAddresses.length > 0) return true;
+    alert('No delivery address found. Please add an address to proceed.');
+    redirectToAddressForm();
+    return false;
+  }, [loadAddresses, redirectToAddressForm]);
+
+  const closeAddressModal = useCallback(() => {
+    setShowAddressModal(false);
+    setEditingAddress(null);
   }, []);
 
-  const handleAddAddress = useCallback((newAddress) => {
-    const updatedAddresses = [...addresses, newAddress];
-    setAddresses(updatedAddresses);
-    localStorage.setItem('addresses', JSON.stringify(updatedAddresses));
-    setSelectedAddress(newAddress);
-    setShowAddressModal(false);
-  }, [addresses]);
+  const handleSaveAddress = useCallback(async (payload) => {
+    setAddressBusy(true);
+    try {
+      if (editingAddress?.id) {
+        const response = await apiRequest(`/users/addresses/${editingAddress.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(payload)
+        });
+        syncAddresses(response.addresses || [], editingAddress.id);
+      } else {
+        const response = await apiRequest('/users/addresses', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const normalized = syncAddresses(response.addresses || []);
+        const newest = normalized[normalized.length - 1];
+        if (newest) setSelectedAddress(findBestSelectedAddress(normalized, newest.id));
+      }
+      closeAddressModal();
+    } catch (error) {
+      alert(error?.message || 'Unable to save address right now.');
+    } finally {
+      setAddressBusy(false);
+    }
+  }, [editingAddress?.id, syncAddresses, closeAddressModal]);
+
+  const handleDeleteAddress = useCallback(async (address) => {
+    if (!address?.id) return;
+    if (!window.confirm('Delete this saved address?')) return;
+    setAddressBusy(true);
+    try {
+      const response = await apiRequest(`/users/addresses/${address.id}`, {
+        method: 'DELETE'
+      });
+      syncAddresses(response.addresses || []);
+    } catch (error) {
+      alert(error?.message || 'Unable to delete address right now.');
+    } finally {
+      setAddressBusy(false);
+    }
+  }, [syncAddresses]);
+
+  const handleSetDefaultAddress = useCallback(async (address) => {
+    if (!address?.id) return;
+    setAddressBusy(true);
+    try {
+      const response = await apiRequest(`/users/addresses/${address.id}/default`, {
+        method: 'PATCH'
+      });
+      syncAddresses(response.addresses || [], address.id);
+    } catch (error) {
+      alert(error?.message || 'Unable to update default address right now.');
+    } finally {
+      setAddressBusy(false);
+    }
+  }, [syncAddresses]);
 
   const handlePlaceOrder = useCallback(async () => {
+    const hasSavedAddress = await ensureHasAddressBeforeCheckout();
+    if (!hasSavedAddress) return;
+
+    if (addressLoadFailed) {
+      alert('Unable to verify your saved addresses right now. Please try again in a moment.');
+      return;
+    }
     if (!selectedAddress) {
       alert('Please select a delivery address.');
       return;
@@ -89,6 +207,7 @@ function Checkout() {
         method: 'POST',
         body: JSON.stringify({
           items: order.items,
+          addressId: selectedAddress.id,
           address: selectedAddress,
           paymentMethod: selectedPayment,
           total: order.total
@@ -122,7 +241,17 @@ function Checkout() {
       }
       alert(error?.message || 'Unable to place order right now. Please review your cart and try again.');
     }
-  }, [selectedAddress, cart, selectedPayment, serviceAreaId, totals, clearCart, navigate]);
+  }, [
+    ensureHasAddressBeforeCheckout,
+    addressLoadFailed,
+    selectedAddress,
+    cart,
+    selectedPayment,
+    serviceAreaId,
+    totals,
+    clearCart,
+    navigate
+  ]);
 
   if (cart.length === 0) {
     return (
@@ -159,7 +288,17 @@ function Checkout() {
             addresses={addresses}
             selectedAddress={selectedAddress}
             onSelectAddress={setSelectedAddress}
-            onAddAddress={() => setShowAddressModal(true)}
+            onAddAddress={() => {
+              setEditingAddress(null);
+              setShowAddressModal(true);
+            }}
+            onEditAddress={(address) => {
+              setEditingAddress(address);
+              setShowAddressModal(true);
+            }}
+            onDeleteAddress={handleDeleteAddress}
+            onSetDefaultAddress={handleSetDefaultAddress}
+            isBusy={addressBusy}
           />
           <PaymentMethod
             selectedMethod={selectedPayment}
@@ -177,8 +316,12 @@ function Checkout() {
 
       {showAddressModal && (
         <AddAddressModal
-          onClose={() => setShowAddressModal(false)}
-          onSave={handleAddAddress}
+          onClose={closeAddressModal}
+          onSave={handleSaveAddress}
+          initialAddress={editingAddress}
+          title={editingAddress ? 'Edit Address' : 'Add New Address'}
+          saveLabel={editingAddress ? 'Save Changes' : 'Save Address'}
+          isSaving={addressBusy}
         />
       )}
       <Footer />

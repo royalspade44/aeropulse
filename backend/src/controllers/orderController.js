@@ -19,11 +19,15 @@ const workflowLabel = (status) => {
 };
 
 const normalizeAddress = (address = {}) => ({
+  _id: String(address._id || address.id || "").trim(),
+  label: String(address.label || "").trim(),
+  type: String(address.type || "other").trim(),
   name: String(address.name || "").trim(),
   phone: String(address.phone || "").trim(),
   street: String(address.street || "").trim(),
   city: String(address.city || "").trim(),
   postalCode: String(address.postalCode || "").trim(),
+  isDefault: Boolean(address.isDefault),
 });
 
 const isValidAddress = (address = {}) => {
@@ -51,11 +55,45 @@ const resolveProductForOrderItem = async (item) => {
 const createOrder = async (req, res) => {
   try {
     const user = req.authUser;
-    const { items = [], address = {}, paymentMethod = "cod", total = 0 } = req.body;
-    const normalizedAddress = normalizeAddress(address);
+    const { items = [], address = {}, addressId = "", paymentMethod = "cod", total = 0 } = req.body;
+    const savedAddresses = Array.isArray(user.addresses) ? user.addresses.map((item) => normalizeAddress(item)) : [];
+    const fallbackLegacyAddress = normalizeAddress({
+      name: user.name || `${user.name_first || ""} ${user.name_last || ""}`.trim(),
+      phone: user.phone || "",
+      street: user.address || "",
+      city: "",
+      postalCode: "",
+    });
+
+    const normalizedAddress = (() => {
+      const requestedId = String(addressId || address.id || address._id || "").trim();
+      if (requestedId) {
+        const matchedById = savedAddresses.find((item) => String(item._id || "") === requestedId);
+        if (matchedById) return matchedById;
+      }
+
+      if (savedAddresses.length > 0) {
+        const byPayload = normalizeAddress(address);
+        const matchedByFields = savedAddresses.find(
+          (item) =>
+            item.street === byPayload.street &&
+            item.city === byPayload.city &&
+            item.phone === byPayload.phone &&
+            item.name === byPayload.name
+        );
+        if (matchedByFields) return matchedByFields;
+        const defaultAddress = savedAddresses.find((item) => item.isDefault);
+        return defaultAddress || savedAddresses[0];
+      }
+
+      return fallbackLegacyAddress;
+    })();
 
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: "Order items are required." });
+    }
+    if (savedAddresses.length === 0) {
+      return res.status(400).json({ message: "No delivery address found. Please add an address to proceed." });
     }
     if (!isValidAddress(normalizedAddress)) {
       return res.status(400).json({ message: "Invalid delivery address." });
