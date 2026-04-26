@@ -15,6 +15,33 @@ const canonicalizePhMobile = (phone = "") => {
 const isValidPhMobile = (phone = "") => /^09\d{9}$/.test(canonicalizePhMobile(phone));
 const isValidSixDigitCode = (value = "") => /^\d{6}$/.test(String(value).trim());
 
+const normalizeBillingAddress = (payload = {}) => ({
+  region: String(payload.region || "").trim(),
+  province: String(payload.province || "").trim(),
+  city: String(payload.city || "").trim(),
+  barangay: String(payload.barangay || "").trim(),
+  street: String(payload.street || "").trim(),
+});
+
+const formatBillingAddress = (billingAddress = {}) => ([
+  billingAddress.street,
+  billingAddress.barangay,
+  billingAddress.city,
+  billingAddress.province,
+  billingAddress.region,
+]
+  .filter(Boolean)
+  .join(", "));
+
+const isBillingAddressComplete = (billingAddress = {}) => {
+  if (!billingAddress.region) return false;
+  if (!billingAddress.province) return false;
+  if (!billingAddress.city) return false;
+  if (!billingAddress.barangay) return false;
+  if (!billingAddress.street) return false;
+  return true;
+};
+
 const detectRoleFromEmail = (email = "") => {
   const normalizedEmail = String(email).trim().toLowerCase();
   if (normalizedEmail.includes("superadmin")) return "superadmin";
@@ -38,6 +65,7 @@ const register = async (req, res) => {
     name_last,
     phone,
     address = "",
+    billingAddress,
     emailOtp,
     totpCode,
     smsCode,
@@ -63,6 +91,8 @@ const register = async (req, res) => {
 
   const normalizedPhone = canonicalizePhMobile(phone);
   const detectedRole = detectRoleFromEmail(normalizedEmail);
+  const normalizedBillingAddress = normalizeBillingAddress(billingAddress || {});
+  const composedBillingAddress = formatBillingAddress(normalizedBillingAddress);
   const normalizedAddress = typeof address === "string" ? address.trim() : "";
 
   if (!isValidSixDigitCode(emailOtp) || !isValidSixDigitCode(totpCode) || !isValidSixDigitCode(smsCode)) {
@@ -72,7 +102,7 @@ const register = async (req, res) => {
     });
   }
 
-  if (detectedRole === "customer" && !normalizedAddress) {
+  if (detectedRole === "customer" && !isBillingAddressComplete(normalizedBillingAddress) && !normalizedAddress) {
     console.warn("[Auth][Register] Missing customer billing address", { email: normalizedEmail, detectedRole });
     return res.status(400).json({ message: "Billing address is required for customer accounts." });
   }
@@ -84,6 +114,20 @@ const register = async (req, res) => {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
+  const defaultAddress = {
+    label: "Billing Address",
+    type: "home",
+    name: name || `${name_first} ${name_last}`.trim(),
+    phone: normalizedPhone,
+    region: normalizedBillingAddress.region,
+    province: normalizedBillingAddress.province,
+    city: normalizedBillingAddress.city,
+    barangay: normalizedBillingAddress.barangay,
+    street: normalizedBillingAddress.street,
+    postalCode: "",
+    isDefault: true,
+  };
+
   const user = await User.create({
     email: normalizedEmail,
     passwordHash,
@@ -91,7 +135,9 @@ const register = async (req, res) => {
     name_first,
     name_last,
     phone: normalizedPhone,
-    address: detectedRole === "customer" ? normalizedAddress : "",
+    address: detectedRole === "customer" ? (composedBillingAddress || normalizedAddress) : "",
+    billingAddress: detectedRole === "customer" ? normalizedBillingAddress : {},
+    addresses: detectedRole === "customer" ? [defaultAddress] : [],
     role: detectedRole,
   });
 

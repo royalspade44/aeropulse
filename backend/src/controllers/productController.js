@@ -2,44 +2,158 @@ const Product = require("../models/Product");
 const { BRANCHES } = require("../domain/branchRouting");
 
 const SAMPLE_PRODUCTS = [
-  { name: "American Home Inverter AC", sku: "AHAC-MINV1023EHW", brand: "American Home", category: "split", specs: "1.0HP", price: 18499, threshold: 3, stock: 14 },
-  { name: "TCL Full DC Inverter AC", sku: "TAC-10CSD-KEI-S-2", brand: "TCL", category: "split", specs: "1.0HP", price: 21500, threshold: 3, stock: 12 },
-  { name: "Midea Celest Pro AC", sku: "MSCE-10CRFN8", brand: "Midea", category: "split", specs: "1.0HP", price: 22999, threshold: 3, stock: 10 },
-  { name: "LG Premium Dual Inverter AC", sku: "HSN09IPX3", brand: "LG", category: "split", specs: "1.0HP", price: 31499, threshold: 2, stock: 8 },
-  { name: "TCL Full DC Inverter Window AC", sku: "TAC09-CWI-UJE2", brand: "TCL", category: "window", specs: "1.0HP", price: 21995, threshold: 2, stock: 9 },
-  { name: "Samsung Digital Inverter AC", sku: "AR09TYHYE", brand: "Samsung", category: "split", specs: "1.0HP", price: 22999, threshold: 2, stock: 7 },
+  { name: "American Home Inverter AC", sku: "AHAC-MINV1023EHW", brand: "American Home", category: "split", specs: "1.0HP", price: 18499, threshold: 3, stock: 16 },
+  { name: "American Home Inverter AC", sku: "AHAC-MINV1523EHW", brand: "American Home", category: "split", specs: "1.5HP", price: 21999, threshold: 3, stock: 15 },
+  { name: "American Home Inverter AC", sku: "AHAC-MINV2023EHW", brand: "American Home", category: "split", specs: "2.0HP", price: 28499, threshold: 3, stock: 14 },
+  { name: "American Home Inverter AC", sku: "AHAC-MINV2523EHW", brand: "American Home", category: "split", specs: "2.5HP", price: 31499, threshold: 2, stock: 12 },
+  { name: "American Home Inverter AC", sku: "AHAC-MINV3023EHW", brand: "American Home", category: "split", specs: "3.0HP", price: 43999, threshold: 2, stock: 10 },
+
+  { name: "TCL Full DC Inverter AC", sku: "TAC-10CSD-KEI-S-2", brand: "TCL", category: "split", specs: "1.0HP", price: 21500, threshold: 3, stock: 16 },
+  { name: "TCL Full DC Inverter AC", sku: "TAC-13CSD-KEI-S-2", brand: "TCL", category: "split", specs: "1.5HP", price: 22500, threshold: 3, stock: 15 },
+  { name: "TCL Full DC Inverter AC", sku: "TAC-19CSD-KEI-S-2", brand: "TCL", category: "split", specs: "2.0HP", price: 28700, threshold: 3, stock: 14 },
+  { name: "TCL Full DC Inverter AC", sku: "TAC-25CSD-KEI-S-2", brand: "TCL", category: "split", specs: "2.5HP", price: 33600, threshold: 2, stock: 12 },
+  { name: "TCL Full DC Inverter AC", sku: "TAC-30CSD-KEI-S-2", brand: "TCL", category: "split", specs: "3.0HP", price: 48999, threshold: 2, stock: 10 },
+
+  { name: "Midea Celest Pro AC", sku: "MSCE-10CRFN8", brand: "Midea", category: "split", specs: "1.0HP", price: 22999, threshold: 3, stock: 14 },
+  { name: "Midea Celest Pro AC", sku: "MSCE-13CRFN8", brand: "Midea", category: "split", specs: "1.5HP", price: 23999, threshold: 3, stock: 14 },
+  { name: "Midea Celest Pro AC", sku: "MSCE-19CRFN8", brand: "Midea", category: "split", specs: "2.0HP", price: 30499, threshold: 3, stock: 13 },
+  { name: "Midea Celest Pro AC", sku: "MSCE-22CRFN8", brand: "Midea", category: "split", specs: "2.5HP", price: 35499, threshold: 2, stock: 11 },
+  { name: "Midea Celest Pro AC", sku: "MSCE-25CRFN8", brand: "Midea", category: "split", specs: "3.0HP", price: 51499, threshold: 2, stock: 9 },
+
+  { name: "Samsung Digital Inverter AC", sku: "AR09TYHYE", brand: "Samsung", category: "split", specs: "1.0HP", price: 22999, threshold: 2, stock: 12 },
+  { name: "Samsung Digital Inverter AC", sku: "AR12TYHYE", brand: "Samsung", category: "split", specs: "1.5HP", price: 25999, threshold: 2, stock: 11 },
+  { name: "Samsung Digital Inverter AC", sku: "AR18TYHYE", brand: "Samsung", category: "split", specs: "2.0HP", price: 30999, threshold: 2, stock: 10 },
+  { name: "Samsung Digital Inverter AC", sku: "AR24TYHYE", brand: "Samsung", category: "split", specs: "2.5HP", price: 35999, threshold: 2, stock: 9 },
+
+  { name: "LG Premium Dual Inverter AC", sku: "HSN09IPX3", brand: "LG", category: "split", specs: "1.0HP", price: 31499, threshold: 2, stock: 11 },
+  { name: "LG Premium Dual Inverter AC", sku: "HSN12IPX3", brand: "LG", category: "split", specs: "1.5HP", price: 33499, threshold: 2, stock: 11 },
+  { name: "LG Premium Dual Inverter AC", sku: "HSN18IPX3", brand: "LG", category: "split", specs: "2.0HP", price: 41499, threshold: 2, stock: 10 },
+  { name: "LG Premium Dual Inverter AC", sku: "HSN24IPX3", brand: "LG", category: "split", specs: "2.5HP", price: 46499, threshold: 2, stock: 9 },
+  { name: "LG Premium Dual Inverter AC", sku: "HSN30IPC", brand: "LG", category: "split", specs: "3.0HP", price: 82999, threshold: 1, stock: 7 },
+
+  { name: "TCL Full DC Inverter Window AC", sku: "TAC09-CWI-UJE2", brand: "TCL", category: "window", specs: "1.0HP", price: 21995, threshold: 2, stock: 13 },
+  { name: "TCL Full DC Inverter Window AC", sku: "TAC12-CWI-UJE2", brand: "TCL", category: "window", specs: "1.5HP", price: 23995, threshold: 2, stock: 12 },
+  { name: "TCL Full DC Inverter Window AC", sku: "TAC18-CWI-UJE2", brand: "TCL", category: "window", specs: "2.0HP", price: 31995, threshold: 2, stock: 10 },
+  { name: "TCL Full DC Inverter Window AC", sku: "TAC24-CWI-UJE2", brand: "TCL", category: "window", specs: "2.5HP", price: 35995, threshold: 2, stock: 9 },
+
+  { name: "Carrier Opus Inverter Floor Mounted", sku: "53CNV030WTHP", brand: "Carrier", category: "floor", specs: "3.0HP", price: 95000, threshold: 1, stock: 6 },
+  { name: "Carrier Slim Floor Mounted", sku: "53CLV036308", brand: "Carrier", category: "floor", specs: "4.0HP", price: 100000, threshold: 1, stock: 5 },
 ];
 
 let sampleSeedPromise = null;
+let sampleSeedDone = false;
+
+const DISTRIBUTION_FALLBACK_STOCK = 6;
+
+const distributeStockToBranches = (total) => {
+  const safeTotal = Math.max(0, Number(total) || 0);
+  const base = Math.floor(safeTotal / BRANCHES.length);
+  let remainder = safeTotal % BRANCHES.length;
+  return BRANCHES.reduce((acc, branch) => {
+    const next = base + (remainder > 0 ? 1 : 0);
+    acc[branch] = next;
+    if (remainder > 0) remainder -= 1;
+    return acc;
+  }, {});
+};
+
+const getBranchValue = (branchStock, branch) => {
+  if (!branchStock) return 0;
+  if (typeof branchStock.get === "function") {
+    return Number(branchStock.get(branch) || 0);
+  }
+  return Number(branchStock?.[branch] || 0);
+};
+
+const getBranchTotal = (product) => BRANCHES.reduce((sum, branch) => sum + getBranchValue(product.branchStock, branch), 0);
+
+const applyBranchStock = (product, stockByBranch) => {
+  BRANCHES.forEach((branch) => {
+    const value = Math.max(0, Number(stockByBranch?.[branch] || 0));
+    product.branchStock.set(branch, value);
+  });
+  product.stock = BRANCHES.reduce((sum, branch) => sum + Number(product.branchStock?.get(branch) || 0), 0);
+};
+
+const createSampleDoc = (item) => {
+  const branchStock = distributeStockToBranches(item.stock);
+  const total = Object.values(branchStock).reduce((sum, value) => sum + Number(value || 0), 0);
+  return {
+    ...item,
+    stock: total,
+    branchStock,
+    features: [],
+  };
+};
+
+const replenishStockIfEmpty = async (product, fallbackStock) => {
+  const existingBranchTotal = getBranchTotal(product);
+  const existingTotal = Math.max(existingBranchTotal, Number(product.stock) || 0);
+  if (existingTotal > 0) return false;
+  applyBranchStock(product, distributeStockToBranches(fallbackStock));
+  await product.save();
+  return true;
+};
 
 const ensureSampleInventory = async () => {
+  if (sampleSeedDone) {
+    return;
+  }
   if (sampleSeedPromise) {
     return sampleSeedPromise;
   }
 
   sampleSeedPromise = (async () => {
-    const existing = await Product.countDocuments({});
-    if (existing > 0) {
-      return;
+    const sampleBySku = new Map(SAMPLE_PRODUCTS.map((item) => [item.sku, item]));
+    const existingSamples = await Product.find({ sku: { $in: Array.from(sampleBySku.keys()) } });
+    const existingBySku = new Map(existingSamples.map((product) => [product.sku, product]));
+
+    const docsToInsert = [];
+    for (const item of SAMPLE_PRODUCTS) {
+      const existing = existingBySku.get(item.sku);
+      if (!existing) {
+        docsToInsert.push(createSampleDoc(item));
+        continue;
+      }
+
+      let touched = false;
+      if (!existing.specs && item.specs) {
+        existing.specs = item.specs;
+        touched = true;
+      }
+      if (!existing.brand && item.brand) {
+        existing.brand = item.brand;
+        touched = true;
+      }
+      if (!existing.category && item.category) {
+        existing.category = item.category;
+        touched = true;
+      }
+      if ((Number(existing.price) || 0) <= 0 && Number(item.price) > 0) {
+        existing.price = Number(item.price);
+        touched = true;
+      }
+      if ((Number(existing.threshold) || 0) <= 0 && Number(item.threshold) > 0) {
+        existing.threshold = Number(item.threshold);
+        touched = true;
+      }
+
+      const replenished = await replenishStockIfEmpty(existing, item.stock || DISTRIBUTION_FALLBACK_STOCK);
+      if (touched && !replenished) {
+        await existing.save();
+      }
     }
 
-    const docs = SAMPLE_PRODUCTS.map((item) => {
-      const perBranch = Math.max(1, Math.floor((Number(item.stock) || 0) / BRANCHES.length));
-      const branchStock = BRANCHES.reduce((acc, branch) => {
-        acc[branch] = perBranch;
-        return acc;
-      }, {});
+    if (docsToInsert.length > 0) {
+      await Product.insertMany(docsToInsert, { ordered: false });
+    }
 
-      const computedTotal = Object.values(branchStock).reduce((sum, value) => sum + Number(value || 0), 0);
-      return {
-        ...item,
-        stock: computedTotal,
-        branchStock,
-        features: [],
-      };
-    });
+    if (process.env.NODE_ENV !== "production") {
+      const globallyDepleted = await Product.find({ stock: { $lte: 0 } });
+      await Promise.all(globallyDepleted.map((product) => replenishStockIfEmpty(product, DISTRIBUTION_FALLBACK_STOCK)));
+    }
 
-    await Product.insertMany(docs, { ordered: false });
+    sampleSeedDone = true;
   })().finally(() => {
     sampleSeedPromise = null;
   });

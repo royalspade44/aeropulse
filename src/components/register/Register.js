@@ -32,6 +32,11 @@ function Register() {
     totpCode: '',
     smsCode: '',
     address: '',
+    billingRegion: '',
+    billingProvince: '',
+    billingCity: '',
+    billingBarangay: '',
+    billingStreet: '',
     agreeTermsWarranty: false,
     agreeTermsService: false,
     agreeTermsApp: false,
@@ -53,6 +58,57 @@ function Register() {
   const handleFieldChange = useCallback((field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: '' }));
+  }, []);
+
+  const handleBillingFieldChange = useCallback((field, value) => {
+    setFormData((prev) => {
+      if (field === 'billingRegion') {
+        return {
+          ...prev,
+          billingRegion: value,
+          billingProvince: '',
+          billingCity: '',
+          billingBarangay: '',
+        };
+      }
+
+      if (field === 'billingProvince') {
+        return {
+          ...prev,
+          billingProvince: value,
+          billingCity: '',
+          billingBarangay: '',
+        };
+      }
+
+      if (field === 'billingCity') {
+        return {
+          ...prev,
+          billingCity: value,
+          billingBarangay: '',
+        };
+      }
+
+      return { ...prev, [field]: value };
+    });
+
+    setErrors((prev) => {
+      const next = { ...prev };
+      next[field] = '';
+      if (field === 'billingRegion') {
+        next.billingProvince = '';
+        next.billingCity = '';
+        next.billingBarangay = '';
+      }
+      if (field === 'billingProvince') {
+        next.billingCity = '';
+        next.billingBarangay = '';
+      }
+      if (field === 'billingCity') {
+        next.billingBarangay = '';
+      }
+      return next;
+    });
   }, []);
 
   const validateLegal = () => {
@@ -108,7 +164,20 @@ function Register() {
     setLoading(true);
     try {
       const normalizedPhone = String(formData.phone || '').replace(/\D/g, '');
-      const normalizedAddress = String(formData.address || '').trim();
+      const billingAddress = {
+        region: String(formData.billingRegion || '').trim(),
+        province: String(formData.billingProvince || '').trim(),
+        city: String(formData.billingCity || '').trim(),
+        barangay: String(formData.billingBarangay || '').trim(),
+        street: String(formData.billingStreet || '').trim(),
+      };
+      const normalizedAddress = [
+        billingAddress.street,
+        billingAddress.barangay,
+        billingAddress.city,
+        billingAddress.province,
+        billingAddress.region,
+      ].filter(Boolean).join(', ');
       const payload = {
         name: `${formData.firstName} ${formData.lastName}`,
         name_first: formData.firstName,
@@ -117,6 +186,7 @@ function Register() {
         phone: normalizedPhone,
         password: formData.password,
         address: detectedRole === 'customer' ? normalizedAddress : '',
+        billingAddress: detectedRole === 'customer' ? billingAddress : null,
         emailOtp: formData.emailOtp,
         totpCode: formData.totpCode,
         smsCode: formData.smsCode,
@@ -127,6 +197,7 @@ function Register() {
         detectedRole,
         hasPhone: Boolean(payload.phone),
         hasAddress: Boolean(payload.address),
+        hasStructuredBilling: Boolean(payload.billingAddress?.region),
       });
 
       await register({
@@ -208,6 +279,7 @@ function Register() {
               formData={formData}
               errors={errors}
               onFieldChange={handleFieldChange}
+              onBillingFieldChange={handleBillingFieldChange}
               detectedRole={detectedRole}
               onSubmit={handleFinalSubmit}
               onBack={goBack}

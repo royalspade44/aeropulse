@@ -1,5 +1,6 @@
 import { useCart } from '../../context/CartContext';
 import icons from '../common/icons';
+import coldAirLogo from '../common/images/Cold Air Logo.jpg';
 
 function Header({ onMenuToggle, onNotificationClick, onCartClick, notificationCount, scrolled }) {
   const { getCartCount } = useCart();
@@ -23,7 +24,9 @@ function Header({ onMenuToggle, onNotificationClick, onCartClick, notificationCo
             <img src={icons.customize} alt="" className="inline-icon inline-icon--md" />
           </button>
           <div className="logo">
-            <div className="logo-icon">CA</div>
+            <div className="logo-icon">
+              <img src={coldAirLogo} alt="Cold Air logo" className="logo-icon-img" />
+            </div>
             <div className="logo-text">
               <h1>COLD AIR</h1>
               <p>Airconditioning Trading</p>

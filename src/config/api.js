@@ -6,8 +6,11 @@ const getActiveBranch = () => localStorage.getItem("activeBranch");
 const apiRequest = async (path, options = {}) => {
   const token = getToken();
   const activeBranch = getActiveBranch();
+  const method = String(options.method || "GET").toUpperCase();
+  const shouldDisableCache = method === "GET";
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
+    ...(shouldDisableCache ? { cache: "no-store" } : {}),
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

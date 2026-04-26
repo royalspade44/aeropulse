@@ -13,6 +13,9 @@ const normalizeAddress = (address = {}) => ({
   label: String(address.label || ''),
   type: String(address.type || 'other'),
   name: String(address.name || ''),
+  region: String(address.region || ''),
+  province: String(address.province || ''),
+  barangay: String(address.barangay || ''),
   street: String(address.street || ''),
   city: String(address.city || ''),
   postalCode: String(address.postalCode || ''),
@@ -30,6 +33,14 @@ const normalizeOrder = (order = {}) => ({
   receipt: order.receipt || null,
   items: Array.isArray(order.items) ? order.items : [],
   address: order.address || {},
+});
+
+const normalizeNotification = (item = {}) => ({
+  id: String(item.id || item._id || ''),
+  title: String(item.title || 'Notification'),
+  message: String(item.message || ''),
+  unread: item.status ? item.status === 'unread' : Boolean(item.unread),
+  createdAt: String(item.createdAt || ''),
 });
 
 const orderCategoryConfig = {
@@ -65,6 +76,16 @@ const formatAddressLabel = (address = {}) => {
   return `${tag} - ${address.city || 'No city'}`;
 };
 
+const formatFullAddress = (address = {}) => ([
+  address.street,
+  address.barangay,
+  address.city,
+  address.province,
+  address.region,
+]
+  .filter(Boolean)
+  .join(', '));
+
 const formatDate = (value) => {
   if (!value) return 'Recently';
   const date = new Date(value);
@@ -98,6 +119,10 @@ function ProfileCenter() {
   const [saving, setSaving] = useState(false);
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+  const [notificationBusyId, setNotificationBusyId] = useState('');
+  const [markingAllNotifications, setMarkingAllNotifications] = useState(false);
   const [activeOrderCategory, setActiveOrderCategory] = useState('to_pay');
   const [hasSelectedOrderCategory, setHasSelectedOrderCategory] = useState(false);
   const profilePicInputRef = useRef(null);
@@ -146,11 +171,41 @@ function ProfileCenter() {
       }
     };
 
+    const loadNotifications = async () => {
+      setNotificationsLoading(true);
+      try {
+        const response = await apiRequest('/notifications/me');
+        if (!mounted) return;
+        setNotifications((response.notifications || []).map(normalizeNotification));
+      } catch (_error) {
+        if (!mounted) return;
+        setNotifications([]);
+      } finally {
+        if (mounted) setNotificationsLoading(false);
+      }
+    };
+
     loadOrders();
     loadAddresses();
+    loadNotifications();
+
+    const pollId = window.setInterval(() => {
+      loadOrders();
+      loadNotifications();
+    }, 25000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadOrders();
+        loadNotifications();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       mounted = false;
+      window.clearInterval(pollId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -247,6 +302,47 @@ function ProfileCenter() {
       setAddresses((response.addresses || []).map(normalizeAddress));
     } catch (_error) {
       setAddresses([]);
+    }
+  };
+
+  const unreadNotificationCount = useMemo(
+    () => notifications.filter((item) => item.unread).length,
+    [notifications]
+  );
+
+  const handleMarkNotificationRead = async (notificationId) => {
+    if (!notificationId) return;
+    const existing = notifications.find((item) => item.id === notificationId);
+    if (!existing || !existing.unread) return;
+
+    setNotificationBusyId(notificationId);
+    setNotifications((prev) => prev.map((item) => (
+      item.id === notificationId ? { ...item, unread: false } : item
+    )));
+
+    try {
+      await apiRequest(`/notifications/${notificationId}/read`, { method: 'PATCH' });
+    } catch (_error) {
+      setNotifications((prev) => prev.map((item) => (
+        item.id === notificationId ? { ...item, unread: true } : item
+      )));
+    } finally {
+      setNotificationBusyId('');
+    }
+  };
+
+  const handleMarkAllNotificationsRead = async () => {
+    if (!notifications.length || !unreadNotificationCount) return;
+    const snapshot = notifications;
+    setMarkingAllNotifications(true);
+    setNotifications((prev) => prev.map((item) => ({ ...item, unread: false })));
+
+    try {
+      await apiRequest('/notifications/me/read-all', { method: 'PATCH' });
+    } catch (_error) {
+      setNotifications(snapshot);
+    } finally {
+      setMarkingAllNotifications(false);
     }
   };
 
@@ -426,8 +522,7 @@ function ProfileCenter() {
                       {address.isDefault && <span className="profile-default-pill">Default</span>}
                     </div>
                     <p>{address.name}</p>
-                    <p>{address.street}</p>
-                    <p>{address.city}{address.postalCode ? `, ${address.postalCode}` : ''}</p>
+                    <p>{formatFullAddress(address)}{address.postalCode ? `, ${address.postalCode}` : ''}</p>
                     <p>{address.phone}</p>
 
                     <div className="profile-address-actions">
@@ -548,6 +643,54 @@ function ProfileCenter() {
               )}
               </div>
             </div>
+          </div>
+
+          <div className="card profile-cart-card">
+            <div className="section-head section-head--spaced">
+              <div>
+                <div className="profile-kicker">Notifications</div>
+                <h2 className="section-title">Customer updates</h2>
+              </div>
+              <button
+                type="button"
+                className="ghost-btn"
+                onClick={handleMarkAllNotificationsRead}
+                disabled={!unreadNotificationCount || markingAllNotifications}
+              >
+                {markingAllNotifications ? 'Marking...' : 'Mark all as read'}
+              </button>
+            </div>
+
+            {notificationsLoading ? (
+              <p className="profile-empty-state">Loading notifications...</p>
+            ) : notifications.length === 0 ? (
+              <p className="profile-empty-state">No notifications yet.</p>
+            ) : (
+              <div className="profile-notification-list">
+                {notifications.slice(0, 6).map((item) => (
+                  <article
+                    key={item.id}
+                    className={`profile-notification-item ${item.unread ? 'unread' : ''}`}
+                  >
+                    <div className="profile-notification-head">
+                      <strong>{item.title}</strong>
+                      <span>{formatDate(item.createdAt)}</span>
+                    </div>
+                    <p>{item.message}</p>
+                    {item.unread ? (
+                      <button
+                        type="button"
+                        className="text-link-btn"
+                        onClick={() => handleMarkNotificationRead(item.id)}
+                        disabled={notificationBusyId === item.id}
+                      >
+                        {notificationBusyId === item.id ? 'Saving...' : 'Mark as read'}
+                      </button>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="card profile-cart-card">

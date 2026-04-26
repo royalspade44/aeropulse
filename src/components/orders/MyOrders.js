@@ -15,8 +15,12 @@ function MyOrders() {
   const [showTrackModal, setShowTrackModal] = useState(false);
 
   useEffect(() => {
-    apiRequest('/orders/me')
-      .then((response) => {
+    let mounted = true;
+
+    const loadOrders = async () => {
+      try {
+        const response = await apiRequest(`/orders/me?ts=${Date.now()}`);
+        if (!mounted) return;
         const normalized = (response.orders || []).map((order) => ({
           ...order,
           id: order.orderCode || order.id,
@@ -32,13 +36,28 @@ function MyOrders() {
           receipt: order.receipt || null,
         }));
         setOrders(normalized);
-      })
-      .catch(() => {
-        const savedOrders = localStorage.getItem('orders');
-        if (savedOrders) {
-          setOrders(JSON.parse(savedOrders));
+      } catch (_error) {
+        if (!mounted) return;
+        if (!localStorage.getItem('accessToken')) {
+          const savedOrders = localStorage.getItem('orders');
+          if (savedOrders) setOrders(JSON.parse(savedOrders));
         }
-      });
+      }
+    };
+
+    loadOrders();
+    const pollId = window.setInterval(loadOrders, 25000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') loadOrders();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(pollId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const handleTrack = (order) => {

@@ -38,9 +38,14 @@ function Shop() {
           category: product.category || 'split',
           price: Number(product.price) || 0,
           specs: product.specs || '',
-          description: Array.isArray(product.features) ? product.features.join(', ') : '',
+          description: Array.isArray(product.features) && product.features.length > 0
+            ? product.features.join(', ')
+            : 'Energy efficient AC unit ready for installation.',
           inStock: Number(product.stock) > 0,
+          stock: Number(product.stock) || 0,
           model: product.sku || '',
+          energyRating: '5 Stars',
+          warranty: '1 year parts & labor, 5 years compressor',
           imageUrl: '',
         }));
         setBackendProducts(mapped);

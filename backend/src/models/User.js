@@ -6,12 +6,26 @@ const addressSchema = new mongoose.Schema(
     type: { type: String, enum: ["home", "office", "other"], default: "home" },
     name: { type: String, default: "", trim: true },
     phone: { type: String, default: "", trim: true },
+    region: { type: String, default: "", trim: true },
+    province: { type: String, default: "", trim: true },
     street: { type: String, default: "", trim: true },
+    barangay: { type: String, default: "", trim: true },
     city: { type: String, default: "", trim: true },
     postalCode: { type: String, default: "", trim: true },
     isDefault: { type: Boolean, default: false },
   },
   { _id: true }
+);
+
+const billingAddressSchema = new mongoose.Schema(
+  {
+    region: { type: String, default: "", trim: true },
+    province: { type: String, default: "", trim: true },
+    city: { type: String, default: "", trim: true },
+    barangay: { type: String, default: "", trim: true },
+    street: { type: String, default: "", trim: true },
+  },
+  { _id: false }
 );
 
 const userSchema = new mongoose.Schema(
@@ -35,6 +49,7 @@ const userSchema = new mongoose.Schema(
       default: "customer",
     },
     address: { type: String, default: "" },
+    billingAddress: { type: billingAddressSchema, default: () => ({}) },
     addresses: [addressSchema],
     preferences: {
       language: { type: String, default: "English" },

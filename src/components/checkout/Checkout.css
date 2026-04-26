@@ -387,6 +387,12 @@
   font-size: 14px;
 }
 
+.form-group select:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

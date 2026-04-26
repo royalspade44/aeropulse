@@ -93,6 +93,9 @@ const InventoryList = ({ products, loading, onRefresh }) => {
         <thead>
           <tr>
             <th>Name</th>
+            <th>Brand</th>
+            <th>Category</th>
+            <th>HP / Specs</th>
             <th>SKU</th>
             <th>Stock</th>
             <th>Price</th>
@@ -107,6 +110,25 @@ const InventoryList = ({ products, loading, onRefresh }) => {
                 {editingId === product.id ? (
                   <input value={editForm.name} onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))} />
                 ) : product.name}
+              </td>
+              <td>
+                {editingId === product.id ? (
+                  <input value={editForm.brand} onChange={(e) => setEditForm((prev) => ({ ...prev, brand: e.target.value }))} />
+                ) : (product.brand || '-')}
+              </td>
+              <td>
+                {editingId === product.id ? (
+                  <select value={editForm.category} onChange={(e) => setEditForm((prev) => ({ ...prev, category: e.target.value }))}>
+                    <option value="split">Split</option>
+                    <option value="window">Window</option>
+                    <option value="floor">Floor Mounted</option>
+                  </select>
+                ) : (product.category || '-')}
+              </td>
+              <td>
+                {editingId === product.id ? (
+                  <input value={editForm.specs} onChange={(e) => setEditForm((prev) => ({ ...prev, specs: e.target.value }))} placeholder="e.g. 1.5HP" />
+                ) : (product.specs || '-')}
               </td>
               <td>{product.sku}</td>
               <td>{product.stock}</td>

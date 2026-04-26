@@ -422,6 +422,7 @@
   transition: border-color var(--p-t-fast) var(--p-ease),
               box-shadow var(--p-t-fast) var(--p-ease),
               background var(--p-t-fast) var(--p-ease);
+  appearance: none;
   -webkit-appearance: none;
 }
 
@@ -920,6 +921,48 @@
   margin: 0;
   color: var(--p-text-2);
   font-size: 13px;
+}
+
+.profile-notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-notification-item {
+  border: 1px solid var(--p-border);
+  border-radius: 14px;
+  padding: 12px;
+  background: var(--p-surface);
+}
+
+.profile-notification-item.unread {
+  background: linear-gradient(180deg, #fff, var(--p-brand-soft));
+  border-color: rgba(91, 84, 239, 0.28);
+}
+
+.profile-notification-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.profile-notification-head strong {
+  color: var(--p-text-1);
+  font-size: 13px;
+}
+
+.profile-notification-head span {
+  color: var(--p-text-3);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.profile-notification-item p {
+  margin: 6px 0 0;
+  color: var(--p-text-2);
+  font-size: 12.5px;
 }
 
 @keyframes orderPanelIn {

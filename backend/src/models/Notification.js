@@ -5,10 +5,24 @@ const notificationSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     title: { type: String, required: true },
     message: { type: String, required: true },
+    status: { type: String, enum: ["unread", "read"], default: "unread", index: true },
     unread: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
+
+notificationSchema.pre("save", function syncUnreadStatus(next) {
+  if (this.isModified("status") && !this.isModified("unread")) {
+    this.unread = this.status !== "read";
+  }
+  if (this.isModified("unread") && !this.isModified("status")) {
+    this.status = this.unread ? "unread" : "read";
+  }
+  if (!this.status) {
+    this.status = this.unread ? "unread" : "read";
+  }
+  next();
+});
 
 notificationSchema.set("toJSON", {
   transform: (_doc, ret) => {

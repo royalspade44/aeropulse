@@ -1,6 +1,7 @@
 const Notification = require("../models/Notification");
 
 const listMyNotifications = async (req, res) => {
+  res.set("Cache-Control", "no-store");
   const userId = req.authUser._id;
   let notifications = await Notification.find({ user: userId }).sort({ createdAt: -1 }).limit(30);
 
@@ -33,6 +34,7 @@ const markNotificationRead = async (req, res) => {
   }
 
   notification.unread = false;
+  notification.status = "read";
   await notification.save();
   return res.json({ notification: notification.toJSON() });
 };
@@ -41,7 +43,7 @@ const markAllNotificationsRead = async (req, res) => {
   const userId = req.authUser._id;
   const result = await Notification.updateMany(
     { user: userId, unread: true },
-    { $set: { unread: false } }
+    { $set: { unread: false, status: "read" } }
   );
 
   return res.json({

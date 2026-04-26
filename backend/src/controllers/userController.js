@@ -3,11 +3,44 @@ const User = require("../models/User");
 
 const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "");
 const isValidPhMobile = (phone = "") => /^09\d{9}$/.test(normalizePhone(phone));
+
+const formatAddressLine = (address = {}) => ([
+  address.street,
+  address.barangay,
+  address.city,
+  address.province,
+  address.region,
+]
+  .map((part) => String(part || "").trim())
+  .filter(Boolean)
+  .join(", "));
+
+const syncPrimaryAddressFromDefault = (user, addresses = []) => {
+  const defaultAddress = addresses.find((item) => item.isDefault) || addresses[0] || null;
+  if (!defaultAddress) {
+    user.billingAddress = { region: "", province: "", city: "", barangay: "", street: "" };
+    user.address = "";
+    return;
+  }
+
+  user.billingAddress = {
+    region: String(defaultAddress.region || "").trim(),
+    province: String(defaultAddress.province || "").trim(),
+    city: String(defaultAddress.city || "").trim(),
+    barangay: String(defaultAddress.barangay || "").trim(),
+    street: String(defaultAddress.street || "").trim(),
+  };
+  user.address = formatAddressLine(defaultAddress);
+};
+
 const sanitizeAddressPayload = (payload = {}) => {
   const label = String(payload.label || "").trim();
   const type = ["home", "office", "other"].includes(payload.type) ? payload.type : "other";
   const name = String(payload.name || "").trim();
+  const region = String(payload.region || "").trim();
+  const province = String(payload.province || "").trim();
   const street = String(payload.street || "").trim();
+  const barangay = String(payload.barangay || "").trim();
   const city = String(payload.city || "").trim();
   const postalCode = String(payload.postalCode || "").trim();
   const phone = normalizePhone(payload.phone || "");
@@ -16,7 +49,10 @@ const sanitizeAddressPayload = (payload = {}) => {
     label,
     type,
     name,
+    region,
+    province,
     street,
+    barangay,
     city,
     postalCode,
     phone,
@@ -25,6 +61,9 @@ const sanitizeAddressPayload = (payload = {}) => {
 };
 const validateAddress = (address = {}) => {
   if (!address.name) return "Recipient name is required.";
+  if (!address.region) return "Region is required.";
+  if (!address.province) return "Province is required.";
+  if (!address.barangay) return "Barangay is required.";
   if (!address.street) return "Street address is required.";
   if (!address.city) return "City is required.";
   if (!address.phone) return "Phone number is required.";
@@ -55,7 +94,7 @@ const isStrongPassword = (value = "") => {
 };
 
 const updateProfile = async (req, res) => {
-  const { name, name_first, name_last, phone, address, avatarUrl } = req.body;
+  const { name, name_first, name_last, phone, address, avatarUrl, billingAddress } = req.body;
   const user = req.authUser;
 
   if (name !== undefined) user.name = name;
@@ -68,6 +107,17 @@ const updateProfile = async (req, res) => {
     user.phone = normalizePhone(phone);
   }
   if (address !== undefined) user.address = address;
+  if (billingAddress !== undefined && billingAddress && typeof billingAddress === "object") {
+    const normalizedBillingAddress = {
+      region: String(billingAddress.region || "").trim(),
+      province: String(billingAddress.province || "").trim(),
+      city: String(billingAddress.city || "").trim(),
+      barangay: String(billingAddress.barangay || "").trim(),
+      street: String(billingAddress.street || "").trim(),
+    };
+    user.billingAddress = normalizedBillingAddress;
+    user.address = formatAddressLine(normalizedBillingAddress) || user.address;
+  }
   if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
 
   await user.save();
@@ -92,6 +142,7 @@ const addAddress = async (req, res) => {
   nextAddresses.push({ ...normalizedAddress, isDefault: shouldSetDefault });
   normalizeDefaultAddress(nextAddresses);
   user.addresses = nextAddresses;
+  syncPrimaryAddressFromDefault(user, nextAddresses);
 
   await user.save();
   return res.status(201).json({ addresses: user.addresses });
@@ -118,6 +169,7 @@ const updateAddress = async (req, res) => {
   };
   normalizeDefaultAddress(nextAddresses);
   user.addresses = nextAddresses;
+  syncPrimaryAddressFromDefault(user, nextAddresses);
 
   await user.save();
   return res.json({ addresses: user.addresses });
@@ -136,6 +188,7 @@ const deleteAddress = async (req, res) => {
 
   normalizeDefaultAddress(nextAddresses);
   user.addresses = nextAddresses;
+  syncPrimaryAddressFromDefault(user, nextAddresses);
   await user.save();
   return res.json({ addresses: user.addresses });
 };
@@ -153,6 +206,7 @@ const setDefaultAddress = async (req, res) => {
     item.isDefault = String(item._id) === addressId;
   });
   user.addresses = nextAddresses;
+  syncPrimaryAddressFromDefault(user, nextAddresses);
   await user.save();
   return res.json({ addresses: user.addresses });
 };

@@ -1,5 +1,6 @@
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const Notification = require("../models/Notification");
 const mongoose = require("mongoose");
 const { getBranchSearchOrder, resolvePreferredBranch } = require("../domain/branchRouting");
 
@@ -50,6 +51,21 @@ const resolveProductForOrderItem = async (item) => {
     if (bySku) return bySku;
   }
   return null;
+};
+
+const createOrderNotification = async ({ customerId, title, message }) => {
+  if (!customerId || !title || !message) return;
+  try {
+    await Notification.create({
+      user: customerId,
+      title,
+      message,
+      unread: true,
+      status: "unread",
+    });
+  } catch (error) {
+    console.error("Failed to create order notification:", error);
+  }
 };
 
 const createOrder = async (req, res) => {
@@ -217,6 +233,12 @@ const approveOrder = async (req, res) => {
   if (installationDate) order.installationDate = installationDate;
   await order.save();
 
+  await createOrderNotification({
+    customerId: order.customer,
+    title: "Order approved",
+    message: `Your order ${order.orderCode} has been approved and is now queued for delivery scheduling.`,
+  });
+
   return res.json({
     order: {
       ...order.toJSON(),
@@ -226,7 +248,12 @@ const approveOrder = async (req, res) => {
 };
 
 const listMyOrders = async (req, res) => {
+  res.set("Cache-Control", "no-store");
   const orders = await Order.find({ customer: req.authUser._id }).sort({ createdAt: -1 });
+  console.log("List my orders", {
+    userId: String(req.authUser._id),
+    count: Number(orders.length || 0),
+  });
   return res.json({
     orders: orders.map((order) => ({
       ...order.toJSON(),
@@ -304,6 +331,27 @@ const processOrder = async (req, res) => {
   }
 
   await order.save();
+
+  if (action === "approve") {
+    await createOrderNotification({
+      customerId: order.customer,
+      title: "COD approved",
+      message: `Your payment for order ${order.orderCode} was approved. Your order is now in TO DELIVER stage.`,
+    });
+  } else if (action === "dispatch") {
+    await createOrderNotification({
+      customerId: order.customer,
+      title: "Order dispatched",
+      message: `Your order ${order.orderCode} is on the way and moved to TO INSTALL stage.`,
+    });
+  } else if (action === "complete") {
+    await createOrderNotification({
+      customerId: order.customer,
+      title: "Order completed",
+      message: `Your order ${order.orderCode} has been completed. Thank you for choosing AeroPulse.`,
+    });
+  }
+
   return res.json({
     order: {
       ...order.toJSON(),

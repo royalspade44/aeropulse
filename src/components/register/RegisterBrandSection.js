@@ -1,4 +1,5 @@
 import icons from '../common/icons';
+import coldAirLogo from '../common/images/Cold Air Logo.jpg';
 
 function RegisterBrandSection() {
   const features = [
@@ -12,7 +13,7 @@ function RegisterBrandSection() {
     <div className="register-brand">
       <div className="brand-content">
         <div className="brand-logo">
-          <span>CA</span>
+          <img src={coldAirLogo} alt="Cold Air logo" />
         </div>
         <h1 className="brand-name">COLD AIR</h1>
         <p className="brand-tagline">AIRCONDITIONING TRADING</p>

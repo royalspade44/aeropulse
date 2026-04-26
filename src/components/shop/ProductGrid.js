@@ -69,6 +69,9 @@ function ProductGrid({ products, onAddToCart, onBuyNow, onProductClick }) {
                 <span className="product-old-price"> {'\u20b1'}{product.oldPrice.toLocaleString()}</span>
               )}
             </div>
+            {typeof product.stock === 'number' && product.stock > 0 && (
+              <div className="product-warranty">{product.stock} units available</div>
+            )}
             <div className="product-warranty">
               <img src={icons.lock} alt="" className="inline-icon" /> {product.warranty}
             </div>

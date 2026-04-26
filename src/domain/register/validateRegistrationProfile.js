@@ -93,8 +93,22 @@ export function validateRegistrationProfile(formData, detectedRole = 'customer')
     errors.phoneOtp = 'SMS code must be exactly 6 digits';
   }
 
-  if (detectedRole === 'customer' && !formData.address?.trim()) {
-    errors.address = 'Billing address is required for customer accounts';
+  if (detectedRole === 'customer') {
+    if (!formData.billingRegion?.trim()) {
+      errors.billingRegion = 'Region is required';
+    }
+    if (!formData.billingProvince?.trim()) {
+      errors.billingProvince = 'Province is required';
+    }
+    if (!formData.billingCity?.trim()) {
+      errors.billingCity = 'City / Municipality is required';
+    }
+    if (!formData.billingBarangay?.trim()) {
+      errors.billingBarangay = 'Barangay is required';
+    }
+    if (!formData.billingStreet?.trim() && !formData.address?.trim()) {
+      errors.billingStreet = 'Street / House No. is required';
+    }
   }
 
   return { errors, valid: Object.keys(errors).length === 0 };

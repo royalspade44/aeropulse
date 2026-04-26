@@ -2,10 +2,20 @@ import { useState } from 'react';
 import InputField from '../common/InputField';
 import icons from '../common/icons';
 import { canSendSmsOtp, recordSmsOtpAttempt } from '../../domain/register/smsOtpRateLimiter';
+import {
+  getRegions,
+  getProvincesByRegion,
+  getCitiesByProvince,
+  getBarangaysByCity,
+} from '../../domain/location/addressSelectors';
 
-function RegisterPhoneOtpStep({ formData, errors, onFieldChange, detectedRole, onSubmit, onBack, loading }) {
+function RegisterPhoneOtpStep({ formData, errors, onFieldChange, onBillingFieldChange, detectedRole, onSubmit, onBack, loading }) {
   const [localError, setLocalError] = useState('');
   const isCustomer = detectedRole === 'customer';
+  const regions = getRegions();
+  const provinces = getProvincesByRegion(formData.billingRegion);
+  const cities = getCitiesByProvince(formData.billingRegion, formData.billingProvince);
+  const barangays = getBarangaysByCity(formData.billingRegion, formData.billingProvince, formData.billingCity);
 
   const isValidPhone = (value) => /^(09\d{9}|639\d{9})$/.test(String(value || '').replace(/\D/g, ''));
 
@@ -42,9 +52,16 @@ function RegisterPhoneOtpStep({ formData, errors, onFieldChange, detectedRole, o
       setLocalError('Enter a valid PH mobile number (09XXXXXXXXX or 639XXXXXXXXX).');
       return;
     }
-    if (isCustomer && !String(formData.address || '').trim()) {
-      setLocalError('Billing address is required for customer accounts.');
-      return;
+    if (isCustomer) {
+      const missingBillingField = !String(formData.billingRegion || '').trim()
+        || !String(formData.billingProvince || '').trim()
+        || !String(formData.billingCity || '').trim()
+        || !String(formData.billingBarangay || '').trim()
+        || !String(formData.billingStreet || '').trim();
+      if (missingBillingField) {
+        setLocalError('Complete billing address details are required for customer accounts.');
+        return;
+      }
     }
     if (!/^\d{6}$/.test(formData.smsCode || '')) {
       setLocalError('Code must be exactly 6 digits.');
@@ -56,6 +73,7 @@ function RegisterPhoneOtpStep({ formData, errors, onFieldChange, detectedRole, o
       smsCodeLength: String(formData.smsCode || '').length,
       detectedRole,
       isCustomer,
+      hasBillingAddress: Boolean(formData.billingStreet && formData.billingCity),
     });
 
     setLocalError('');
@@ -106,15 +124,107 @@ function RegisterPhoneOtpStep({ formData, errors, onFieldChange, detectedRole, o
       )}
 
       {isCustomer && (
-        <InputField
-          label="Billing address"
-          type="text"
-          placeholder="Street, city, province"
-          value={formData.address}
-          onChange={(value) => onFieldChange('address', value)}
-          error={errors.address}
-          required
-        />
+        <section className="register-billing-section" aria-label="Billing address section">
+          <h4 className="register-billing-title">Billing Address</h4>
+          <p className="register-billing-desc">Select your area details like Shopee checkout before creating your account.</p>
+
+          <div className="form-row">
+            <div className="input-group">
+              <label>Region <span className="required-star">*</span></label>
+              <select
+                value={formData.billingRegion}
+                onChange={(e) => onBillingFieldChange('billingRegion', e.target.value)}
+                className={errors.billingRegion ? 'input-error' : ''}
+              >
+                <option value="">Select Region</option>
+                {regions.map((region) => (
+                  <option key={region} value={region}>{region}</option>
+                ))}
+              </select>
+              {errors.billingRegion && (
+                <div className="error-message">
+                  <img src={icons.diamondExclamation} alt="" className="inline-icon" />
+                  <span>{errors.billingRegion}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="input-group">
+              <label>Province <span className="required-star">*</span></label>
+              <select
+                value={formData.billingProvince}
+                onChange={(e) => onBillingFieldChange('billingProvince', e.target.value)}
+                disabled={!formData.billingRegion}
+                className={errors.billingProvince ? 'input-error' : ''}
+              >
+                <option value="">Select Province</option>
+                {provinces.map((province) => (
+                  <option key={province} value={province}>{province}</option>
+                ))}
+              </select>
+              {errors.billingProvince && (
+                <div className="error-message">
+                  <img src={icons.diamondExclamation} alt="" className="inline-icon" />
+                  <span>{errors.billingProvince}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="input-group">
+              <label>City / Municipality <span className="required-star">*</span></label>
+              <select
+                value={formData.billingCity}
+                onChange={(e) => onBillingFieldChange('billingCity', e.target.value)}
+                disabled={!formData.billingProvince}
+                className={errors.billingCity ? 'input-error' : ''}
+              >
+                <option value="">Select City / Municipality</option>
+                {cities.map((city) => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+              {errors.billingCity && (
+                <div className="error-message">
+                  <img src={icons.diamondExclamation} alt="" className="inline-icon" />
+                  <span>{errors.billingCity}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="input-group">
+              <label>Barangay <span className="required-star">*</span></label>
+              <select
+                value={formData.billingBarangay}
+                onChange={(e) => onBillingFieldChange('billingBarangay', e.target.value)}
+                disabled={!formData.billingCity}
+                className={errors.billingBarangay ? 'input-error' : ''}
+              >
+                <option value="">Select Barangay</option>
+                {barangays.map((barangay) => (
+                  <option key={barangay} value={barangay}>{barangay}</option>
+                ))}
+              </select>
+              {errors.billingBarangay && (
+                <div className="error-message">
+                  <img src={icons.diamondExclamation} alt="" className="inline-icon" />
+                  <span>{errors.billingBarangay}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <InputField
+            label="Street / House No."
+            type="text"
+            placeholder="House/Block/Lot No., Street"
+            value={formData.billingStreet}
+            onChange={(value) => onBillingFieldChange('billingStreet', value)}
+            error={errors.billingStreet}
+            required
+          />
+        </section>
       )}
 
       <div className="register-step-actions">
