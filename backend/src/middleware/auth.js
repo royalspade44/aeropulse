@@ -17,6 +17,9 @@ const requireAuth = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({ message: "Invalid token user" });
     }
+    if (user.isDeleted || user.accountStatus === "deleted" || user.accountStatus === "disabled") {
+      return res.status(403).json({ message: "Account is not active." });
+    }
 
     req.authUser = user;
     const headerBranch = typeof req.headers["x-branch"] === "string" ? req.headers["x-branch"].trim() : "";
@@ -37,4 +40,14 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
-module.exports = { requireAuth };
+const allowRoles = (...allowedRoles) => (req, res, next) => {
+  if (!req.authUser) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  if (!allowedRoles.includes(req.authUser.role)) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  return next();
+};
+
+module.exports = { requireAuth, allowRoles };

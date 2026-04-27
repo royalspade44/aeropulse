@@ -1,172 +1,209 @@
-import { useState, useEffect } from 'react';
-import { useUser } from '../../context/UserContext';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../context/UserContext';
 import './Settings.css';
-import ProfileSettings from './ProfileSettings';
 import AccountSettings from './AccountSettings';
 import NotificationSettings from './NotificationSettings';
 import PrivacySettings from './PrivacySettings';
 import PreferencesSettings from './PreferencesSettings';
-import { confirmDialog } from '../../utils/dialog';
 import icons from '../common/icons';
 import Footer from '../home/Footer';
+import { translateText } from '../../utils/customerI18n';
+
+const SETTINGS_TABS = [
+  { id: 'preferences', title: 'Preferences', icon: icons.customize },
+  { id: 'privacy', title: 'Privacy', icon: icons.shieldKeyhole },
+  { id: 'notifications', title: 'Notifications', icon: icons.visit },
+  { id: 'security', title: 'Security', icon: icons.lock },
+];
 
 function Settings() {
-  const { user, updateProfile, updatePreferences, updatePrivacy, updateNotifications, changePassword, deleteAccount, logout } = useUser();
+  const {
+    user,
+    updatePreferences,
+    updatePrivacy,
+    updateNotifications,
+    updateSettings,
+    changePassword,
+    requestPasswordChangeEmail,
+    deleteAccount,
+    logout,
+  } = useUser();
   const navigate = useNavigate();
-  
-  const [darkMode, setDarkMode] = useState(() => {
-    if (user?.preferences?.darkMode !== undefined) {
-      return user.preferences.darkMode;
-    }
-    const savedDarkMode = localStorage.getItem('darkMode');
-    return savedDarkMode ? JSON.parse(savedDarkMode) : false;
-  });
 
-  useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.remove('dark-mode');
-    }
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-    
-    // Save dark mode preference to user context if user is logged in
-    if (user) {
-      updatePreferences({ darkMode }).catch(err => console.error('Failed to save dark mode:', err));
-    }
-  }, [darkMode, user, updatePreferences]);
+  const [activeTab, setActiveTab] = useState('preferences');
+  const [toast, setToast] = useState(null);
 
-  const handleUpdateProfile = async (updatedData) => {
+  const formattedUser = useMemo(() => {
+    if (!user) return null;
+    return {
+      ...user,
+      name: user.name || `${user.name_first || ''} ${user.name_last || ''}`.trim() || user.email?.split('@')[0] || 'User',
+      fullName: user.name || `${user.name_first || ''} ${user.name_last || ''}`.trim(),
+      username: user.username || '',
+      role: user.role || 'customer',
+      preferences: user.preferences || {},
+      privacy: user.privacy || {},
+      notifications: user.notifications || {},
+    };
+  }, [user]);
+
+  const language = formattedUser?.preferences?.language || 'English';
+  const t = (text) => translateText(text, language);
+
+  const pushToast = (message, type = 'success') => {
+    setToast({ message, type });
+    window.setTimeout(() => setToast(null), 2400);
+  };
+
+  const callWithToast = async (action, successMessage) => {
     try {
-      await updateProfile(updatedData);
-      alert('Profile updated successfully!');
-      return true;
+      const result = await action();
+      pushToast(successMessage, 'success');
+      return result;
     } catch (error) {
-      alert('Error updating profile: ' + error.message);
-      return false;
+      pushToast(error.message || 'Unable to save changes.', 'error');
+      throw error;
     }
   };
 
-  const handleUpdatePreferences = async (preferences) => {
-    try {
-      await updatePreferences(preferences);
-      return true;
-    } catch (error) {
-      alert('Error updating preferences: ' + error.message);
-      return false;
-    }
-  };
+  const handleUpdatePreferences = (payload) => callWithToast(
+    () => updatePreferences(payload),
+    'Preferences saved.'
+  );
 
-  const handleUpdatePrivacy = async (privacy) => {
-    try {
-      await updatePrivacy(privacy);
-      return true;
-    } catch (error) {
-      alert('Error updating privacy settings: ' + error.message);
-      return false;
-    }
-  };
+  const handleUpdatePrivacy = (payload) => callWithToast(
+    () => updatePrivacy(payload),
+    'Privacy settings saved.'
+  );
 
-  const handleUpdateNotifications = async (notifications) => {
-    try {
-      await updateNotifications(notifications);
-      return true;
-    } catch (error) {
-      alert('Error updating notification settings: ' + error.message);
-      return false;
-    }
-  };
+  const handleUpdateNotifications = (payload) => callWithToast(
+    () => updateNotifications(payload),
+    'Notification settings saved.'
+  );
 
-  const handleChangePassword = async (currentPassword, newPassword) => {
-    try {
-      await changePassword(currentPassword, newPassword);
-      alert('Password changed successfully!');
-      return true;
-    } catch (error) {
-      alert('Error changing password: ' + error.message);
-      return false;
-    }
-  };
+  const handleBulkUpdateSettings = (payload) => callWithToast(
+    () => updateSettings(payload),
+    'Settings saved.'
+  );
 
-  const handleDeleteAccount = async () => {
-    const confirm = await confirmDialog('Are you sure you want to delete your account? This action cannot be undone!', 'Delete Account');
-    if (confirm) {
-      try {
-        await deleteAccount();
-        alert('Account deleted successfully');
-        navigate('/login', { replace: true });
-      } catch (error) {
-        alert('Error deleting account: ' + error.message);
-      }
-    }
-  };
+  const handleChangePassword = (currentPassword, newPassword) => callWithToast(
+    () => changePassword(currentPassword, newPassword),
+    'Password changed successfully.'
+  );
+
+  const handleDeleteAccount = (payload) => callWithToast(
+    async () => {
+      await deleteAccount(payload);
+      navigate('/login', { replace: true });
+    },
+    'Account deleted successfully.'
+  );
+
+  const handleRequestPasswordChangeEmail = () => callWithToast(
+    () => requestPasswordChangeEmail(),
+    'Password change link sent to your email.'
+  );
 
   const handleBack = () => {
-    // Check if there's a previous page in history
     if (window.history.length > 2) {
-      navigate(-1); // Go back to previous page
+      navigate(-1);
     } else {
-      navigate('/home'); // Fallback to home
+      navigate('/home');
     }
   };
 
-  const handleLogout = async () => {
-    const confirm = await confirmDialog('Are you sure you want to logout?', 'Logout');
-    if (confirm) {
-      logout();
-      navigate('/login', { replace: true });
-    }
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
   };
-
-  const handleDarkModeChange = (isDark) => {
-    setDarkMode(isDark);
-  };
-
-  // Format user data for profile display - handle both naming conventions
-  const formattedUser = user ? {
-    ...user,
-    name: user.name || `${user.name_first || ''} ${user.name_last || ''}`.trim() || user.email?.split('@')[0] || 'User',
-    fullName: user.name || `${user.name_first || ''} ${user.name_last || ''}`.trim(),
-    address: user.address || '' // Address starts empty as requested
-  } : null;
 
   return (
-    <div className={`settings-container ${darkMode ? 'dark' : ''}`}>
+    <div className="settings-container">
       <div className="settings-header">
-        <button className="back-btn" onClick={handleBack} aria-label="Go back">
+        <button className="back-btn" onClick={handleBack} aria-label="Go back" type="button">
           ←
         </button>
-        <h1>Settings</h1>
+        <h1>{t('Account Settings')}</h1>
         <button type="button" className="logout-btn" onClick={handleLogout}>
-          <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" /> Logout
+          <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" /> {t('Logout')}
         </button>
       </div>
 
-      <div className="settings-content">
-        <ProfileSettings 
-          user={formattedUser} 
-          onUpdateProfile={handleUpdateProfile} 
-        />
-        <AccountSettings 
-          onChangePassword={handleChangePassword}
-          onDeleteAccount={handleDeleteAccount}
-        />
-        <NotificationSettings 
-          user={user}
-          onUpdateNotifications={handleUpdateNotifications}
-        />
-        <PrivacySettings 
-          user={user}
-          onUpdatePrivacy={handleUpdatePrivacy}
-        />
-        <PreferencesSettings 
-          onDarkModeChange={handleDarkModeChange} 
-          darkMode={darkMode}
-          user={user}
-          onUpdatePreferences={handleUpdatePreferences}
-        />
+      <div className="settings-content settings-content--layout">
+        <aside className="settings-nav-card">
+          <div className="settings-user-badge">
+            <div className="settings-user-avatar">
+              {formattedUser?.avatarUrl ? (
+                <img src={formattedUser.avatarUrl} alt="Profile" />
+              ) : (
+                <span>{(formattedUser?.name || 'U').charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+            <div>
+              <h3>{formattedUser?.name || 'User'}</h3>
+              <p>{formattedUser?.email || ''}</p>
+              <small>{(formattedUser?.role || '').toUpperCase()}</small>
+            </div>
+          </div>
+
+          <nav className="settings-nav-list" aria-label="Settings sections">
+            {SETTINGS_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`settings-nav-item ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <img src={tab.icon} alt="" className="inline-icon" />
+                <span>{t(tab.title)}</span>
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        <section className="settings-panel-stack">
+          {activeTab === 'preferences' ? (
+            <PreferencesSettings
+              user={formattedUser}
+              onUpdatePreferences={handleUpdatePreferences}
+              onUpdateSettings={handleBulkUpdateSettings}
+            />
+          ) : null}
+
+          {activeTab === 'privacy' ? (
+            <PrivacySettings
+              user={formattedUser}
+              onUpdatePrivacy={handleUpdatePrivacy}
+              onUpdateSettings={handleBulkUpdateSettings}
+            />
+          ) : null}
+
+          {activeTab === 'notifications' ? (
+            <NotificationSettings
+              user={formattedUser}
+              onUpdateNotifications={handleUpdateNotifications}
+              onUpdateSettings={handleBulkUpdateSettings}
+            />
+          ) : null}
+
+          {activeTab === 'security' ? (
+            <AccountSettings
+              user={formattedUser}
+              onChangePassword={handleChangePassword}
+              onRequestPasswordChangeEmail={handleRequestPasswordChangeEmail}
+              onDeleteAccount={handleDeleteAccount}
+            />
+          ) : null}
+        </section>
       </div>
+
+      {toast ? (
+        <div className={`settings-toast ${toast.type === 'error' ? 'settings-toast--error' : ''}`}>
+          {toast.message}
+        </div>
+      ) : null}
+
       <Footer />
     </div>
   );

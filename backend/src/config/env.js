@@ -19,6 +19,7 @@ const env = {
   smtpFrom: process.env.SMTP_FROM || "",
   passwordResetTokenSecret: process.env.PASSWORD_RESET_TOKEN_SECRET || process.env.JWT_SECRET || "dev-secret",
   passwordResetTokenTtlMinutes: Number(process.env.PASSWORD_RESET_TOKEN_TTL_MINUTES || 20),
+  accountDeleteMode: process.env.ACCOUNT_DELETE_MODE || "soft",
 };
 
 module.exports = env;

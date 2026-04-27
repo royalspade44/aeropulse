@@ -1,6 +1,7 @@
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 const Notification = require("../models/Notification");
+const User = require("../models/User");
 const mongoose = require("mongoose");
 const { getBranchSearchOrder, resolvePreferredBranch } = require("../domain/branchRouting");
 
@@ -56,8 +57,15 @@ const resolveProductForOrderItem = async (item) => {
 const createOrderNotification = async ({ customerId, title, message }) => {
   if (!customerId || !title || !message) return;
   try {
+    const user = await User.findById(customerId).select("notifications");
+    const notifications = user?.notifications?.toObject?.() || user?.notifications || {};
+    if (notifications.inApp === false || notifications.push === false || notifications.orderUpdates === false) {
+      return;
+    }
+
     await Notification.create({
       user: customerId,
+      type: "order",
       title,
       message,
       unread: true,

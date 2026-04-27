@@ -26,6 +26,15 @@ const canonicalizePhMobile = (phone = "") => {
 };
 const isValidPhMobile = (phone = "") => /^09\d{9}$/.test(canonicalizePhMobile(phone));
 const isValidSixDigitCode = (value = "") => /^\d{6}$/.test(String(value).trim());
+const isStrongPassword = (value = "") => {
+  const password = String(value);
+  if (password.length < 8) return false;
+  if (!/(?=.*[a-z])/.test(password)) return false;
+  if (!/(?=.*[A-Z])/.test(password)) return false;
+  if (!/(?=.*\d)/.test(password)) return false;
+  if (!/(?=.*[@$!%*?&])/.test(password)) return false;
+  return true;
+};
 
 const normalizeBillingAddress = (payload = {}) => ({
   region: String(payload.region || "").trim(),
@@ -154,6 +163,11 @@ const register = async (req, res) => {
     console.warn("[Auth][Register] Missing required fields", { email: normalizedEmail || "(missing)" });
     return res.status(400).json({ message: "Missing required fields" });
   }
+  if (!isStrongPassword(password)) {
+    return res.status(400).json({
+      message: "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+    });
+  }
   if (!isValidPhMobile(phone)) {
     console.warn("[Auth][Register] Invalid phone format", { email: normalizedEmail, phone });
     return res.status(400).json({ message: "Invalid phone number format. Use 09XXXXXXXXX." });
@@ -232,6 +246,9 @@ const login = async (req, res) => {
   const user = await User.findOne({ email: normalizedEmail });
   if (!user) {
     return res.status(401).json({ message: "Email not found. Please register first." });
+  }
+  if (user.isDeleted || user.accountStatus === "deleted" || user.accountStatus === "disabled") {
+    return res.status(403).json({ message: "Account is not active." });
   }
 
   if (!user.passwordHash) {
@@ -404,6 +421,9 @@ const requestPasswordReset = async (req, res) => {
   if (!user) {
     return res.json({ message: "If this email is registered, a reset link has been sent." });
   }
+  if (user.isDeleted || user.accountStatus === "deleted" || user.accountStatus === "disabled") {
+    return res.json({ message: "If this email is registered, a reset link has been sent." });
+  }
 
   const { token, tokenHash } = generatePasswordResetToken();
   const now = new Date();
@@ -447,8 +467,10 @@ const resetPassword = async (req, res) => {
   if (!token) {
     return res.status(400).json({ message: "Reset token is required." });
   }
-  if (newPassword.length < 8) {
-    return res.status(400).json({ message: "Password must be at least 8 characters long." });
+  if (!isStrongPassword(newPassword)) {
+    return res.status(400).json({
+      message: "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+    });
   }
 
   const parsed = parseAndVerifyPasswordResetToken(token);

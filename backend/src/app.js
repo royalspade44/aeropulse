@@ -21,7 +21,7 @@ app.use(helmet());
 app.use(cors({ origin: env.corsOrigin }));
 app.use(morgan("dev"));
 app.use(cookieParser());
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });

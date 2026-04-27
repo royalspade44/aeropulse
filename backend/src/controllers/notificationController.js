@@ -1,25 +1,41 @@
 const Notification = require("../models/Notification");
+const User = require("../models/User");
 
 const listMyNotifications = async (req, res) => {
   res.set("Cache-Control", "no-store");
   const userId = req.authUser._id;
+  const user = await User.findById(userId).select("notifications");
+  const userNotifications = user?.notifications?.toObject?.() || user?.notifications || {};
+  if (userNotifications.inApp === false || userNotifications.push === false) {
+    return res.json({ notifications: [] });
+  }
+
   let notifications = await Notification.find({ user: userId }).sort({ createdAt: -1 }).limit(30);
 
   if (!notifications.length) {
     await Notification.insertMany([
       {
         user: userId,
+        type: "account",
         title: "Welcome to AeroPulse",
         message: "Your account is ready. You can now shop, book services, and track orders.",
       },
       {
         user: userId,
+        type: "system",
         title: "Track your order status",
         message: "Visit My Orders or Profile to monitor TO PAY, TO DELIVER, TO INSTALL, and COMPLETE states.",
       },
     ]);
     notifications = await Notification.find({ user: userId }).sort({ createdAt: -1 }).limit(30);
   }
+
+  notifications = notifications.filter((item) => {
+    if (item.type === "account" && userNotifications.accountUpdates === false) return false;
+    if (item.type === "order" && userNotifications.orderUpdates === false) return false;
+    if (item.type === "system" && userNotifications.systemAlerts === false) return false;
+    return true;
+  });
 
   return res.json({ notifications: notifications.map((item) => item.toJSON()) });
 };

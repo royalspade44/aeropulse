@@ -56,6 +56,9 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [currentSession, setCurrentSession] = useState(null);
 
+  const currentLanguage = user?.preferences?.language || "English";
+  const currentTheme = user?.preferences?.theme || (user?.preferences?.darkMode ? "dark" : "light");
+
   useEffect(() => {
     const bootstrap = async () => {
       const token = localStorage.getItem("accessToken");
@@ -114,6 +117,21 @@ export const UserProvider = ({ children }) => {
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    const fallbackTheme = localStorage.getItem("theme") || "light";
+    const isDark = (currentTheme || fallbackTheme) === "dark";
+    document.body.classList.toggle("dark-mode", isDark);
+    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  }, [currentTheme]);
+
+  useEffect(() => {
+    const lang = currentLanguage || localStorage.getItem("language") || "English";
+    document.documentElement.lang = String(lang).toLowerCase() === "filipino" ? "fil" : "en";
+    document.documentElement.setAttribute("data-language", lang);
+    localStorage.setItem("language", lang);
+  }, [currentLanguage]);
 
   const login = async (email, password, roleOrBranch = "", branchMaybe = "") => {
     const knownRoles = new Set(["customer", "admin", "technician", "superadmin"]);
@@ -202,6 +220,17 @@ export const UserProvider = ({ children }) => {
     return result.user;
   };
 
+  const updateSettings = async (settingsPayload) => {
+    const result = await apiRequest("/users/settings/update", {
+      method: "PUT",
+      body: JSON.stringify(settingsPayload),
+    });
+    setUser(result.user);
+    setCurrentSession(result.user);
+    localStorage.setItem("currentUser", JSON.stringify(result.user));
+    return result.user;
+  };
+
   const changePassword = async (currentPassword, newPassword) => {
     return apiRequest("/users/password", {
       method: "PATCH",
@@ -209,8 +238,18 @@ export const UserProvider = ({ children }) => {
     });
   };
 
-  const deleteAccount = async () => {
-    const result = await apiRequest("/users/me", { method: "DELETE" });
+  const requestPasswordChangeEmail = async () => {
+    return apiRequest("/users/password/request-email", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+  };
+
+  const deleteAccount = async (payload = {}) => {
+    const result = await apiRequest("/users/account", {
+      method: "DELETE",
+      body: JSON.stringify(payload),
+    });
     logout();
     return result;
   };
@@ -232,6 +271,8 @@ export const UserProvider = ({ children }) => {
     isAuthenticated,
     loading,
     currentSession,
+    currentLanguage,
+    currentTheme,
     register,
     login,
     loginAsAdmin,
@@ -242,7 +283,9 @@ export const UserProvider = ({ children }) => {
     updatePreferences,
     updatePrivacy,
     updateNotifications,
+    updateSettings,
     changePassword,
+    requestPasswordChangeEmail,
     deleteAccount,
     getUserByEmail,
     getAllUsers,

@@ -1,49 +1,59 @@
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const User = require("../models/User");
+const Order = require("../models/Order");
+const Notification = require("../models/Notification");
+const env = require("../config/env");
+const { canSendEmail, sendEmail } = require("../utils/email");
 
-const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "");
-const isValidPhMobile = (phone = "") => /^09\d{9}$/.test(normalizePhone(phone));
+const PROFILE_VISIBILITY_VALUES = ["public", "private", "role_based"];
+const NOTIFICATION_TYPES = ["account", "order", "system"];
+const PASSWORD_RESET_MINUTES = Math.max(15, Math.min(30, Number(env.passwordResetTokenTtlMinutes || 20)));
 
-const formatAddressLine = (address = {}) => ([
-  address.street,
-  address.barangay,
-  address.city,
-  address.province,
-  address.region,
-]
-  .map((part) => String(part || "").trim())
-  .filter(Boolean)
-  .join(", "));
-
-const syncPrimaryAddressFromDefault = (user, addresses = []) => {
-  const defaultAddress = addresses.find((item) => item.isDefault) || addresses[0] || null;
-  if (!defaultAddress) {
-    user.billingAddress = { region: "", province: "", city: "", barangay: "", street: "" };
-    user.address = "";
-    return;
-  }
-
-  user.billingAddress = {
-    region: String(defaultAddress.region || "").trim(),
-    province: String(defaultAddress.province || "").trim(),
-    city: String(defaultAddress.city || "").trim(),
-    barangay: String(defaultAddress.barangay || "").trim(),
-    street: String(defaultAddress.street || "").trim(),
-  };
-  user.address = formatAddressLine(defaultAddress);
+const generatePasswordResetToken = () => {
+  const nonce = crypto.randomBytes(24).toString("hex");
+  const createdAt = Date.now().toString();
+  const payload = `${nonce}.${createdAt}`;
+  const signature = crypto
+    .createHmac("sha256", env.passwordResetTokenSecret)
+    .update(payload)
+    .digest("hex");
+  const token = `${payload}.${signature}`;
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  return { token, tokenHash };
 };
 
+const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "");
+const canonicalizePhMobile = (phone = "") => {
+  const digits = normalizePhone(phone);
+  if (/^639\d{9}$/.test(digits)) {
+    return `09${digits.slice(3)}`;
+  }
+  return digits;
+};
+const isValidPhMobile = (phone = "") => /^09\d{9}$/.test(canonicalizePhMobile(phone));
+const sanitizeText = (value = "", maxLength = 120) => String(value || "").trim().slice(0, maxLength);
+const sanitizeOptionalUsername = (value = "") => String(value || "").trim().toLowerCase();
+const isValidUsername = (value = "") => !value || /^[a-z0-9_.-]{3,30}$/.test(value);
+const isAllowedAvatarUrl = (value = "") => {
+  const avatar = String(value || "").trim();
+  if (!avatar) return true;
+  if (avatar.length > 2_000_000) return false;
+  if (/^https?:\/\//i.test(avatar)) return true;
+  if (/^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+/=\s]+$/i.test(avatar)) return true;
+  return false;
+};
 const sanitizeAddressPayload = (payload = {}) => {
-  const label = String(payload.label || "").trim();
+  const label = sanitizeText(payload.label, 80);
   const type = ["home", "office", "other"].includes(payload.type) ? payload.type : "other";
-  const name = String(payload.name || "").trim();
-  const region = String(payload.region || "").trim();
-  const province = String(payload.province || "").trim();
-  const street = String(payload.street || "").trim();
-  const barangay = String(payload.barangay || "").trim();
-  const city = String(payload.city || "").trim();
-  const postalCode = String(payload.postalCode || "").trim();
-  const phone = normalizePhone(payload.phone || "");
+  const name = sanitizeText(payload.name, 120);
+  const region = sanitizeText(payload.region, 120);
+  const province = sanitizeText(payload.province, 120);
+  const street = sanitizeText(payload.street, 180);
+  const barangay = sanitizeText(payload.barangay, 120);
+  const city = sanitizeText(payload.city, 120);
+  const postalCode = sanitizeText(payload.postalCode, 20);
+  const phone = canonicalizePhMobile(payload.phone || "");
 
   return {
     label,
@@ -83,6 +93,92 @@ const normalizeDefaultAddress = (addresses = []) => {
     item.isDefault = index === defaultIndex;
   });
 };
+const formatAddressLine = (address = {}) => ([
+  address.street,
+  address.barangay,
+  address.city,
+  address.province,
+  address.region,
+]
+  .map((part) => sanitizeText(part, 180))
+  .filter(Boolean)
+  .join(", "));
+const syncPrimaryAddressFromDefault = (user, addresses = []) => {
+  const defaultAddress = addresses.find((item) => item.isDefault) || addresses[0] || null;
+  if (!defaultAddress) {
+    user.billingAddress = { region: "", province: "", city: "", barangay: "", street: "" };
+    user.address = "";
+    return;
+  }
+
+  user.billingAddress = {
+    region: sanitizeText(defaultAddress.region, 120),
+    province: sanitizeText(defaultAddress.province, 120),
+    city: sanitizeText(defaultAddress.city, 120),
+    barangay: sanitizeText(defaultAddress.barangay, 120),
+    street: sanitizeText(defaultAddress.street, 180),
+  };
+  user.address = formatAddressLine(defaultAddress);
+};
+
+const normalizePreferences = (current, payload = {}) => {
+  const next = { ...current };
+  if (payload.language !== undefined) next.language = sanitizeText(payload.language, 40) || "English";
+  if (payload.currency !== undefined) next.currency = sanitizeText(payload.currency, 10) || "PHP";
+  if (payload.timezone !== undefined) next.timezone = sanitizeText(payload.timezone, 80) || "Asia/Manila";
+  if (payload.autoBook !== undefined) next.autoBook = Boolean(payload.autoBook);
+  if (payload.darkMode !== undefined) {
+    next.darkMode = Boolean(payload.darkMode);
+    next.theme = next.darkMode ? "dark" : "light";
+  }
+  if (payload.theme !== undefined) {
+    const normalizedTheme = String(payload.theme || "").toLowerCase();
+    if (["light", "dark"].includes(normalizedTheme)) {
+      next.theme = normalizedTheme;
+      next.darkMode = normalizedTheme === "dark";
+    }
+  }
+  return next;
+};
+
+const normalizePrivacy = (current, payload = {}) => {
+  const next = { ...current };
+  if (payload.profileVisibility !== undefined) {
+    const visibility = String(payload.profileVisibility || "").toLowerCase();
+    next.profileVisibility = PROFILE_VISIBILITY_VALUES.includes(visibility) ? visibility : current.profileVisibility;
+  }
+  if (payload.dataSharing !== undefined) next.dataSharing = Boolean(payload.dataSharing);
+  if (payload.showEmail !== undefined) next.showEmail = Boolean(payload.showEmail);
+  if (payload.showPhone !== undefined) next.showPhone = Boolean(payload.showPhone);
+  if (payload.activityStatus !== undefined) next.activityStatus = Boolean(payload.activityStatus);
+  return next;
+};
+
+const normalizeNotifications = (current, payload = {}) => {
+  const next = { ...current };
+  const booleanKeys = [
+    "email",
+    "inApp",
+    "push",
+    "sms",
+    "accountUpdates",
+    "orderUpdates",
+    "systemAlerts",
+    "promotions",
+    "serviceUpdates",
+  ];
+  booleanKeys.forEach((key) => {
+    if (payload[key] !== undefined) {
+      next[key] = Boolean(payload[key]);
+    }
+  });
+
+  // Keep backward compatibility with legacy push key.
+  next.push = Boolean(next.inApp ?? next.push);
+  next.inApp = Boolean(next.inApp ?? next.push);
+  return next;
+};
+
 const isStrongPassword = (value = "") => {
   const password = String(value);
   if (password.length < 8) return false;
@@ -93,35 +189,124 @@ const isStrongPassword = (value = "") => {
   return true;
 };
 
-const updateProfile = async (req, res) => {
-  const { name, name_first, name_last, phone, address, avatarUrl, billingAddress } = req.body;
-  const user = req.authUser;
-
-  if (name !== undefined) user.name = name;
-  if (name_first !== undefined) user.name_first = name_first;
-  if (name_last !== undefined) user.name_last = name_last;
-  if (phone !== undefined) {
-    if (!isValidPhMobile(phone)) {
-      return res.status(400).json({ message: "Invalid phone number format. Use 09XXXXXXXXX." });
-    }
-    user.phone = normalizePhone(phone);
+const canManageTargetProfile = (manager, target) => {
+  if (!manager || !target) return false;
+  if (String(manager._id) === String(target._id)) return true;
+  if (manager.role === "superadmin") return true;
+  if (manager.role === "admin") {
+    return target.role === "customer" || target.role === "technician";
   }
-  if (address !== undefined) user.address = address;
-  if (billingAddress !== undefined && billingAddress && typeof billingAddress === "object") {
+  return false;
+};
+
+const applyProfileUpdate = async (user, payload = {}, { allowEmailChange = false } = {}) => {
+  if (payload.name !== undefined) user.name = sanitizeText(payload.name, 120);
+  if (payload.name_first !== undefined) user.name_first = sanitizeText(payload.name_first, 80);
+  if (payload.name_last !== undefined) user.name_last = sanitizeText(payload.name_last, 80);
+  if (payload.username !== undefined) {
+    const username = sanitizeOptionalUsername(payload.username);
+    if (!isValidUsername(username)) {
+      return { ok: false, status: 400, message: "Username must be 3-30 chars and can only contain letters, numbers, _, ., -" };
+    }
+
+    if (username) {
+      const existing = await User.findOne({ username, _id: { $ne: user._id } }).select("_id");
+      if (existing) {
+        return { ok: false, status: 409, message: "Username is already taken." };
+      }
+      user.username = username;
+    } else {
+      user.username = undefined;
+    }
+  }
+
+  if (payload.phone !== undefined) {
+    if (!isValidPhMobile(payload.phone)) {
+      return { ok: false, status: 400, message: "Invalid phone number format. Use 09XXXXXXXXX." };
+    }
+    const normalizedPhone = canonicalizePhMobile(payload.phone);
+    const existingPhoneUser = await User.findOne({ phone: normalizedPhone, _id: { $ne: user._id } }).select("_id");
+    if (existingPhoneUser) {
+      return { ok: false, status: 409, message: "Phone number is already in use." };
+    }
+    user.phone = normalizedPhone;
+  }
+
+  if (payload.avatarUrl !== undefined) {
+    const avatar = String(payload.avatarUrl || "").trim();
+    if (!isAllowedAvatarUrl(avatar)) {
+      return { ok: false, status: 400, message: "Invalid profile picture format." };
+    }
+    user.avatarUrl = avatar;
+  }
+
+  if (payload.address !== undefined) {
+    user.address = sanitizeText(payload.address, 220);
+  }
+
+  if (payload.billingAddress !== undefined && payload.billingAddress && typeof payload.billingAddress === "object") {
     const normalizedBillingAddress = {
-      region: String(billingAddress.region || "").trim(),
-      province: String(billingAddress.province || "").trim(),
-      city: String(billingAddress.city || "").trim(),
-      barangay: String(billingAddress.barangay || "").trim(),
-      street: String(billingAddress.street || "").trim(),
+      region: sanitizeText(payload.billingAddress.region, 120),
+      province: sanitizeText(payload.billingAddress.province, 120),
+      city: sanitizeText(payload.billingAddress.city, 120),
+      barangay: sanitizeText(payload.billingAddress.barangay, 120),
+      street: sanitizeText(payload.billingAddress.street, 180),
     };
     user.billingAddress = normalizedBillingAddress;
     user.address = formatAddressLine(normalizedBillingAddress) || user.address;
   }
-  if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
 
-  await user.save();
-  return res.json({ user: user.toJSON() });
+  if (allowEmailChange && payload.email !== undefined) {
+    // Placeholder for a future verified-email-change flow.
+  }
+
+  return { ok: true };
+};
+
+const getProfile = async (req, res) => {
+  return res.json({ user: req.authUser.toJSON() });
+};
+
+const getProfileById = async (req, res) => {
+  const target = await User.findById(req.params.id);
+  if (!target || target.isDeleted || target.accountStatus === "deleted") {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  if (!canManageTargetProfile(req.authUser, target)) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  return res.json({ user: target.toJSON() });
+};
+
+const updateProfile = async (req, res) => {
+  const result = await applyProfileUpdate(req.authUser, req.body || {});
+  if (!result.ok) {
+    return res.status(result.status).json({ message: result.message });
+  }
+
+  await req.authUser.save();
+  return res.json({ user: req.authUser.toJSON() });
+};
+
+const updateProfileById = async (req, res) => {
+  const target = await User.findById(req.params.id);
+  if (!target || target.isDeleted || target.accountStatus === "deleted") {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  if (!canManageTargetProfile(req.authUser, target)) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const result = await applyProfileUpdate(target, req.body || {});
+  if (!result.ok) {
+    return res.status(result.status).json({ message: result.message });
+  }
+
+  await target.save();
+  return res.json({ user: target.toJSON() });
 };
 
 const listAddresses = async (req, res) => {
@@ -178,11 +363,10 @@ const updateAddress = async (req, res) => {
 const deleteAddress = async (req, res) => {
   const addressId = String(req.params.addressId || "").trim();
   const user = req.authUser;
-  const nextAddresses = (Array.isArray(user.addresses) ? user.addresses : []).filter(
-    (item) => String(item._id) !== addressId
-  );
+  const current = Array.isArray(user.addresses) ? user.addresses : [];
+  const nextAddresses = current.filter((item) => String(item._id) !== addressId);
 
-  if (nextAddresses.length === (user.addresses || []).length) {
+  if (nextAddresses.length === current.length) {
     return res.status(404).json({ message: "Address not found." });
   }
 
@@ -211,26 +395,46 @@ const setDefaultAddress = async (req, res) => {
   return res.json({ addresses: user.addresses });
 };
 
+const updateSettings = async (req, res) => {
+  const payload = req.body || {};
+  const preferencesPayload = payload.preferences || payload;
+  const privacyPayload = payload.privacy || payload;
+  const notificationsPayload = payload.notifications || payload;
+
+  req.authUser.preferences = normalizePreferences(req.authUser.preferences?.toObject?.() || req.authUser.preferences || {}, preferencesPayload);
+  req.authUser.privacy = normalizePrivacy(req.authUser.privacy?.toObject?.() || req.authUser.privacy || {}, privacyPayload);
+  req.authUser.notifications = normalizeNotifications(
+    req.authUser.notifications?.toObject?.() || req.authUser.notifications || {},
+    notificationsPayload
+  );
+
+  await req.authUser.save();
+  return res.json({ user: req.authUser.toJSON() });
+};
+
 const updatePreferences = async (req, res) => {
-  req.authUser.preferences = { ...req.authUser.preferences.toObject(), ...req.body };
+  req.authUser.preferences = normalizePreferences(req.authUser.preferences?.toObject?.() || req.authUser.preferences || {}, req.body || {});
   await req.authUser.save();
   return res.json({ user: req.authUser.toJSON() });
 };
 
 const updatePrivacy = async (req, res) => {
-  req.authUser.privacy = { ...req.authUser.privacy.toObject(), ...req.body };
+  req.authUser.privacy = normalizePrivacy(req.authUser.privacy?.toObject?.() || req.authUser.privacy || {}, req.body || {});
   await req.authUser.save();
   return res.json({ user: req.authUser.toJSON() });
 };
 
 const updateNotifications = async (req, res) => {
-  req.authUser.notifications = { ...req.authUser.notifications.toObject(), ...req.body };
+  req.authUser.notifications = normalizeNotifications(
+    req.authUser.notifications?.toObject?.() || req.authUser.notifications || {},
+    req.body || {}
+  );
   await req.authUser.save();
   return res.json({ user: req.authUser.toJSON() });
 };
 
 const changePassword = async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
+  const { currentPassword, newPassword } = req.body || {};
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: "Current password and new password are required" });
   }
@@ -239,7 +443,7 @@ const changePassword = async (req, res) => {
     return res.status(400).json({ message: "This account uses OAuth. Set a local password from account recovery flow." });
   }
 
-  const valid = await bcrypt.compare(currentPassword, req.authUser.passwordHash);
+  const valid = await bcrypt.compare(String(currentPassword), req.authUser.passwordHash);
   if (!valid) {
     return res.status(400).json({ message: "Current password is incorrect" });
   }
@@ -250,62 +454,201 @@ const changePassword = async (req, res) => {
     });
   }
 
-  if (currentPassword === newPassword) {
+  if (String(currentPassword) === String(newPassword)) {
     return res.status(400).json({ message: "New password must be different from current password" });
   }
 
-  req.authUser.passwordHash = await bcrypt.hash(newPassword, 10);
+  req.authUser.passwordHash = await bcrypt.hash(String(newPassword), 10);
   await req.authUser.save();
   return res.json({ message: "Password changed successfully" });
 };
 
+const requestPasswordChangeEmail = async (req, res) => {
+  if (!canSendEmail()) {
+    return res.status(500).json({ message: "Email service is not configured." });
+  }
+
+  const { token, tokenHash } = generatePasswordResetToken();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + PASSWORD_RESET_MINUTES * 60 * 1000);
+
+  req.authUser.passwordReset = {
+    tokenHash,
+    expiresAt,
+    usedAt: null,
+    requestedAt: now,
+  };
+  await req.authUser.save();
+
+  const encodedToken = encodeURIComponent(token);
+  const resetUrl = `${env.frontendUrl}/reset-password/${encodedToken}`;
+
+  await sendEmail({
+    to: req.authUser.email,
+    subject: "Change your AeroPulse password",
+    text: [
+      "A request was made to change your AeroPulse password.",
+      `Use this secure link to continue (valid for ${PASSWORD_RESET_MINUTES} minutes):`,
+      resetUrl,
+      "If you did not request this, you can ignore this email.",
+    ].join("\n\n"),
+    html: `
+      <p>A request was made to change your AeroPulse password.</p>
+      <p>Use this secure link to continue (valid for ${PASSWORD_RESET_MINUTES} minutes):</p>
+      <p><a href="${resetUrl}">${resetUrl}</a></p>
+      <p>If you did not request this, you can ignore this email.</p>
+    `,
+  });
+
+  return res.json({ message: "Password change link sent to your email." });
+};
+
+const anonymizeRelatedData = async (userId) => {
+  const maskedName = "Deleted User";
+  await Order.updateMany(
+    { customer: userId },
+    {
+      $set: {
+        customer: null,
+        customerName: maskedName,
+        "address.name": maskedName,
+        "address.phone": "",
+      },
+    }
+  );
+  await Notification.deleteMany({ user: userId });
+};
+
 const deleteAccount = async (req, res) => {
-  await req.authUser.deleteOne();
-  return res.json({ message: "Account deleted successfully" });
+  const { password, confirmText } = req.body || {};
+  const confirmation = String(confirmText || "").trim().toUpperCase();
+  if (confirmation !== "DELETE") {
+    return res.status(400).json({ message: "Please type DELETE to confirm account deletion." });
+  }
+
+  if (req.authUser.passwordHash) {
+    if (!password) {
+      return res.status(400).json({ message: "Password is required to delete your account." });
+    }
+    const valid = await bcrypt.compare(String(password), req.authUser.passwordHash);
+    if (!valid) {
+      return res.status(401).json({ message: "Incorrect password." });
+    }
+  }
+
+  const mode = String(env.accountDeleteMode || "soft").toLowerCase() === "hard" ? "hard" : "soft";
+  const userId = req.authUser._id;
+
+  if (mode === "hard") {
+    await anonymizeRelatedData(userId);
+    await req.authUser.deleteOne();
+    return res.json({ message: "Account deleted successfully", mode });
+  }
+
+  const deletedAlias = `deleted_${String(userId)}@deleted.local`;
+  req.authUser.email = deletedAlias;
+  req.authUser.username = undefined;
+  req.authUser.name = "Deleted User";
+  req.authUser.name_first = "Deleted";
+  req.authUser.name_last = "User";
+  req.authUser.phone = undefined;
+  req.authUser.passwordHash = "";
+  req.authUser.avatarUrl = "";
+  req.authUser.address = "";
+  req.authUser.billingAddress = { region: "", province: "", city: "", barangay: "", street: "" };
+  req.authUser.addresses = [];
+  req.authUser.privacy = normalizePrivacy(req.authUser.privacy?.toObject?.() || {}, {
+    profileVisibility: "private",
+    showEmail: false,
+    showPhone: false,
+    activityStatus: false,
+    dataSharing: false,
+  });
+  req.authUser.notifications = normalizeNotifications(req.authUser.notifications?.toObject?.() || {}, {
+    email: false,
+    inApp: false,
+    push: false,
+    sms: false,
+    accountUpdates: false,
+    orderUpdates: false,
+    systemAlerts: false,
+    promotions: false,
+    serviceUpdates: false,
+  });
+  req.authUser.accountStatus = "deleted";
+  req.authUser.isDeleted = true;
+  req.authUser.deletedAt = new Date();
+
+  await req.authUser.save();
+  await anonymizeRelatedData(userId);
+  return res.json({ message: "Account deleted successfully", mode });
 };
 
 const listUsers = async (req, res) => {
-  const role = req.query.role;
+  const role = String(req.query.role || "").trim();
   const locked = req.query.locked;
 
-  if (req.authUser.role !== "admin" && req.authUser.role !== "superadmin") {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-
-  const query = {};
+  const query = { isDeleted: { $ne: true }, accountStatus: { $ne: "deleted" } };
   if (role) query.role = role;
   if (locked === "true") query.lockoutUntil = { $gt: new Date() };
+
+  // Admin can only list customers and technicians.
+  if (req.authUser.role === "admin") {
+    query.role = role || { $in: ["customer", "technician"] };
+    if (role && !["customer", "technician"].includes(role)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+  }
 
   const users = await User.find(query).sort({ createdAt: -1 }).limit(500);
   return res.json({ users: users.map((u) => u.toJSON()) });
 };
 
 const unlockUser = async (req, res) => {
-  if (req.authUser.role !== "admin" && req.authUser.role !== "superadmin") {
-    return res.status(403).json({ message: "Forbidden" });
-  }
   const user = await User.findById(req.params.id);
-  if (!user) {
+  if (!user || user.isDeleted || user.accountStatus === "deleted") {
     return res.status(404).json({ message: "User not found" });
   }
+
+  if (!canManageTargetProfile(req.authUser, user)) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
   user.failedLoginAttempts = 0;
   user.lockoutUntil = null;
   await user.save();
   return res.json({ user: user.toJSON() });
 };
 
+const shouldCreateInAppNotification = (user, type = "system") => {
+  if (!user) return false;
+  const notifications = user.notifications?.toObject?.() || user.notifications || {};
+  if (notifications.inApp === false || notifications.push === false) return false;
+  if (!NOTIFICATION_TYPES.includes(type)) return true;
+  if (type === "account" && notifications.accountUpdates === false) return false;
+  if (type === "order" && notifications.orderUpdates === false) return false;
+  if (type === "system" && notifications.systemAlerts === false) return false;
+  return true;
+};
+
 module.exports = {
   listUsers,
+  getProfile,
+  getProfileById,
   updateProfile,
+  updateProfileById,
   listAddresses,
   addAddress,
   updateAddress,
   deleteAddress,
   setDefaultAddress,
+  updateSettings,
   updatePreferences,
   updatePrivacy,
   updateNotifications,
   changePassword,
+  requestPasswordChangeEmail,
   deleteAccount,
   unlockUser,
+  shouldCreateInAppNotification,
 };

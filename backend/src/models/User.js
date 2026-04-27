@@ -34,6 +34,16 @@ const userSchema = new mongoose.Schema(
     name_first: { type: String, required: true, trim: true },
     name_last: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
+      lowercase: true,
+      trim: true,
+      minlength: 3,
+      maxlength: 30,
+      match: /^[a-z0-9_.-]+$/,
+    },
     phone: { type: String, unique: true, sparse: true, trim: true },
     passwordHash: { type: String },
     authProvider: {
@@ -55,19 +65,29 @@ const userSchema = new mongoose.Schema(
       language: { type: String, default: "English" },
       currency: { type: String, default: "PHP" },
       timezone: { type: String, default: "Asia/Manila" },
+      theme: { type: String, enum: ["light", "dark"], default: "light" },
       darkMode: { type: Boolean, default: false },
       autoBook: { type: Boolean, default: true },
     },
     privacy: {
-      profileVisibility: { type: String, default: "public" },
+      profileVisibility: {
+        type: String,
+        enum: ["public", "private", "role_based"],
+        default: "public",
+      },
+      dataSharing: { type: Boolean, default: false },
       showEmail: { type: Boolean, default: false },
       showPhone: { type: Boolean, default: false },
       activityStatus: { type: Boolean, default: true },
     },
     notifications: {
       email: { type: Boolean, default: true },
+      inApp: { type: Boolean, default: true },
       push: { type: Boolean, default: true },
       sms: { type: Boolean, default: false },
+      accountUpdates: { type: Boolean, default: true },
+      orderUpdates: { type: Boolean, default: true },
+      systemAlerts: { type: Boolean, default: true },
       promotions: { type: Boolean, default: true },
       serviceUpdates: { type: Boolean, default: true },
     },
@@ -85,6 +105,14 @@ const userSchema = new mongoose.Schema(
       usedAt: { type: Date, default: null },
       requestedAt: { type: Date, default: null },
     },
+    accountStatus: {
+      type: String,
+      enum: ["active", "disabled", "deleted"],
+      default: "active",
+      index: true,
+    },
+    isDeleted: { type: Boolean, default: false, index: true },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
@@ -95,6 +123,9 @@ userSchema.set("toJSON", {
     delete ret._id;
     delete ret.__v;
     delete ret.passwordHash;
+    delete ret.passwordReset;
+    delete ret.failedLoginAttempts;
+    delete ret.lockoutUntil;
     return ret;
   },
 });

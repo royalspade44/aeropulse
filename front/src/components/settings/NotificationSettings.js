@@ -1,18 +1,64 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import icons from '../common/icons';
 
-function NotificationSettings() {
+function NotificationSettings({ user, onUpdateNotifications, onUpdateSettings }) {
   const [notifications, setNotifications] = useState({
     email: true,
-    push: true,
+    inApp: true,
     sms: false,
-    promotions: true,
-    serviceUpdates: true
+    accountUpdates: true,
+    orderUpdates: true,
+    systemAlerts: true,
   });
+  const [saving, setSaving] = useState(false);
 
-  const toggleSetting = (key) => {
-    setNotifications({ ...notifications, [key]: !notifications[key] });
-    alert(`${key} notification ${!notifications[key] ? 'enabled' : 'disabled'}`);
+  useEffect(() => {
+    const source = user?.notifications || {};
+    setNotifications({
+      email: source.email !== false,
+      inApp: source.inApp !== false && source.push !== false,
+      sms: source.sms || false,
+      accountUpdates: source.accountUpdates !== false,
+      orderUpdates: source.orderUpdates !== false,
+      systemAlerts: source.systemAlerts !== false,
+    });
+  }, [user]);
+
+  const role = String(user?.role || 'customer').toLowerCase();
+  const showOrderNotifications = role === 'customer';
+  const showSystemAlerts = role === 'admin' || role === 'technician' || role === 'superadmin';
+
+  const rows = useMemo(() => {
+    const all = [
+      { key: 'email', label: 'Email Notifications', description: 'Receive updates through email.' },
+      { key: 'inApp', label: 'In-app Notifications', description: 'Show account notifications inside the app.' },
+      { key: 'sms', label: 'SMS Notifications', description: 'Receive critical updates via SMS.' },
+      { key: 'accountUpdates', label: 'Account Updates', description: 'Security and account-related updates.' },
+      { key: 'orderUpdates', label: 'Order / Transaction Updates', description: 'Order stage changes and transaction updates.', visible: showOrderNotifications },
+      { key: 'systemAlerts', label: 'System Alerts', description: 'Operational and branch-level alerts.', visible: showSystemAlerts },
+    ];
+    return all.filter((item) => item.visible !== false);
+  }, [showOrderNotifications, showSystemAlerts]);
+
+  const toggle = (key) => {
+    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        ...notifications,
+        push: notifications.inApp,
+      };
+      if (onUpdateSettings) {
+        await onUpdateSettings({ notifications: payload });
+      } else {
+        await onUpdateNotifications(payload);
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -22,59 +68,23 @@ function NotificationSettings() {
         <h2>Notification Settings</h2>
       </div>
       <div className="settings-list">
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Email Notifications</div>
-            <div className="setting-description">Receive updates via email</div>
+        {rows.map((row) => (
+          <div className="setting-item" key={row.key}>
+            <div className="setting-info">
+              <div className="setting-label">{row.label}</div>
+              <div className="setting-description">{row.description}</div>
+            </div>
+            <label className="toggle-switch">
+              <input type="checkbox" checked={Boolean(notifications[row.key])} onChange={() => toggle(row.key)} />
+              <span className="toggle-slider" />
+            </label>
           </div>
-          <label className="toggle-switch">
-            <input type="checkbox" checked={notifications.email} onChange={() => toggleSetting('email')} />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
+        ))}
 
         <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Push Notifications</div>
-            <div className="setting-description">Receive real-time alerts</div>
-          </div>
-          <label className="toggle-switch">
-            <input type="checkbox" checked={notifications.push} onChange={() => toggleSetting('push')} />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">SMS Notifications</div>
-            <div className="setting-description">Get text message alerts</div>
-          </div>
-          <label className="toggle-switch">
-            <input type="checkbox" checked={notifications.sms} onChange={() => toggleSetting('sms')} />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Promotions & Offers</div>
-            <div className="setting-description">Special deals and discounts</div>
-          </div>
-          <label className="toggle-switch">
-            <input type="checkbox" checked={notifications.promotions} onChange={() => toggleSetting('promotions')} />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Service Updates</div>
-            <div className="setting-description">Maintenance and service alerts</div>
-          </div>
-          <label className="toggle-switch">
-            <input type="checkbox" checked={notifications.serviceUpdates} onChange={() => toggleSetting('serviceUpdates')} />
-            <span className="toggle-slider"></span>
-          </label>
+          <button type="button" className="modal-btn modal-btn-primary" onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Notification Settings'}
+          </button>
         </div>
       </div>
     </div>

@@ -1,133 +1,125 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import icons from '../common/icons';
+import { translateText } from '../../utils/customerI18n';
 
-function PreferencesSettings({ onDarkModeChange, darkMode }) {
+function PreferencesSettings({ user, onUpdatePreferences, onUpdateSettings }) {
   const [preferences, setPreferences] = useState({
     language: 'English',
-    currency: 'PHP',
     timezone: 'Asia/Manila',
-    autoBook: true
+    theme: 'light',
+    autoBook: true,
   });
+  const [saving, setSaving] = useState(false);
+  const language = user?.preferences?.language || 'English';
+  const t = (text) => translateText(text, language);
 
   useEffect(() => {
-    const savedPreferences = localStorage.getItem('userPreferences');
-    if (savedPreferences) {
-      const parsed = JSON.parse(savedPreferences);
-      setPreferences(prev => ({ ...prev, ...parsed }));
-    }
-  }, []);
+    const source = user?.preferences || {};
+    setPreferences({
+      language: source.language || 'English',
+      timezone: source.timezone || 'Asia/Manila',
+      theme: source.theme || (source.darkMode ? 'dark' : 'light'),
+      autoBook: source.autoBook !== false,
+    });
+  }, [user]);
 
-  const handlePreferenceChange = (key, value) => {
-    const newPreferences = { ...preferences, [key]: value };
-    setPreferences(newPreferences);
-    localStorage.setItem('userPreferences', JSON.stringify(newPreferences));
-    
-    if (key === 'darkMode') {
-      onDarkModeChange(value);
-    }
-    
-    // Show success message without alert for better UX
-    showToast(`${key} updated to ${value}`);
+  const updateField = (key, value) => {
+    setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
-  const showToast = (message) => {
-    // Create a temporary toast notification
-    const toast = document.createElement('div');
-    toast.textContent = message;
-    toast.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #333;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      z-index: 2000;
-      animation: fadeInOut 2s ease;
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2000);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        language: preferences.language,
+        timezone: preferences.timezone,
+        theme: preferences.theme,
+        darkMode: preferences.theme === 'dark',
+        autoBook: preferences.autoBook,
+      };
+      if (onUpdateSettings) {
+        await onUpdateSettings({ preferences: payload });
+      } else {
+        await onUpdatePreferences(payload);
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div className="settings-section">
       <div className="section-title">
         <span className="section-icon"><img src={icons.customize} alt="" className="inline-icon inline-icon--md" /></span>
-        <h2>Preferences</h2>
+        <h2>{t('Preferences')}</h2>
       </div>
       <div className="settings-list">
         <div className="setting-item">
           <div className="setting-info">
-            <div className="setting-label">Language</div>
-            <div className="setting-description">Choose your preferred language</div>
+            <div className="setting-label">{t('Theme')}</div>
+            <div className="setting-description">Choose your app appearance.</div>
+          </div>
+          <select
+            value={preferences.theme}
+            onChange={(event) => updateField('theme', event.target.value)}
+            className="setting-select"
+          >
+            <option value="light">{t('Light')}</option>
+            <option value="dark">{t('Dark')}</option>
+          </select>
+        </div>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <div className="setting-label">{t('Language')}</div>
+            <div className="setting-description">Choose your preferred language.</div>
           </div>
           <select
             value={preferences.language}
-            onChange={(e) => handlePreferenceChange('language', e.target.value)}
+            onChange={(event) => updateField('language', event.target.value)}
             className="setting-select"
           >
             <option value="English">English</option>
             <option value="Filipino">Filipino</option>
-            <option value="Chinese">Chinese</option>
           </select>
         </div>
 
         <div className="setting-item">
           <div className="setting-info">
-            <div className="setting-label">Currency</div>
-            <div className="setting-description">Display currency format (Fixed: Philippine Peso)</div>
-          </div>
-          <select
-            value={preferences.currency}
-            className="setting-select"
-            disabled
-            style={{ opacity: 0.7, cursor: 'not-allowed' }}
-          >
-            <option value="PHP">Philippine Peso (₱)</option>
-          </select>
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Time Zone</div>
-            <div className="setting-description">Set your local time zone</div>
+            <div className="setting-label">{t('Timezone')}</div>
+            <div className="setting-description">Use your locale for schedules and logs.</div>
           </div>
           <select
             value={preferences.timezone}
-            onChange={(e) => handlePreferenceChange('timezone', e.target.value)}
+            onChange={(event) => updateField('timezone', event.target.value)}
             className="setting-select"
           >
-            <option value="Asia/Manila">Manila (GMT+8)</option>
-            <option value="Asia/Cebu">Cebu (GMT+8)</option>
-            <option value="Asia/Davao">Davao (GMT+8)</option>
+            <option value="Asia/Manila">Asia/Manila</option>
+            <option value="UTC">UTC</option>
+            <option value="America/New_York">America/New_York</option>
+            <option value="Europe/London">Europe/London</option>
           </select>
         </div>
 
         <div className="setting-item">
           <div className="setting-info">
-            <div className="setting-label">Dark Mode</div>
-            <div className="setting-description">Switch to dark theme for the entire website</div>
+            <div className="setting-label">{t('Auto-booking')}</div>
+            <div className="setting-description">Automatically schedule recurring services.</div>
           </div>
           <label className="toggle-switch">
-            <input 
-              type="checkbox" 
-              checked={darkMode} 
-              onChange={() => handlePreferenceChange('darkMode', !darkMode)} 
+            <input
+              type="checkbox"
+              checked={preferences.autoBook}
+              onChange={() => updateField('autoBook', !preferences.autoBook)}
             />
-            <span className="toggle-slider"></span>
+            <span className="toggle-slider" />
           </label>
         </div>
 
         <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Auto-Booking</div>
-            <div className="setting-description">Automatically book recurring services</div>
-          </div>
-          <label className="toggle-switch">
-            <input type="checkbox" checked={preferences.autoBook} onChange={() => handlePreferenceChange('autoBook', !preferences.autoBook)} />
-            <span className="toggle-slider"></span>
-          </label>
+          <button type="button" className="modal-btn modal-btn-primary" onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : t('Save Preferences')}
+          </button>
         </div>
       </div>
     </div>

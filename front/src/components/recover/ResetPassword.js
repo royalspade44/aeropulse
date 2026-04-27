@@ -13,6 +13,15 @@ function ResetPassword() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const isStrongPassword = (value = '') => {
+    if (value.length < 8) return false;
+    if (!/(?=.*[a-z])/.test(value)) return false;
+    if (!/(?=.*[A-Z])/.test(value)) return false;
+    if (!/(?=.*\d)/.test(value)) return false;
+    if (!/(?=.*[@$!%*?&])/.test(value)) return false;
+    return true;
+  };
+
   const submit = async (event) => {
     event.preventDefault();
 
@@ -21,8 +30,8 @@ function ResetPassword() {
       setMessage('');
       return;
     }
-    if (!password || password.length < 8) {
-      setError('Password must be at least 8 characters long.');
+    if (!isStrongPassword(password)) {
+      setError('Password must be 8+ chars with upper, lower, number, and special character.');
       setMessage('');
       return;
     }
