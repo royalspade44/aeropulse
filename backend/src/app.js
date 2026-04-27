@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const env = require("./config/env");
@@ -19,6 +20,7 @@ const app = express();
 app.use(helmet());
 app.use(cors({ origin: env.corsOrigin }));
 app.use(morgan("dev"));
+app.use(cookieParser());
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {

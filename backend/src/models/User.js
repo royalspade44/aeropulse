@@ -79,6 +79,12 @@ const userSchema = new mongoose.Schema(
     lastLogin: { type: Date },
     failedLoginAttempts: { type: Number, default: 0 },
     lockoutUntil: { type: Date, default: null },
+    passwordReset: {
+      tokenHash: { type: String, default: "" },
+      expiresAt: { type: Date, default: null },
+      usedAt: { type: Date, default: null },
+      requestedAt: { type: Date, default: null },
+    },
   },
   { timestamps: true }
 );

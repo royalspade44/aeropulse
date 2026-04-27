@@ -1,8 +1,20 @@
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+const { OAuth2Client } = require("google-auth-library");
 const User = require("../models/User");
 const { signAccessToken } = require("../utils/token");
 const env = require("../config/env");
 const { BRANCHES } = require("../domain/branchRouting");
+const { canSendEmail, sendEmail } = require("../utils/email");
+
+const OAUTH_GOOGLE_STATE_COOKIE = "oauth_google_state";
+const PASSWORD_RESET_MINUTES = Math.max(15, Math.min(30, Number(env.passwordResetTokenTtlMinutes || 20)));
+
+const oauthClient = new OAuth2Client({
+  clientId: env.googleClientId,
+  clientSecret: env.googleClientSecret,
+  redirectUri: env.googleRedirectUri,
+});
 
 const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "");
 const canonicalizePhMobile = (phone = "") => {
@@ -56,6 +68,66 @@ const lockoutSecondsForAttemptCount = (attempts) => {
   return Math.ceil(ms / 1000);
 };
 
+const getOAuthCookieOptions = (req) => ({
+  httpOnly: true,
+  sameSite: "lax",
+  secure: Boolean(req.secure || String(env.frontendUrl || "").startsWith("https://")),
+  maxAge: 10 * 60 * 1000,
+  path: "/",
+});
+
+const generatePasswordResetToken = () => {
+  const nonce = crypto.randomBytes(24).toString("hex");
+  const createdAt = Date.now().toString();
+  const payload = `${nonce}.${createdAt}`;
+  const signature = crypto
+    .createHmac("sha256", env.passwordResetTokenSecret)
+    .update(payload)
+    .digest("hex");
+  const token = `${payload}.${signature}`;
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  return { token, tokenHash };
+};
+
+const parseAndVerifyPasswordResetToken = (token = "") => {
+  const [nonce = "", createdAtRaw = "", signature = ""] = String(token).split(".");
+  if (!nonce || !createdAtRaw || !signature) {
+    return { ok: false, reason: "invalid" };
+  }
+  if (!/^\d+$/.test(createdAtRaw)) {
+    return { ok: false, reason: "invalid" };
+  }
+
+  const payload = `${nonce}.${createdAtRaw}`;
+  const expected = crypto
+    .createHmac("sha256", env.passwordResetTokenSecret)
+    .update(payload)
+    .digest("hex");
+
+  if (!/^[a-f0-9]+$/i.test(signature) || signature.length !== expected.length) {
+    return { ok: false, reason: "invalid" };
+  }
+
+  const isSigValid = crypto.timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(expected, "hex"));
+  if (!isSigValid) {
+    return { ok: false, reason: "invalid" };
+  }
+
+  return {
+    ok: true,
+    tokenHash: crypto.createHash("sha256").update(token).digest("hex"),
+  };
+};
+
+const clearPasswordResetState = (user) => {
+  user.passwordReset = {
+    tokenHash: "",
+    expiresAt: null,
+    usedAt: null,
+    requestedAt: null,
+  };
+};
+
 const register = async (req, res) => {
   const {
     email,
@@ -67,7 +139,6 @@ const register = async (req, res) => {
     address = "",
     billingAddress,
     emailOtp,
-    totpCode,
     smsCode,
   } = req.body;
   const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
@@ -76,7 +147,6 @@ const register = async (req, res) => {
     email: normalizedEmail || "(missing)",
     hasPhone: Boolean(phone),
     hasEmailOtp: Boolean(emailOtp),
-    hasTotpCode: Boolean(totpCode),
     hasSmsCode: Boolean(smsCode),
   });
 
@@ -95,10 +165,10 @@ const register = async (req, res) => {
   const composedBillingAddress = formatBillingAddress(normalizedBillingAddress);
   const normalizedAddress = typeof address === "string" ? address.trim() : "";
 
-  if (!isValidSixDigitCode(emailOtp) || !isValidSixDigitCode(totpCode) || !isValidSixDigitCode(smsCode)) {
+  if (!isValidSixDigitCode(emailOtp) || !isValidSixDigitCode(smsCode)) {
     console.warn("[Auth][Register] Invalid code format", { email: normalizedEmail });
     return res.status(400).json({
-      message: "Invalid demo code format. Email OTP, authenticator code, and SMS code must be exactly 6 digits.",
+      message: "Invalid demo code format. Email OTP and SMS code must be exactly 6 digits.",
     });
   }
 
@@ -237,52 +307,51 @@ const googleStart = async (req, res) => {
     return res.status(500).json({ message: "Google OAuth is not configured on server." });
   }
 
-  const params = new URLSearchParams({
-    client_id: env.googleClientId,
-    redirect_uri: env.googleRedirectUri,
-    response_type: "code",
-    scope: "openid email profile",
+  const oauthState = crypto.randomBytes(24).toString("hex");
+  res.cookie(OAUTH_GOOGLE_STATE_COOKIE, oauthState, getOAuthCookieOptions(req));
+
+  const authUrl = oauthClient.generateAuthUrl({
     access_type: "offline",
+    scope: ["openid", "email", "profile"],
     prompt: "select_account",
+    state: oauthState,
   });
 
-  return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
+  return res.redirect(authUrl);
 };
 
 const googleCallback = async (req, res, next) => {
   try {
     const { code, state } = req.query;
+    const cookieState = req.cookies?.[OAUTH_GOOGLE_STATE_COOKIE] || "";
+    res.clearCookie(OAUTH_GOOGLE_STATE_COOKIE, { path: "/" });
+
+    if (!state || !cookieState || state !== cookieState) {
+      return res.redirect(`${env.frontendUrl}/login?google_error=invalid_state`);
+    }
+
     if (!code) {
       return res.redirect(`${env.frontendUrl}/login?google_error=missing_code`);
     }
 
-    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        code,
-        client_id: env.googleClientId,
-        client_secret: env.googleClientSecret,
-        redirect_uri: env.googleRedirectUri,
-        grant_type: "authorization_code",
-      }),
-    });
+    const { tokens } = await oauthClient.getToken(code);
+    oauthClient.setCredentials(tokens);
 
-    if (!tokenResponse.ok) {
-      return res.redirect(`${env.frontendUrl}/login?google_error=token_exchange_failed`);
+    if (!tokens.id_token) {
+      return res.redirect(`${env.frontendUrl}/login?google_error=missing_id_token`);
     }
 
-    const tokenData = await tokenResponse.json();
-    const profileResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    const ticket = await oauthClient.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: env.googleClientId,
     });
+    const profile = ticket.getPayload() || {};
+    const email = String(profile.email || "").trim().toLowerCase();
 
-    if (!profileResponse.ok) {
-      return res.redirect(`${env.frontendUrl}/login?google_error=profile_fetch_failed`);
+    if (!profile.email_verified) {
+      return res.redirect(`${env.frontendUrl}/login?google_error=email_not_verified`);
     }
 
-    const profile = await profileResponse.json();
-    const email = (profile.email || "").toLowerCase();
     if (!email) {
       return res.redirect(`${env.frontendUrl}/login?google_error=missing_email`);
     }
@@ -316,8 +385,114 @@ const googleCallback = async (req, res, next) => {
     const payload = encodeURIComponent(JSON.stringify(user.toJSON()));
     return res.redirect(`${env.frontendUrl}/auth/google/callback?token=${appToken}&user=${payload}`);
   } catch (error) {
+    console.error("[Auth][Google] Callback failed", error);
     return next(error);
   }
 };
 
-module.exports = { register, login, me, googleStart, googleCallback };
+const requestPasswordReset = async (req, res) => {
+  const normalizedEmail = String(req.body?.email || "").trim().toLowerCase();
+  if (!normalizedEmail) {
+    return res.status(400).json({ message: "Email is required." });
+  }
+
+  if (!canSendEmail()) {
+    return res.status(500).json({ message: "Email service is not configured." });
+  }
+
+  const user = await User.findOne({ email: normalizedEmail });
+  if (!user) {
+    return res.json({ message: "If this email is registered, a reset link has been sent." });
+  }
+
+  const { token, tokenHash } = generatePasswordResetToken();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + PASSWORD_RESET_MINUTES * 60 * 1000);
+
+  user.passwordReset = {
+    tokenHash,
+    expiresAt,
+    usedAt: null,
+    requestedAt: now,
+  };
+  await user.save();
+
+  const encodedToken = encodeURIComponent(token);
+  const resetUrl = `${env.frontendUrl}/reset-password/${encodedToken}`;
+
+  await sendEmail({
+    to: user.email,
+    subject: "Reset your AeroPulse password",
+    text: [
+      "We received a request to reset your AeroPulse password.",
+      `Use this secure link to reset your password (valid for ${PASSWORD_RESET_MINUTES} minutes):`,
+      resetUrl,
+      "If you did not request this, you can ignore this email.",
+    ].join("\n\n"),
+    html: `
+      <p>We received a request to reset your AeroPulse password.</p>
+      <p>Use this secure link to reset your password (valid for ${PASSWORD_RESET_MINUTES} minutes):</p>
+      <p><a href="${resetUrl}">${resetUrl}</a></p>
+      <p>If you did not request this, you can ignore this email.</p>
+    `,
+  });
+
+  return res.json({ message: "Reset link sent. Please check your email." });
+};
+
+const resetPassword = async (req, res) => {
+  const token = decodeURIComponent(String(req.params?.token || "")).trim();
+  const newPassword = String(req.body?.password || "");
+
+  if (!token) {
+    return res.status(400).json({ message: "Reset token is required." });
+  }
+  if (newPassword.length < 8) {
+    return res.status(400).json({ message: "Password must be at least 8 characters long." });
+  }
+
+  const parsed = parseAndVerifyPasswordResetToken(token);
+  if (!parsed.ok) {
+    return res.status(400).json({ message: "Invalid reset token." });
+  }
+
+  const user = await User.findOne({ "passwordReset.tokenHash": parsed.tokenHash });
+  if (!user) {
+    return res.status(400).json({ message: "Invalid reset token." });
+  }
+
+  if (user.passwordReset?.usedAt) {
+    return res.status(410).json({ message: "This reset link has already been used." });
+  }
+
+  if (!user.passwordReset?.expiresAt || user.passwordReset.expiresAt.getTime() < Date.now()) {
+    return res.status(410).json({ message: "This reset link has expired." });
+  }
+
+  user.passwordHash = await bcrypt.hash(newPassword, 10);
+  user.authProvider = user.googleId ? "google" : "local";
+  user.failedLoginAttempts = 0;
+  user.lockoutUntil = null;
+  user.lastLogin = new Date();
+  user.passwordReset.usedAt = new Date();
+  user.passwordReset.tokenHash = "";
+  user.passwordReset.expiresAt = null;
+  await user.save();
+
+  const appToken = signAccessToken({ sub: user.id, role: user.role });
+  return res.json({
+    message: "Password reset successful.",
+    token: appToken,
+    user: user.toJSON(),
+  });
+};
+
+module.exports = {
+  register,
+  login,
+  me,
+  googleStart,
+  googleCallback,
+  requestPasswordReset,
+  resetPassword,
+};
