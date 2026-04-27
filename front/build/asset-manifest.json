@@ -1,0 +1,26 @@
+{
+  "files": {
+    "main.css": "/static/css/main.2a3c4a08.css",
+    "main.js": "/static/js/main.7302efa4.js",
+    "static/media/globe-pointer.png": "/static/media/globe-pointer.e0b0d9d1470de4263816.png",
+    "static/media/temperature-frigid.png": "/static/media/temperature-frigid.ee44a9dafb000544602d.png",
+    "static/media/tools.png": "/static/media/tools.ca696eb4013b97186d2e.png",
+    "static/media/marker.png": "/static/media/marker.c55232f0c665701ca9d5.png",
+    "static/media/phone-call.png": "/static/media/phone-call.c211b49938c4be48548a.png",
+    "static/media/wind.png": "/static/media/wind.08614db2484b7ea021c8.png",
+    "static/media/broom.png": "/static/media/broom.aa8f7d899ccdcf7a870c.png",
+    "static/media/customize.png": "/static/media/customize.c493310f43852ba7a58b.png",
+    "static/media/check-circle.png": "/static/media/check-circle.c22200ff104c7d3eca15.png",
+    "static/media/member-list.png": "/static/media/member-list.c38da43a4a77fae31fa9.png",
+    "static/media/cart-shopping-fast.png": "/static/media/cart-shopping-fast.6e7eb44fbf0a29de7f32.png",
+    "static/media/box-open.png": "/static/media/box-open.af53faf262330fc3cfd9.png",
+    "static/media/visit.png": "/static/media/visit.a46ae6e2982619a33319.png",
+    "index.html": "/index.html",
+    "main.2a3c4a08.css.map": "/static/css/main.2a3c4a08.css.map",
+    "main.7302efa4.js.map": "/static/js/main.7302efa4.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2a3c4a08.css",
+    "static/js/main.7302efa4.js"
+  ]
+}
