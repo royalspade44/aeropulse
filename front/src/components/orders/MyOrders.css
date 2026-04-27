@@ -1,0 +1,274 @@
+.orders-container {
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+.orders-header {
+  background: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.orders-header-content {
+  display: flex;
+  align-items: center;
+  padding: 15px 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+  gap: 20px;
+}
+
+.orders-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.orders-main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px;
+}
+
+.order-card {
+  background: white;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.order-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.order-header {
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.order-id {
+  font-weight: bold;
+  color: #1E88E5;
+}
+
+.order-date {
+  font-size: 12px;
+  color: #999;
+}
+
+.order-status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-processing {
+  background: #FFF3E0;
+  color: #FF9800;
+}
+
+.status-shipped {
+  background: #E8F5E9;
+  color: #4CAF50;
+}
+
+.status-delivered {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.status-cancelled {
+  background: #FFEBEE;
+  color: #F44336;
+}
+
+.order-body {
+  padding: 20px;
+}
+
+.order-items {
+  margin-bottom: 15px;
+}
+
+.order-item {
+  display: flex;
+  gap: 15px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-item-image {
+  width: 50px;
+  height: 50px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.order-item-details {
+  flex: 1;
+}
+
+.order-item-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.order-item-specs {
+  font-size: 12px;
+  color: #999;
+}
+
+.order-item-price {
+  font-size: 14px;
+  color: #1E88E5;
+  font-weight: bold;
+}
+
+.order-meta-line {
+  font-size: 13px;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.order-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.order-total {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1E88E5;
+}
+
+.order-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.order-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.track-btn {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.track-btn:hover {
+  background: #e0e0e0;
+}
+
+.reorder-btn {
+  background: linear-gradient(135deg, #1E88E5, #0d47a1);
+  color: white;
+}
+
+.reorder-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(30, 136, 229, 0.3);
+}
+
+.empty-orders {
+  text-align: center;
+  padding: 60px;
+  background: white;
+  border-radius: 15px;
+}
+
+.empty-orders h3 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.empty-orders p {
+  color: #999;
+  margin-bottom: 20px;
+}
+
+.shop-now-btn {
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #1E88E5, #0d47a1);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Order Details Modal */
+.order-details-modal {
+  max-width: 600px;
+}
+
+.tracking-info {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.tracking-number {
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
+  color: #1E88E5;
+  margin-top: 5px;
+}
+
+.delivery-date {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .orders-main {
+    padding: 20px;
+  }
+  
+  .order-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .order-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .order-actions {
+    width: 100%;
+  }
+  
+  .order-btn {
+    flex: 1;
+    text-align: center;
+  }
+}

@@ -1,0 +1,119 @@
+/* ===== GlobalDialog.css ===== */
+
+.global-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: globalDialogFadeIn 0.18s ease;
+}
+
+.global-dialog {
+  width: 100%;
+  max-width: 430px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.24);
+  padding: 18px;
+  animation: globalDialogScaleIn 0.22s ease;
+}
+
+@keyframes globalDialogFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes globalDialogScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.global-dialog h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.global-dialog p {
+  margin: 0;
+  color: #334155;
+  white-space: pre-line;
+}
+
+.global-dialog-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.global-dialog-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.global-dialog-btn.primary {
+  background: #1e88e5;
+  color: #fff;
+}
+
+.global-dialog-btn.secondary {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+/* ===== iconStyles.css ===== */
+
+/* Consistent sizing for PNG icons from common/icons */
+.inline-icon {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  object-fit: contain;
+  vertical-align: -0.2em;
+}
+
+.inline-icon--md {
+  width: 1.5rem;
+  height: 1.5rem;
+  vertical-align: middle;
+}
+
+.inline-icon--lg {
+  width: 2rem;
+  height: 2rem;
+  vertical-align: middle;
+}
+
+.inline-icon--xl {
+  width: 2.75rem;
+  height: 2.75rem;
+  vertical-align: middle;
+}
+
+.stat-watermark {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  opacity: 0.12;
+  pointer-events: none;
+}
