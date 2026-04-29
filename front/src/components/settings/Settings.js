@@ -7,6 +7,7 @@ import NotificationSettings from './NotificationSettings';
 import PrivacySettings from './PrivacySettings';
 import PreferencesSettings from './PreferencesSettings';
 import icons from '../common/icons';
+import CustomerHeaderBrand from '../common/CustomerHeaderBrand';
 import Footer from '../home/Footer';
 import { translateText } from '../../utils/customerI18n';
 
@@ -20,16 +21,18 @@ const SETTINGS_TABS = [
 function Settings() {
   const {
     user,
+    currentTheme,
     updatePreferences,
     updatePrivacy,
     updateNotifications,
     updateSettings,
-    changePassword,
     requestPasswordChangeEmail,
     deleteAccount,
     logout,
   } = useUser();
   const navigate = useNavigate();
+
+  const isDark = currentTheme === 'dark';
 
   const [activeTab, setActiveTab] = useState('preferences');
   const [toast, setToast] = useState(null);
@@ -87,11 +90,6 @@ function Settings() {
     'Settings saved.'
   );
 
-  const handleChangePassword = (currentPassword, newPassword) => callWithToast(
-    () => changePassword(currentPassword, newPassword),
-    'Password changed successfully.'
-  );
-
   const handleDeleteAccount = (payload) => callWithToast(
     async () => {
       await deleteAccount(payload);
@@ -119,15 +117,21 @@ function Settings() {
   };
 
   return (
-    <div className="settings-container">
+    <div className={`settings-container ${isDark ? 'dark' : ''}`}>
       <div className="settings-header">
-        <button className="back-btn" onClick={handleBack} aria-label="Go back" type="button">
-          ←
-        </button>
-        <h1>{t('Account Settings')}</h1>
-        <button type="button" className="logout-btn" onClick={handleLogout}>
-          <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" /> {t('Logout')}
-        </button>
+        <div className="customer-header-left-group">
+          <button className="back-btn" onClick={handleBack} aria-label="Go back" type="button">
+            ←
+          </button>
+          <CustomerHeaderBrand />
+        </div>
+        <div className="customer-header-spacer" />
+        <div className="customer-header-right-group">
+          <h1>{t('Account Settings')}</h1>
+          <button type="button" className="logout-btn" onClick={handleLogout}>
+            <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" /> {t('Logout')}
+          </button>
+        </div>
       </div>
 
       <div className="settings-content settings-content--layout">
@@ -190,7 +194,6 @@ function Settings() {
           {activeTab === 'security' ? (
             <AccountSettings
               user={formattedUser}
-              onChangePassword={handleChangePassword}
               onRequestPasswordChangeEmail={handleRequestPasswordChangeEmail}
               onDeleteAccount={handleDeleteAccount}
             />

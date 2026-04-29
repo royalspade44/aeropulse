@@ -154,3 +154,47 @@
   padding: 9px 12px;
   cursor: pointer;
 }
+
+/* ========== DARK MODE ========== */
+:root[data-theme='dark'] .customer-chatbot-panel {
+  background: #0f3460;
+  border-color: rgba(238, 238, 238, 0.12);
+}
+
+:root[data-theme='dark'] .customer-chatbot-header,
+:root[data-theme='dark'] .customer-chatbot-quick-questions,
+:root[data-theme='dark'] .customer-chatbot-input-row {
+  background: #0f3460;
+  border-color: rgba(238, 238, 238, 0.12);
+}
+
+:root[data-theme='dark'] .customer-chatbot-header h3,
+:root[data-theme='dark'] .customer-chatbot-close {
+  color: #eee;
+}
+
+:root[data-theme='dark'] .customer-chatbot-header p {
+  color: #aaa;
+}
+
+:root[data-theme='dark'] .customer-chatbot-messages {
+  background: #1a1a2e;
+}
+
+:root[data-theme='dark'] .customer-chatbot-message.bot {
+  background: rgba(238, 238, 238, 0.08);
+  color: #eee;
+}
+
+:root[data-theme='dark'] .customer-chatbot-route-btn,
+:root[data-theme='dark'] .customer-chatbot-quick-questions button {
+  background: #1a1a2e;
+  color: #eee;
+  border-color: rgba(238, 238, 238, 0.16);
+}
+
+:root[data-theme='dark'] .customer-chatbot-input-row input {
+  background: #1a1a2e;
+  color: #eee;
+  border-color: rgba(238, 238, 238, 0.16);
+}

@@ -253,6 +253,45 @@
     padding: 20px;
   }
   
+
+/* ========== DARK MODE ========== */
+:root[data-theme='dark'] .orders-container {
+  background: #1a1a2e;
+  color: #eee;
+}
+
+:root[data-theme='dark'] .orders-header {
+  background: #0f3460;
+}
+
+:root[data-theme='dark'] .orders-title {
+  color: #eee;
+}
+
+:root[data-theme='dark'] .order-card {
+  background: #0f3460;
+}
+
+:root[data-theme='dark'] .order-header {
+  background: #1a1a2e;
+  border-bottom-color: rgba(238, 238, 238, 0.12);
+}
+
+:root[data-theme='dark'] .order-date {
+  color: #aaa;
+}
+
+:root[data-theme='dark'] .order-detail-item,
+:root[data-theme='dark'] .order-summary-item,
+:root[data-theme='dark'] .order-item-details {
+  color: #aaa;
+}
+
+:root[data-theme='dark'] .order-item-name,
+:root[data-theme='dark'] .order-total,
+:root[data-theme='dark'] .order-id {
+  color: #eee;
+}
   .order-header {
     flex-direction: column;
     align-items: flex-start;

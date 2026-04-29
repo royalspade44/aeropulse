@@ -9,6 +9,7 @@ import ScheduleServiceModal from './ScheduleServiceModal';
 import WarrantyStatusModal from './WarrantyStatusModal';
 import RegisterQrUnitModal from './RegisterQrUnitModal';
 import icons from '../common/icons';
+import CustomerHeaderBrand from '../common/CustomerHeaderBrand';
 import Footer from '../home/Footer';
 
 function MyUnit() {
@@ -127,11 +128,17 @@ function MyUnit() {
     <div className="myunit-container">
       <div className="myunit-header">
         <div className="myunit-header-content">
-          <button className="back-btn" onClick={handleBack}>←</button>
-          <h1 className="myunit-title">My AC Units</h1>
-          <button className="add-unit-btn" onClick={() => setShowAddModal(true)}>
-            + Add New Unit
-          </button>
+          <div className="customer-header-left-group">
+            <button className="back-btn" onClick={handleBack}>←</button>
+            <CustomerHeaderBrand />
+          </div>
+          <div className="customer-header-spacer" />
+          <div className="customer-header-right-group">
+            <h1 className="myunit-title">My AC Units</h1>
+            <button className="add-unit-btn" onClick={() => setShowAddModal(true)}>
+              + Add New Unit
+            </button>
+          </div>
         </div>
       </div>
 

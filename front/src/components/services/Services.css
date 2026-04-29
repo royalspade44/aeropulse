@@ -800,3 +800,67 @@
     gap: 4px;
   }
 }
+
+/* ========== DARK MODE ========== */
+:root[data-theme='dark'] .services-page {
+  background: #1a1a2e;
+  color: #eee;
+}
+
+:root[data-theme='dark'] .sidebar-section,
+:root[data-theme='dark'] .services-toolbar,
+:root[data-theme='dark'] .service-card,
+:root[data-theme='dark'] .booking-modal {
+  background: #0f3460;
+}
+
+:root[data-theme='dark'] .sidebar-section h3,
+:root[data-theme='dark'] .service-name,
+:root[data-theme='dark'] .results-count {
+  color: #eee;
+}
+
+:root[data-theme='dark'] .category-item {
+  color: #eee;
+}
+
+:root[data-theme='dark'] .category-item:hover {
+  background: rgba(238, 238, 238, 0.06);
+}
+
+:root[data-theme='dark'] .search-box input,
+:root[data-theme='dark'] .sort-select,
+:root[data-theme='dark'] .form-group input,
+:root[data-theme='dark'] .form-group select,
+:root[data-theme='dark'] .form-group textarea {
+  background: #1a1a2e;
+  color: #eee;
+  border-color: rgba(238, 238, 238, 0.16);
+}
+
+:root[data-theme='dark'] .booking-info {
+  background: #1a1a2e;
+}
+
+:root[data-theme='dark'] .booking-label {
+  color: #aaa;
+}
+
+:root[data-theme='dark'] .booking-value,
+:root[data-theme='dark'] .modal-header h3,
+:root[data-theme='dark'] .price-summary {
+  color: #eee;
+}
+
+:root[data-theme='dark'] .modal-footer {
+  background: #0f3460;
+  border-top-color: rgba(238, 238, 238, 0.12);
+}
+
+:root[data-theme='dark'] .service-description,
+:root[data-theme='dark'] .service-meta,
+:root[data-theme='dark'] .active-filter,
+:root[data-theme='dark'] .benefit-item,
+:root[data-theme='dark'] .category-count {
+  color: #aaa;
+}

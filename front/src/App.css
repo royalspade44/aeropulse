@@ -12,26 +12,77 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Theme variable overrides (used by several page-level token sets) */
+:root[data-theme='dark'] {
+  --bg: #1a1a2e;
+  --surface: #0f3460;
+  --surface-2: #0f3460;
+  --ink: #eee;
+  --ink-muted: #aaa;
+  --ink-faint: #aaa;
+  --border: rgba(238, 238, 238, 0.12);
+
+  /* ProfileCenter tokens */
+  --p-page: #1a1a2e;
+  --p-card: #0f3460;
+  --p-surface: #0f3460;
+  --p-surface-alt: #1a1a2e;
+  --p-text-1: #eee;
+  --p-text-2: #aaa;
+  --p-text-3: #aaa;
+  --p-border: rgba(238, 238, 238, 0.12);
+  --p-border-hover: rgba(238, 238, 238, 0.22);
+
+  /* Shop palette */
+  --light-color: #1a1a2e;
+  --dark-color: #eee;
+  --secondary-color: #aaa;
+  --gray-50: #1a1a2e;
+  --gray-100: #0f3460;
+  --gray-200: rgba(238, 238, 238, 0.12);
+  --gray-300: rgba(238, 238, 238, 0.16);
+  --gray-400: #aaa;
+  --gray-500: #aaa;
+  --gray-600: #aaa;
+  --gray-700: #eee;
+  --gray-800: #eee;
+  --gray-900: #eee;
+}
+
+:root[data-theme='dark'] .login-container,
+:root[data-theme='dark'] .register-container {
+  background: #1a1a2e !important;
+}
+
 /* Global Dark Mode Styles */
-.dark-mode {
+body.dark-mode {
   background-color: #1a1a2e;
   color: #eee;
 }
 
-.dark-mode body {
-  background-color: #1a1a2e;
-}
-
-.dark-mode input,
-.dark-mode select,
-.dark-mode textarea {
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
   background-color: #0f3460;
   border-color: #1a1a2e;
   color: #eee;
 }
 
-.dark-mode input::placeholder {
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
   color: #aaa;
+}
+
+body.dark-mode .app-modal-card {
+  background: #0f3460;
+  border-color: #1a1a2e;
+  color: #eee;
+}
+
+body.dark-mode .app-modal-card input {
+  background: #1a1a2e;
+  border-color: #1a1a2e;
+  color: #eee;
 }
 
 /* Toast animation */

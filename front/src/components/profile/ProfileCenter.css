@@ -69,6 +69,11 @@
   z-index: 50;
 }
 
+:root[data-theme='dark'] .profile-header {
+  background: rgba(15, 52, 96, 0.96);
+  border-bottom-color: rgba(238, 238, 238, 0.12);
+}
+
 .header-left {
   display: flex;
   align-items: center;
@@ -1055,4 +1060,9 @@
   100% {
     box-shadow: 0 0 0 0 rgba(91, 84, 239, 0), var(--p-shadow-md);
   }
+}
+
+:root[data-theme='dark'] .header-action {
+  background: #1a1a2e;
+  color: #eee;
 }

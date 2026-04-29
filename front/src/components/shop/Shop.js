@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { apiRequest } from '../../config/api';
 import icons from '../common/icons';
@@ -9,10 +9,12 @@ import ProductGrid from './ProductGrid';
 import CartSidebar from './CartSidebar';
 import ProductModal from './ProductModal';
 import ServiceAreaSelector from '../customer/ServiceAreaSelector';
+import CustomerHeaderBrand from '../common/CustomerHeaderBrand';
 import Footer from '../home/Footer';
 
 function Shop() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { cart, addToCart, updateQuantity, removeFromCart, getCartCount, getCartTotal } = useCart();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedBrand, setSelectedBrand] = useState('all');
@@ -415,6 +417,18 @@ function Shop() {
     [products]
   );
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const requestedBrand = (params.get('brand') || '').trim();
+    if (!requestedBrand) return;
+
+    const normalizedRequested = requestedBrand.toLowerCase();
+    const matchedBrand = brands.find((brand) => brand.toLowerCase() === normalizedRequested);
+    if (matchedBrand) {
+      setSelectedBrand(matchedBrand);
+    }
+  }, [location.search, brands]);
+
   const getFilteredProducts = () => {
     let filtered = products;
     
@@ -474,16 +488,18 @@ function Shop() {
     <div className="shop-container">
       <div className="shop-header">
         <div className="shop-header-content">
-          <div className="shop-header-left">
+          <div className="customer-header-left-group shop-header-left">
             <button className="back-btn" onClick={handleBack}>←</button>
+            <CustomerHeaderBrand />
+          </div>
+          <div className="customer-header-spacer" />
+          <div className="customer-header-right-group shop-header-right">
             <div>
               <h1 className="shop-title">Shop AC Units</h1>
               {serviceAreaLabel && (
                 <p className="shop-service-area-pill">Delivering to: {serviceAreaLabel}</p>
               )}
             </div>
-          </div>
-          <div className="shop-header-right">
             <button type="button" className="cart-icon-btn" onClick={() => setIsCartOpen(true)} aria-label="Open cart">
               <img src={icons.cartShoppingFast} alt="" className="inline-icon inline-icon--lg" />
               {getCartCount() > 0 && <span className="cart-badge">{getCartCount()}</span>}

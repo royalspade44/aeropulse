@@ -867,7 +867,7 @@ input:checked + .toggle-slider:before {
 
 .success-toast {
   position: fixed;
-  bottom: 24px;
+  top: 92px;
   right: 24px;
   background: #10b981;
   color: white;
@@ -882,7 +882,7 @@ input:checked + .toggle-slider:before {
 
 .settings-toast {
   position: fixed;
-  bottom: 24px;
+  top: 92px;
   right: 24px;
   background: #10b981;
   color: white;

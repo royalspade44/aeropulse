@@ -52,3 +52,24 @@
   margin: 0;
   color: #475569;
 }
+
+/* ========== DARK MODE ========== */
+:root[data-theme='dark'] .faq-page {
+  background: #1a1a2e;
+  color: #eee;
+}
+
+:root[data-theme='dark'] .faq-header {
+  background: #0f3460;
+  border-bottom-color: rgba(238, 238, 238, 0.12);
+}
+
+:root[data-theme='dark'] .faq-intro,
+:root[data-theme='dark'] .faq-item p {
+  color: #aaa;
+}
+
+:root[data-theme='dark'] .faq-item {
+  background: #0f3460;
+  border-color: rgba(238, 238, 238, 0.12);
+}

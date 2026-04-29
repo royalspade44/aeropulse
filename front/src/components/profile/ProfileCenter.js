@@ -6,6 +6,7 @@ import { useCart } from '../../context/CartContext';
 import { apiRequest } from '../../config/api';
 import CartSidebar from '../shop/CartSidebar';
 import AddAddressModal from '../checkout/AddAddressModal';
+import CustomerHeaderBrand from '../common/CustomerHeaderBrand';
 import './ProfileCenter.css';
 
 const normalizeAddress = (address = {}) => ({
@@ -407,18 +408,19 @@ function ProfileCenter() {
     <div className="profile-page">
       <div className="profile-header">
         <div className="header-left">
-          <button className="back-btn" onClick={() => navigate('/home')} type="button">
+          <button className="back-btn" onClick={() => navigate('/home')} type="button" aria-label="Go back">
             ←
           </button>
-          <div>
-            <h1>My Profile</h1>
-            <p>Manage your account, orders, and saved delivery details</p>
-          </div>
+          <CustomerHeaderBrand />
         </div>
 
-        <button type="button" className="header-action" onClick={() => navigate('/my-orders')}>
-          View Orders
-        </button>
+        <div className="header-center-spacer" aria-hidden="true" />
+
+        <div className="header-right">
+          <button type="button" className="header-action" onClick={() => navigate('/my-orders')}>
+            View Orders
+          </button>
+        </div>
       </div>
 
       <div className="profile-layout">

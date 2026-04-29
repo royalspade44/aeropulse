@@ -435,6 +435,62 @@
     grid-template-columns: 1fr;
     padding: 20px;
   }
+
+/* ========== DARK MODE ========== */
+:root[data-theme='dark'] .checkout-container {
+  background: #1a1a2e;
+  color: #eee;
+}
+
+:root[data-theme='dark'] .checkout-header {
+  background: #0f3460;
+}
+
+:root[data-theme='dark'] .checkout-title,
+:root[data-theme='dark'] .section-header h2,
+:root[data-theme='dark'] .address-select-wrap label {
+  color: #eee;
+}
+
+:root[data-theme='dark'] .checkout-section {
+  background: #0f3460;
+}
+
+:root[data-theme='dark'] .section-header {
+  border-bottom-color: rgba(238, 238, 238, 0.12);
+}
+
+:root[data-theme='dark'] .address-select,
+:root[data-theme='dark'] .form-group input,
+:root[data-theme='dark'] .form-group textarea,
+:root[data-theme='dark'] .form-group select {
+  background: #1a1a2e;
+  color: #eee;
+  border-color: rgba(238, 238, 238, 0.16);
+}
+
+:root[data-theme='dark'] .address-card,
+:root[data-theme='dark'] .payment-option,
+:root[data-theme='dark'] .order-summary,
+:root[data-theme='dark'] .summary-item {
+  background: #1a1a2e;
+  border-color: rgba(238, 238, 238, 0.12);
+}
+
+:root[data-theme='dark'] .checkout-section p,
+:root[data-theme='dark'] .checkout-section span,
+:root[data-theme='dark'] .summary-label,
+:root[data-theme='dark'] .payment-option-label,
+:root[data-theme='dark'] .address-value {
+  color: #aaa;
+}
+
+:root[data-theme='dark'] .summary-value,
+:root[data-theme='dark'] .total-value,
+:root[data-theme='dark'] .product-name,
+:root[data-theme='dark'] .address-name {
+  color: #eee;
+}
   
   .order-summary {
     position: static;

@@ -105,7 +105,15 @@ function BrandsSection({ brands: externalBrands }) {
             className={`brand-container ${hoveredBrand === brand.id ? 'hovered' : ''}`}
             onMouseEnter={() => setHoveredBrand(brand.id)}
             onMouseLeave={() => setHoveredBrand(null)}
-            role="article"
+            onClick={() => handleShopBrand(brand.name)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                handleShopBrand(brand.name);
+              }
+            }}
+            role="button"
+            tabIndex={0}
             aria-label={`${brand.name} brand card`}
           >
             {/* Brand Card */}
@@ -134,7 +142,10 @@ function BrandsSection({ brands: externalBrands }) {
             {/* Shop Button - Appears on hover */}
             <button 
               className={`shop-brand-btn ${hoveredBrand === brand.id ? 'visible' : ''}`}
-              onClick={() => handleShopBrand(brand.name)}
+              onClick={(event) => {
+                event.stopPropagation();
+                handleShopBrand(brand.name);
+              }}
               aria-label={`Shop ${brand.name} air conditioners`}
             >
               Shop {brand.name}

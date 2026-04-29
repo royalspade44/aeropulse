@@ -2,10 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import './Contact.css';
 import ContactForm from './ContactForm';
 import ContactInfo from './ContactInfo';
-import OfficeLocations from './OfficeLocations';
 import ServicesSupport from './ServicesSupport';
-import MapSection from './MapSection';
 import icons from '../common/icons';
+import CustomerHeaderBrand from '../common/CustomerHeaderBrand';
 import Footer from '../home/Footer';
 
 function Contact() {
@@ -23,8 +22,14 @@ function Contact() {
     <div className="contact-container">
       <div className="contact-header">
         <div className="contact-header-content">
-          <button className="back-btn" onClick={handleBack}>←</button>
-          <h1 className="contact-title">Contact Us</h1>
+          <div className="customer-header-left-group">
+            <button className="back-btn" onClick={handleBack}>←</button>
+            <CustomerHeaderBrand />
+          </div>
+          <div className="customer-header-spacer" />
+          <div className="customer-header-right-group">
+            <h1 className="contact-title">Contact Us</h1>
+          </div>
         </div>
       </div>
 
@@ -34,11 +39,6 @@ function Contact() {
       </div>
 
       <div className="contact-main">
-        <div className="contact-grid">
-          <ContactForm />
-          <ContactInfo />
-        </div>
-
         <div className="cta-section">
           <div className="cta-content">
             <h2>Need Expert Consultation?</h2>
@@ -65,12 +65,12 @@ function Contact() {
           </div>
         </div>
 
-        <div className="locations-services-grid">
-          <OfficeLocations />
-          <ServicesSupport />
+        <div className="contact-grid">
+          <ContactForm />
+          <ContactInfo />
         </div>
 
-        <MapSection />
+        <ServicesSupport />
 
       </div>
       <Footer />

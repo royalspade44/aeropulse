@@ -519,6 +519,63 @@
     padding: 30px 20px;
   }
   
+
+/* ========== DARK MODE ========== */
+:root[data-theme='dark'] .contact-container {
+  background: #1a1a2e;
+  color: #eee;
+}
+
+:root[data-theme='dark'] .contact-header {
+  background: #0f3460;
+}
+
+:root[data-theme='dark'] .contact-title {
+  color: #eee;
+}
+
+:root[data-theme='dark'] .form-section,
+:root[data-theme='dark'] .info-section,
+:root[data-theme='dark'] .locations-section,
+:root[data-theme='dark'] .services-section,
+:root[data-theme='dark'] .support-section,
+:root[data-theme='dark'] .map-section {
+  background: #0f3460;
+}
+
+:root[data-theme='dark'] .form-section h2,
+:root[data-theme='dark'] .info-section h2,
+:root[data-theme='dark'] .locations-section h3,
+:root[data-theme='dark'] .services-section h3,
+:root[data-theme='dark'] .support-section h3,
+:root[data-theme='dark'] .contact-text h4 {
+  color: #eee;
+}
+
+:root[data-theme='dark'] .form-section p,
+:root[data-theme='dark'] .info-section p,
+:root[data-theme='dark'] .contact-text p {
+  color: #aaa;
+}
+
+:root[data-theme='dark'] .contact-item,
+:root[data-theme='dark'] .location-card,
+:root[data-theme='dark'] .service-item,
+:root[data-theme='dark'] .support-card {
+  background: #1a1a2e;
+}
+
+:root[data-theme='dark'] .service-item,
+:root[data-theme='dark'] .location-office,
+:root[data-theme='dark'] .support-card h4 {
+  color: #eee;
+}
+
+:root[data-theme='dark'] .location-address,
+:root[data-theme='dark'] .location-contact,
+:root[data-theme='dark'] .support-card p {
+  color: #aaa;
+}
   .form-section,
   .info-section,
   .locations-section,

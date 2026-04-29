@@ -77,6 +77,44 @@
   color: #334155;
 }
 
+/* ===== GlobalDialog dark mode ===== */
+:root[data-theme='dark'] .global-dialog {
+  background: #0f3460;
+  border-color: rgba(238, 238, 238, 0.12);
+}
+
+:root[data-theme='dark'] .global-dialog h3 {
+  color: #eee;
+}
+
+:root[data-theme='dark'] .global-dialog p {
+  color: #aaa;
+}
+
+:root[data-theme='dark'] .global-dialog-btn.secondary {
+  background: #1a1a2e;
+  color: #eee;
+}
+
+/* ========== DARK MODE ========== */
+:root[data-theme='dark'] .global-dialog {
+  background: #0f3460;
+  border-color: rgba(238, 238, 238, 0.12);
+}
+
+:root[data-theme='dark'] .global-dialog h3 {
+  color: #eee;
+}
+
+:root[data-theme='dark'] .global-dialog p {
+  color: #aaa;
+}
+
+:root[data-theme='dark'] .global-dialog-btn.secondary {
+  background: rgba(238, 238, 238, 0.12);
+  color: #eee;
+}
+
 /* ===== iconStyles.css ===== */
 
 /* Consistent sizing for PNG icons from common/icons */

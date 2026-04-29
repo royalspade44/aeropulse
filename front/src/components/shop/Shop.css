@@ -141,6 +141,32 @@
     min-width: 18px;
     text-align: center;
   }
+
+  /* ========== DARK MODE ========== */
+  :root[data-theme='dark'] .shop-header {
+    background: #0f3460;
+    border-bottom-color: rgba(238, 238, 238, 0.12);
+  }
+
+  :root[data-theme='dark'] .shop-main,
+  :root[data-theme='dark'] .shop-container {
+    background: #1a1a2e;
+  }
+
+  :root[data-theme='dark'] .shop-sidebar,
+  :root[data-theme='dark'] .shop-products,
+  :root[data-theme='dark'] .product-card,
+  :root[data-theme='dark'] .shop-toolbar {
+    background: #0f3460;
+    border-color: rgba(238, 238, 238, 0.12);
+  }
+
+  :root[data-theme='dark'] .back-btn,
+  :root[data-theme='dark'] .cart-icon-btn,
+  :root[data-theme='dark'] .notification-btn {
+    background: #1a1a2e;
+    border-color: rgba(238, 238, 238, 0.16);
+  }
   
   /* ========== LAYOUT ========== */
   .shop-main {
