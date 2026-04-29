@@ -1,0 +1,94 @@
+/* ─────────────────────────────────────────────────────
+   CUSTOMER HEADER UNIFIED STYLES
+   Shared header layout classes for all customer pages
+   ──────────────────────────────────────────────────── */
+
+.customer-header-left-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.customer-header-spacer {
+  flex: 1 1 auto;
+  min-width: 12px;
+}
+
+.customer-header-right-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--p-r-sm);
+  background: var(--p-surface);
+  border: 1px solid var(--p-border);
+  color: var(--p-text-2);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--p-t-fast) var(--p-ease),
+              border-color var(--p-t-fast) var(--p-ease),
+              transform var(--p-t-fast) var(--p-spring);
+}
+
+.back-btn:hover {
+  background: var(--p-brand-soft);
+  border-color: var(--p-brand-glow);
+  color: var(--p-brand);
+  transform: translateX(-2px);
+}
+
+.header-action {
+  border: 1px solid var(--p-border);
+  background: #fff;
+  color: var(--p-brand);
+  border-radius: var(--p-r-pill);
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--p-t-fast) var(--p-spring),
+    box-shadow var(--p-t-fast) var(--p-ease),
+    border-color var(--p-t-fast) var(--p-ease),
+    background var(--p-t-fast) var(--p-ease);
+}
+
+.header-action:hover {
+  background: var(--p-brand-soft);
+  border-color: var(--p-brand-glow);
+  transform: translateY(-1px);
+}
+
+/* ─────── Dark Mode ─────── */
+:root[data-theme='dark'] .back-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:root[data-theme='dark'] .back-btn:hover {
+  background: rgba(37, 99, 235, 0.2);
+  border-color: rgba(37, 99, 235, 0.4);
+  color: rgba(37, 99, 235, 1);
+}
+
+:root[data-theme='dark'] .header-action {
+  background: rgba(15, 52, 96, 0.6);
+  color: rgba(37, 99, 235, 1);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+:root[data-theme='dark'] .header-action:hover {
+  background: rgba(37, 99, 235, 0.15);
+  border-color: rgba(37, 99, 235, 0.5);
+}

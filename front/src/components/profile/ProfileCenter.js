@@ -407,16 +407,16 @@ function ProfileCenter() {
   return (
     <div className="profile-page">
       <div className="profile-header">
-        <div className="header-left">
+        <div className="customer-header-left-group">
           <button className="back-btn" onClick={() => navigate('/home')} type="button" aria-label="Go back">
             ←
           </button>
           <CustomerHeaderBrand />
         </div>
 
-        <div className="header-center-spacer" aria-hidden="true" />
+        <div className="customer-header-spacer" aria-hidden="true" />
 
-        <div className="header-right">
+        <div className="customer-header-right-group">
           <button type="button" className="header-action" onClick={() => navigate('/my-orders')}>
             View Orders
           </button>
