@@ -5,7 +5,6 @@ import { apiRequest } from '../../config/api';
 import './MyOrders.css';
 import OrderCard from './OrderCard';
 import TrackOrderModal from './TrackOrderModal';
-import CustomerHeaderBrand from '../common/CustomerHeaderBrand';
 import Footer from '../home/Footer';
 
 function MyOrders() {
@@ -89,14 +88,8 @@ function MyOrders() {
     <div className="orders-container">
       <div className="orders-header">
         <div className="orders-header-content">
-          <div className="customer-header-left-group">
-            <button className="back-btn" onClick={handleBack}>←</button>
-            <CustomerHeaderBrand />
-          </div>
-          <div className="customer-header-spacer" />
-          <div className="customer-header-right-group">
-            <h1 className="orders-title">My Orders</h1>
-          </div>
+          <button className="back-btn" onClick={handleBack}>←</button>
+          <h1 className="orders-title">My Orders</h1>
         </div>
       </div>
 

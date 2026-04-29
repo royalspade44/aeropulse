@@ -7,7 +7,6 @@ import NotificationSettings from './NotificationSettings';
 import PrivacySettings from './PrivacySettings';
 import PreferencesSettings from './PreferencesSettings';
 import icons from '../common/icons';
-import CustomerHeaderBrand from '../common/CustomerHeaderBrand';
 import Footer from '../home/Footer';
 import { translateText } from '../../utils/customerI18n';
 
@@ -119,19 +118,13 @@ function Settings() {
   return (
     <div className={`settings-container ${isDark ? 'dark' : ''}`}>
       <div className="settings-header">
-        <div className="customer-header-left-group">
-          <button className="back-btn" onClick={handleBack} aria-label="Go back" type="button">
-            ←
-          </button>
-          <CustomerHeaderBrand />
-        </div>
-        <div className="customer-header-spacer" />
-        <div className="customer-header-right-group">
-          <h1>{t('Account Settings')}</h1>
-          <button type="button" className="logout-btn" onClick={handleLogout}>
-            <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" /> {t('Logout')}
-          </button>
-        </div>
+        <button className="back-btn" onClick={handleBack} aria-label="Go back" type="button">
+          ←
+        </button>
+        <h1>{t('Account Settings')}</h1>
+        <button type="button" className="logout-btn" onClick={handleLogout}>
+          <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" /> {t('Logout')}
+        </button>
       </div>
 
       <div className="settings-content settings-content--layout">

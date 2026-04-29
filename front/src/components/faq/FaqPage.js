@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import Footer from '../home/Footer';
 import icons from '../common/icons';
-import CustomerHeaderBrand from '../common/CustomerHeaderBrand';
 import './FaqPage.css';
 
 const FAQ_ITEMS = [
@@ -30,14 +29,8 @@ function FaqPage() {
     <div className="faq-page">
       <div className="faq-header">
         <div className="faq-header-content">
-          <div className="customer-header-left-group">
-            <button type="button" className="back-btn" onClick={() => navigate('/home')}>←</button>
-            <CustomerHeaderBrand />
-          </div>
-          <div className="customer-header-spacer" />
-          <div className="customer-header-right-group">
-            <h1>Frequently Asked Questions</h1>
-          </div>
+          <button type="button" className="back-btn" onClick={() => navigate('/home')}>←</button>
+          <h1>Frequently Asked Questions</h1>
         </div>
       </div>
 

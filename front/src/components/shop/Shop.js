@@ -9,7 +9,6 @@ import ProductGrid from './ProductGrid';
 import CartSidebar from './CartSidebar';
 import ProductModal from './ProductModal';
 import ServiceAreaSelector from '../customer/ServiceAreaSelector';
-import CustomerHeaderBrand from '../common/CustomerHeaderBrand';
 import Footer from '../home/Footer';
 
 function Shop() {
@@ -488,18 +487,16 @@ function Shop() {
     <div className="shop-container">
       <div className="shop-header">
         <div className="shop-header-content">
-          <div className="customer-header-left-group shop-header-left">
+          <div className="shop-header-left">
             <button className="back-btn" onClick={handleBack}>←</button>
-            <CustomerHeaderBrand />
-          </div>
-          <div className="customer-header-spacer" />
-          <div className="customer-header-right-group shop-header-right">
             <div>
               <h1 className="shop-title">Shop AC Units</h1>
               {serviceAreaLabel && (
                 <p className="shop-service-area-pill">Delivering to: {serviceAreaLabel}</p>
               )}
             </div>
+          </div>
+          <div className="shop-header-right">
             <button type="button" className="cart-icon-btn" onClick={() => setIsCartOpen(true)} aria-label="Open cart">
               <img src={icons.cartShoppingFast} alt="" className="inline-icon inline-icon--lg" />
               {getCartCount() > 0 && <span className="cart-badge">{getCartCount()}</span>}

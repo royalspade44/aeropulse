@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './Services.css';
 import icons from '../common/icons';
 import ServiceBookingModal from './ServiceBookingModal';
-import CustomerHeaderBrand from '../common/CustomerHeaderBrand';
 import Footer from '../home/Footer';
 
 function Services() {
@@ -173,18 +172,12 @@ function Services() {
       {/* Header with back button - similar to Shop AC Units */}
       <div className="services-header-container">
         <div className="services-header-content">
-          <div className="customer-header-left-group">
-            <button className="back-button" onClick={handleBack}>
-              ← Back
-            </button>
-            <CustomerHeaderBrand light />
-          </div>
-          <div className="customer-header-spacer" />
-          <div className="customer-header-right-group services-header-title">
-            <div>
-              <h1>Warranty Services</h1>
-              <p>Professional AC care backed by warranty</p>
-            </div>
+          <button className="back-button" onClick={handleBack}>
+            ← Back
+          </button>
+          <div className="services-header-title">
+            <h1>Warranty Services</h1>
+            <p>Professional AC care backed by warranty</p>
           </div>
         </div>
       </div>

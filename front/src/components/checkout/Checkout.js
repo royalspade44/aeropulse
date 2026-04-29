@@ -14,7 +14,6 @@ import { loadOrdersFromStorage, saveOrdersToStorage } from '../../domain/purchas
 import { PAYMENT_PROCESSING_GATEWAY } from '../../domain/purchase/orderStatuses';
 import { consumePostRegistrationCheckoutIntent } from '../../domain/checkout/postRegistrationIntent';
 import { apiRequest } from '../../config/api';
-import CustomerHeaderBrand from '../common/CustomerHeaderBrand';
 import Footer from '../home/Footer';
 
 const isValidCheckoutAddress = (address) => {
@@ -262,14 +261,8 @@ function Checkout() {
       <div className="checkout-container">
         <div className="checkout-header">
           <div className="checkout-header-content">
-            <div className="customer-header-left-group">
-              <button type="button" className="back-btn" onClick={() => navigate('/shop')}>←</button>
-              <CustomerHeaderBrand />
-            </div>
-            <div className="customer-header-spacer" />
-            <div className="customer-header-right-group">
-              <h1 className="checkout-title">Checkout</h1>
-            </div>
+            <button type="button" className="back-btn" onClick={() => navigate('/shop')}>←</button>
+            <h1 className="checkout-title">Checkout</h1>
           </div>
         </div>
         <div style={{ textAlign: 'center', padding: '60px' }}>
@@ -287,14 +280,8 @@ function Checkout() {
     <div className="checkout-container">
       <div className="checkout-header">
         <div className="checkout-header-content">
-          <div className="customer-header-left-group">
-            <button type="button" className="back-btn" onClick={() => navigate('/shop')}>←</button>
-            <CustomerHeaderBrand />
-          </div>
-          <div className="customer-header-spacer" />
-          <div className="customer-header-right-group">
-            <h1 className="checkout-title">Checkout</h1>
-          </div>
+          <button type="button" className="back-btn" onClick={() => navigate('/shop')}>←</button>
+          <h1 className="checkout-title">Checkout</h1>
         </div>
       </div>
 

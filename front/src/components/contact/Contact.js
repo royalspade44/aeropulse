@@ -4,7 +4,6 @@ import ContactForm from './ContactForm';
 import ContactInfo from './ContactInfo';
 import ServicesSupport from './ServicesSupport';
 import icons from '../common/icons';
-import CustomerHeaderBrand from '../common/CustomerHeaderBrand';
 import Footer from '../home/Footer';
 
 function Contact() {
@@ -22,14 +21,8 @@ function Contact() {
     <div className="contact-container">
       <div className="contact-header">
         <div className="contact-header-content">
-          <div className="customer-header-left-group">
-            <button className="back-btn" onClick={handleBack}>←</button>
-            <CustomerHeaderBrand />
-          </div>
-          <div className="customer-header-spacer" />
-          <div className="customer-header-right-group">
-            <h1 className="contact-title">Contact Us</h1>
-          </div>
+          <button className="back-btn" onClick={handleBack}>←</button>
+          <h1 className="contact-title">Contact Us</h1>
         </div>
       </div>
 
