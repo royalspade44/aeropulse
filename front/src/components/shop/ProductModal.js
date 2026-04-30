@@ -32,11 +32,11 @@ function ModalProductImage({ product }) {
 function ProductModal({ product, onClose, onAddToCart }) {
   const [quantity, setQuantity] = useState(1);
 
+  const stockValue = product?.stock;
   const availableStock = useMemo(() => {
-    if (!product) return null;
-    if (typeof product.stock !== 'number') return null;
-    return Number.isFinite(product.stock) ? Math.max(0, Math.floor(product.stock)) : null;
-  }, [product?.stock]);
+    if (typeof stockValue !== 'number') return null;
+    return Number.isFinite(stockValue) ? Math.max(0, Math.floor(stockValue)) : null;
+  }, [stockValue]);
 
   const isOutOfStock = availableStock === 0;
   const maxQuantity = availableStock && availableStock > 0 ? availableStock : null;
