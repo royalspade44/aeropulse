@@ -63,6 +63,8 @@ function Checkout() {
   const [addressBusy, setAddressBusy] = useState(false);
   const [addressLoadFailed, setAddressLoadFailed] = useState(false);
   const [discountAmount] = useState(0);
+  const [stockIssues, setStockIssues] = useState([]);
+  const [stockCheckedAt, setStockCheckedAt] = useState('');
 
   const serviceAreaId = getStoredServiceAreaId() || DEFAULT_SERVICE_AREA_ID;
 
@@ -92,6 +94,58 @@ function Checkout() {
   useEffect(() => {
     loadAddresses();
   }, [loadAddresses]);
+
+  const computeStockIssues = useCallback((productsResponse = {}) => {
+    const rawProducts = Array.isArray(productsResponse.products) ? productsResponse.products : [];
+    const byId = new Map(rawProducts.map((p) => [String(p.id || p._id || ''), Number(p.stock || 0)]));
+    const bySku = new Map(rawProducts.map((p) => [String(p.sku || ''), Number(p.stock || 0)]).filter(([sku]) => Boolean(sku)));
+
+    const issues = [];
+    for (const item of cart) {
+      const idKey = String(item.id || '');
+      const skuKey = String(item.model || item.sku || '');
+      const available = byId.has(idKey) ? byId.get(idKey) : bySku.has(skuKey) ? bySku.get(skuKey) : null;
+      if (available === null) continue;
+      const desired = Number(item.quantity || 0);
+      const normalizedAvailable = Number.isFinite(available) ? Math.max(0, Math.floor(available)) : 0;
+      if (normalizedAvailable <= 0) {
+        issues.push({ id: idKey, name: item.name, desired, available: 0, code: 'out_of_stock' });
+      } else if (desired > normalizedAvailable) {
+        issues.push({ id: idKey, name: item.name, desired, available: normalizedAvailable, code: 'insufficient_stock' });
+      }
+    }
+    return issues;
+  }, [cart]);
+
+  const refreshStock = useCallback(async () => {
+    try {
+      const response = await apiRequest('/products/public');
+      setStockIssues(computeStockIssues(response));
+      setStockCheckedAt(new Date().toISOString());
+      return { ok: true, issues: computeStockIssues(response) };
+    } catch (_error) {
+      return { ok: false, issues: stockIssues };
+    }
+  }, [computeStockIssues, stockIssues]);
+
+  useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      if (!mounted) return;
+      await refreshStock();
+    };
+    run();
+    const pollId = window.setInterval(run, 20000);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') run();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      mounted = false;
+      window.clearInterval(pollId);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [refreshStock]);
 
   const redirectToAddressForm = useCallback(() => {
     navigate('/profile', {
@@ -174,6 +228,15 @@ function Checkout() {
   }, [syncAddresses]);
 
   const handlePlaceOrder = useCallback(async () => {
+    const latestStock = await refreshStock();
+    if (latestStock.ok && latestStock.issues.length > 0) {
+      const message = latestStock.issues
+        .map((issue) => `${issue.name}: requested ${issue.desired}, available ${issue.available}`)
+        .join('\n');
+      alert(`Some items are no longer available.\n\n${message}\n\nPlease update your cart and try again.`);
+      return;
+    }
+
     const hasSavedAddress = await ensureHasAddressBeforeCheckout();
     if (!hasSavedAddress) return;
 
@@ -245,6 +308,7 @@ function Checkout() {
       alert(error?.message || 'Unable to place order right now. Please review your cart and try again.');
     }
   }, [
+    refreshStock,
     ensureHasAddressBeforeCheckout,
     addressLoadFailed,
     selectedAddress,
@@ -314,6 +378,8 @@ function Checkout() {
           selectedPayment={selectedPayment}
           totals={totals}
           onPlaceOrder={handlePlaceOrder}
+          stockIssues={stockIssues}
+          stockCheckedAt={stockCheckedAt}
         />
       </div>
 

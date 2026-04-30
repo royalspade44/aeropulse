@@ -17,6 +17,7 @@ import MyOrders from './components/orders/MyOrders';
 import FaqPage from './components/faq/FaqPage';
 import ProfileCenter from './components/profile/ProfileCenter';
 import AdminDashboard from './components/ADMIN/Dashboard/AdminDashboard';
+import AdminAnalyticsDashboard from './components/ADMIN/Analytics/AdminAnalyticsDashboard';
 import AdminInventory from './components/ADMIN/Inventory/AdminInventory';
 import AdminMaintenance from './components/ADMIN/Maintenance/AdminMaintenance';
 import AdminTechnician from './components/ADMIN/Technicians/AdminTechnician';
@@ -244,6 +245,14 @@ function AppContent() {
         element={
           <RoleRoute allowedRoles={['admin']}>
             <AdminDashboard />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/admin/analytics"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminAnalyticsDashboard />
           </RoleRoute>
         }
       />

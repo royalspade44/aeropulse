@@ -7,6 +7,7 @@ import './styles.css';
 
 const navItems = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: icons.clipboardList },
+  { to: '/admin/analytics', label: 'Analytics', icon: icons.clipboardList },
   { to: '/admin/inventory', label: 'Inventory', icon: icons.boxOpen },
   { to: '/admin/maintenance', label: 'Maintenance', icon: icons.tools },
   { to: '/admin/technicians', label: 'Technicians', icon: icons.memberList },
