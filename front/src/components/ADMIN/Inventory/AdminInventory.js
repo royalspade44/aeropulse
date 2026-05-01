@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import AdminLayout from '../Common/AdminLayout';
 import AddProduct from './AddProduct';
 import InventoryList from './InventoryList';
@@ -7,13 +7,13 @@ import PendingApprovalsModal from './PendingApprovalsModal';
 import RestockOrderModal from './RestockOrderModal';
 import IncomingRestockModal from './IncomingRestockModal';
 import { apiRequest } from '../../../config/api';
-import { UserContext } from '../../../context/UserContext';
+import { useUser } from '../../../context/UserContext';
 import { ACTIVE_BRANCH_KEY } from '../../../domain/branches/branches';
 import '../adminShared.css';
 import './styles.css';
 
 const AdminInventory = () => {
-  const { profile } = useContext(UserContext) || {};
+  const { profile } = useUser() || {};
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,6 +49,7 @@ const AdminInventory = () => {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRequestChange = (product) => {

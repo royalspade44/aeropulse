@@ -1,5 +1,4 @@
 import React from 'react';
-import icons from '../../common/icons';
 
 /**
  * TechnicianKPIs - Display technician performance metrics

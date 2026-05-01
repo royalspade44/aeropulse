@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { apiRequest } from '../../../config/api';
-import icons from '../../common/icons';
 import './PendingApprovalsModal.css';
 
 const PendingApprovalsModal = ({ isOpen, onClose, onRefresh }) => {
