@@ -2,11 +2,19 @@ const User = require("../models/User");
 const Task = require("../models/Task");
 const Order = require("../models/Order");
 const ServiceRequest = require("../models/ServiceRequest");
+const Product = require("../models/Product");
 
 const startOfToday = () => {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
   return now;
+};
+
+const getDateRange = (days) => {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - days);
+  return { start, end };
 };
 
 const getTechnicianDashboard = async (activeBranch = "") => {
@@ -27,6 +35,149 @@ const getTechnicianDashboard = async (activeBranch = "") => {
     },
     tasks: tasks.map((task) => task.toJSON()),
   };
+};
+
+/**
+ * Calculate sales analytics: daily, monthly, quarterly
+ */
+const calculateSalesAnalytics = async (branch = "") => {
+  const orderQuery = { 
+    status: { $ne: "cancelled" },
+    workflowStatus: { $ne: "cancelled" }
+  };
+  
+  if (branch) {
+    orderQuery.stockSourceBranch = branch;
+  }
+
+  const orders = await Order.find(orderQuery);
+
+  // Group by date
+  const dailyData = {};
+  const monthlyData = {};
+  const quarterlyData = {};
+
+  orders.forEach((order) => {
+    const date = new Date(order.createdAt);
+    const dateStr = date.toISOString().split("T")[0];
+    const month = date.toISOString().substring(0, 7);
+    const quarter = `${date.getFullYear()}-Q${Math.ceil((date.getMonth() + 1) / 3)}`;
+
+    dailyData[dateStr] = (dailyData[dateStr] || 0) + order.totalAmount;
+    monthlyData[month] = (monthlyData[month] || 0) + order.totalAmount;
+    quarterlyData[quarter] = (quarterlyData[quarter] || 0) + order.totalAmount;
+  });
+
+  return {
+    daily: Object.entries(dailyData).map(([date, sales]) => ({ date, sales })),
+    monthly: Object.entries(monthlyData).map(([month, sales]) => ({ month, sales })),
+    quarterly: Object.entries(quarterlyData).map(([quarter, sales]) => ({ quarter, sales })),
+  };
+};
+
+/**
+ * Get top 5 selling products
+ */
+const getTopSellingProducts = async (branch = "", limit = 5) => {
+  const orderQuery = { 
+    status: { $ne: "cancelled" },
+    workflowStatus: { $ne: "cancelled" }
+  };
+  
+  if (branch) {
+    orderQuery.stockSourceBranch = branch;
+  }
+
+  const orders = await Order.find(orderQuery);
+  const productSales = {};
+
+  orders.forEach((order) => {
+    order.items?.forEach((item) => {
+      const key = item.productId || item.name;
+      productSales[key] = (productSales[key] || 0) + (item.quantity * item.price);
+    });
+  });
+
+  return Object.entries(productSales)
+    .map(([product, sales]) => ({ product, sales }))
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, limit);
+};
+
+/**
+ * Get customer acquisition by source
+ */
+const getCustomerAcquisitionBySource = async () => {
+  const customers = await User.find({ role: "customer" });
+  
+  const sourceData = {
+    social_media: 0,
+    google: 0,
+    friend_referral: 0,
+    walk_in: 0,
+    other: 0,
+  };
+
+  customers.forEach((customer) => {
+    const source = customer.sourceOfAcquisition || "other";
+    sourceData[source] = (sourceData[source] || 0) + 1;
+  });
+
+  return Object.entries(sourceData).map(([source, count]) => ({
+    source: source.replace(/_/g, " ").toUpperCase(),
+    count,
+  }));
+};
+
+/**
+ * Get technician KPIs
+ */
+const getTechnicianKPIs = async (activeBranch = "") => {
+  const techQuery = { role: "technician" };
+  if (activeBranch) {
+    techQuery.$or = [{ assignedBranch: activeBranch }, { assignedBranch: "" }];
+  }
+
+  const technicians = await User.find(techQuery);
+  const today = startOfToday();
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - 7);
+  weekStart.setHours(0, 0, 0, 0);
+  
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+
+  const techKPIs = await Promise.all(
+    technicians.map(async (tech) => {
+      const completedToday = await Task.countDocuments({
+        assignedTo: tech._id,
+        status: "completed",
+        completedAt: { $gte: today },
+      });
+
+      const completedWeek = await Task.countDocuments({
+        assignedTo: tech._id,
+        status: "completed",
+        completedAt: { $gte: weekStart },
+      });
+
+      const completedMonth = await Task.countDocuments({
+        assignedTo: tech._id,
+        status: "completed",
+        completedAt: { $gte: monthStart },
+      });
+
+      return {
+        name: tech.name,
+        completedToday,
+        completedWeek,
+        completedMonth,
+      };
+    })
+  );
+
+  return techKPIs.sort((a, b) => b.completedMonth - a.completedMonth);
 };
 
 const getAdminDashboard = async (activeBranch = "") => {
@@ -55,6 +206,13 @@ const getAdminDashboard = async (activeBranch = "") => {
 
   const totalSales = orders.reduce((sum, order) => sum + order.totalAmount, 0);
 
+  // Get enhanced analytics
+  const [salesAnalytics, topProducts, techKPIs] = await Promise.all([
+    calculateSalesAnalytics(activeBranch),
+    getTopSellingProducts(activeBranch),
+    getTechnicianKPIs(activeBranch),
+  ]);
+
   return {
     stats: {
       totalSales,
@@ -65,6 +223,11 @@ const getAdminDashboard = async (activeBranch = "") => {
       totalCustomers,
       serviceRequests,
       branchLabel: activeBranch || "All branches",
+    },
+    analytics: {
+      sales: salesAnalytics,
+      topProducts,
+      technicianKPIs: techKPIs.slice(0, 10),
     },
   };
 };
@@ -79,6 +242,14 @@ const getSuperAdminDashboard = async () => {
     User.countDocuments({ lastLogin: { $gte: oneDayAgo } }),
   ]);
 
+  // Get global analytics
+  const [salesAnalytics, topProducts, customerAcquisition, techKPIs] = await Promise.all([
+    calculateSalesAnalytics(),
+    getTopSellingProducts(),
+    getCustomerAcquisitionBySource(),
+    getTechnicianKPIs(),
+  ]);
+
   return {
     stats: {
       totalUsers,
@@ -86,6 +257,12 @@ const getSuperAdminDashboard = async () => {
       technicians,
       customers,
       recentlyActiveUsers,
+    },
+    analytics: {
+      sales: salesAnalytics,
+      topProducts,
+      customerAcquisition,
+      technicianKPIs: techKPIs.slice(0, 10),
     },
   };
 };

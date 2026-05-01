@@ -2,7 +2,7 @@ import React from 'react';
 import { apiRequest } from '../../../config/api';
 import './styles.css';
 
-const InventoryList = ({ products, loading, onRefresh }) => {
+const InventoryList = ({ products, loading, onRefresh, branch, onRequestChange, getProductStock }) => {
   const [pendingId, setPendingId] = React.useState('');
   const [rowState, setRowState] = React.useState({});
   const [editingId, setEditingId] = React.useState('');
@@ -14,6 +14,13 @@ const InventoryList = ({ products, loading, onRefresh }) => {
       ...prev,
       [productId]: { ...getRowState(productId), ...next },
     }));
+  };
+
+  const getStockDisplay = (product) => {
+    if (getProductStock) {
+      return getProductStock(product);
+    }
+    return product.stock || 0;
   };
 
   const updateStock = async (productId) => {
@@ -98,6 +105,115 @@ const InventoryList = ({ products, loading, onRefresh }) => {
             <th>HP / Specs</th>
             <th>SKU</th>
             <th>Stock</th>
+            <th>Price</th>
+            <th>Stock Actions</th>
+            <th>Item Actions</th>
+            {onRequestChange && <th>Manager Actions</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {products.map((product) => (
+            <tr key={product.id}>
+              <td>
+                {editingId === product.id ? (
+                  <input value={editForm.name} onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))} />
+                ) : product.name}
+              </td>
+              <td>
+                {editingId === product.id ? (
+                  <input value={editForm.brand} onChange={(e) => setEditForm((prev) => ({ ...prev, brand: e.target.value }))} />
+                ) : (product.brand || '-')}
+              </td>
+              <td>
+                {editingId === product.id ? (
+                  <select value={editForm.category} onChange={(e) => setEditForm((prev) => ({ ...prev, category: e.target.value }))}>
+                    <option value="split">Split</option>
+                    <option value="window">Window</option>
+                    <option value="floor">Floor Mounted</option>
+                  </select>
+                ) : (product.category || '-')}
+              </td>
+              <td>
+                {editingId === product.id ? (
+                  <input value={editForm.specs} onChange={(e) => setEditForm((prev) => ({ ...prev, specs: e.target.value }))} placeholder="e.g. 1.5HP" />
+                ) : (product.specs || '-')}
+              </td>
+              <td>{product.sku}</td>
+              <td className="stock-cell">
+                <span className="stock-badge">{getStockDisplay(product)}</span>
+              </td>
+              <td>
+                {editingId === product.id ? (
+                  <input type="number" min="0" value={editForm.price} onChange={(e) => setEditForm((prev) => ({ ...prev, price: e.target.value }))} style={{ width: 90 }} />
+                ) : `PHP ${product.price}`}
+              </td>
+              <td style={{ minWidth: 210 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <select value={getRowState(product.id).action} onChange={(event) => setRowValue(product.id, { action: event.target.value })}>
+                    <option value="add">Add</option>
+                    <option value="remove">Remove</option>
+                    <option value="set">Set</option>
+                  </select>
+                  <input
+                    type="number"
+                    min="0"
+                    value={getRowState(product.id).quantity}
+                    onChange={(event) => setRowValue(product.id, { quantity: event.target.value })}
+                    placeholder="Qty"
+                    style={{ width: 70 }}
+                  />
+                  <button type="button" onClick={() => updateStock(product.id)} disabled={pendingId === product.id}>
+                    {pendingId === product.id ? 'Saving...' : 'Apply'}
+                  </button>
+                </div>
+              </td>
+              <td style={{ minWidth: 220 }}>
+                {editingId === product.id ? (
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input
+                      value={editForm.threshold}
+                      type="number"
+                      min="0"
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, threshold: e.target.value }))}
+                      placeholder="Threshold"
+                      style={{ width: 90 }}
+                    />
+                    <button type="button" onClick={() => saveEdit(product.id)} disabled={pendingId === product.id}>
+                      {pendingId === product.id ? 'Saving...' : 'Save'}
+                    </button>
+                    <button type="button" onClick={() => setEditingId('')}>Cancel</button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <button type="button" onClick={() => startEdit(product)} disabled={pendingId === product.id}>Edit</button>
+                    <button type="button" onClick={() => removeProduct(product.id)} disabled={pendingId === product.id}>Delete</button>
+                  </div>
+                )}
+              </td>
+              {onRequestChange && (
+                <td>
+                  <button 
+                    type="button" 
+                    className="btn-request-change"
+                    onClick={() => onRequestChange(product)}
+                    disabled={pendingId === product.id}
+                  >
+                    Request Change
+                  </button>
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <button type="button" onClick={onRefresh} style={{ marginTop: 10 }}>
+        Refresh
+      </button>
+    </div>
+  );
+};
+
+export default InventoryList;
             <th>Price</th>
             <th>Stock Actions</th>
             <th>Item Actions</th>

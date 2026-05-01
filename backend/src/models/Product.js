@@ -6,8 +6,10 @@ const productSchema = new mongoose.Schema(
     sku: { type: String, required: true, trim: true, unique: true, index: true },
     brand: { type: String, default: "" },
     category: { type: String, default: "split" },
+    description: { type: String, default: "", trim: true },
     specs: { type: String, default: "" },
     features: [{ type: String }],
+    image: { type: String, default: "", trim: true },
     stock: { type: Number, default: 0 },
     branchStock: {
       type: Map,
@@ -15,7 +17,13 @@ const productSchema = new mongoose.Schema(
       default: {},
     },
     threshold: { type: Number, default: 0 },
+    branchThresholds: {
+      type: Map,
+      of: Number,
+      default: {},
+    },
     price: { type: Number, default: 0 },
+    isActive: { type: Boolean, default: true, index: true },
   },
   { timestamps: true }
 );

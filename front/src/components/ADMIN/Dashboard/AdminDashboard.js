@@ -4,6 +4,10 @@ import { useUser } from '../../../context/UserContext';
 import AdminLayout from '../Common/AdminLayout';
 import { apiRequest } from '../../../config/api';
 import Charts from './Charts';
+import SalesAnalyticsChart from './SalesAnalyticsChart';
+import TopProductsChart from './TopProductsChart';
+import TechnicianKPIs from './TechnicianKPIs';
+import CustomerAcquisitionChart from './CustomerAcquisitionChart';
 import icons from '../../common/icons';
 import './styles.css';
 
@@ -12,7 +16,9 @@ const AdminDashboard = () => {
   const activeBranch = localStorage.getItem('activeBranch') || user?.activeBranch || '';
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
   const [statsError, setStatsError] = useState('');
+  const [selectedSalesPeriod, setSelectedSalesPeriod] = useState('monthly');
 
   useEffect(() => {
     const load = async () => {
@@ -20,6 +26,7 @@ const AdminDashboard = () => {
       try {
         const result = await apiRequest('/dashboard/me');
         setStats(result.stats || null);
+        setAnalytics(result.analytics || null);
       } catch (e) {
         setStatsError(e.message);
       }
@@ -60,6 +67,11 @@ const AdminDashboard = () => {
   ];
 
   const weeklySalesData = [42, 38, 55, 68, 72, 85, 78];
+
+  const getSalesPeriodData = () => {
+    if (!analytics?.sales) return [];
+    return analytics.sales[selectedSalesPeriod] || [];
+  };
 
   return (
     <AdminLayout title="Admin Dashboard" subtitle={`Monitor sales, inventory, technicians, and requests${activeBranch ? ` for ${activeBranch}` : ''}`}>
@@ -115,6 +127,82 @@ const AdminDashboard = () => {
         <div className="chart-section">
           <Charts sales={weeklySalesData} />
         </div>
+
+        {/* Sales Analytics Section */}
+        {analytics?.sales && (
+          <div className="analytics-section">
+            <div className="section-card">
+              <div className="section-header">
+                <h3>Sales Analytics</h3>
+                <div className="period-tabs">
+                  <button
+                    className={`period-tab ${selectedSalesPeriod === 'daily' ? 'active' : ''}`}
+                    onClick={() => setSelectedSalesPeriod('daily')}
+                  >
+                    Daily
+                  </button>
+                  <button
+                    className={`period-tab ${selectedSalesPeriod === 'monthly' ? 'active' : ''}`}
+                    onClick={() => setSelectedSalesPeriod('monthly')}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    className={`period-tab ${selectedSalesPeriod === 'quarterly' ? 'active' : ''}`}
+                    onClick={() => setSelectedSalesPeriod('quarterly')}
+                  >
+                    Quarterly
+                  </button>
+                </div>
+              </div>
+              <div className="section-content">
+                <SalesAnalyticsChart period={selectedSalesPeriod} data={getSalesPeriodData()} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Top Products Section */}
+        {analytics?.topProducts && (
+          <div className="analytics-section">
+            <div className="section-card">
+              <div className="section-header">
+                <h3>Top 5 Selling Products</h3>
+              </div>
+              <div className="section-content">
+                <TopProductsChart products={analytics.topProducts} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Customer Acquisition Section (for superadmin only) */}
+        {user?.role === 'superadmin' && analytics?.customerAcquisition && (
+          <div className="analytics-section">
+            <div className="section-card">
+              <div className="section-header">
+                <h3>Marketing Performance - Customer Acquisition by Source</h3>
+              </div>
+              <div className="section-content">
+                <CustomerAcquisitionChart sources={analytics.customerAcquisition} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Technician KPIs Section */}
+        {analytics?.technicianKPIs && (
+          <div className="analytics-section">
+            <div className="section-card">
+              <div className="section-header">
+                <h3>Technician Performance KPIs</h3>
+              </div>
+              <div className="section-content">
+                <TechnicianKPIs technicians={analytics.technicianKPIs} />
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="quick-actions">
           <h3>Quick Actions</h3>

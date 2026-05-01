@@ -14,6 +14,8 @@ const serviceRequestRoutes = require("./routes/serviceRequestRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const taskRoutes = require("./routes/taskRoutes");
+const inventoryChangeRequestRoutes = require("./routes/inventoryChangeRequestRoutes");
+const restockOrderRoutes = require("./routes/restockOrderRoutes");
 
 const app = express();
 
@@ -37,6 +39,8 @@ app.use("/api/service-requests", serviceRequestRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/inventory-change-requests", inventoryChangeRequestRoutes);
+app.use("/api/restock-orders", restockOrderRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

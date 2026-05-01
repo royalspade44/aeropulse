@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import AdminLayout from '../Common/AdminLayout';
 import AddProduct from './AddProduct';
 import InventoryList from './InventoryList';
@@ -47,7 +47,7 @@ const AdminInventory = () => {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     load();
   }, []);
 

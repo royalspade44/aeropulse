@@ -96,6 +96,11 @@ const userSchema = new mongoose.Schema(
     department: { type: String },
     assignedBranch: { type: String, default: "" },
     activeBranch: { type: String, default: "" },
+    sourceOfAcquisition: {
+      type: String,
+      enum: ["social_media", "google", "friend_referral", "walk_in", "other"],
+      default: "other",
+    },
     lastLogin: { type: Date },
     failedLoginAttempts: { type: Number, default: 0 },
     lockoutUntil: { type: Date, default: null },
