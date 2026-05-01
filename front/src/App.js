@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
+import { AdminSettingsProvider } from './context/AdminSettingsContext';
 import { UserProvider, useUser } from './context/UserContext';
 import Login from './components/login/Login';
 import GoogleAuthCallback from './components/login/GoogleAuthCallback';
@@ -26,6 +27,9 @@ import AdminAttendance from './components/ADMIN/Attendance/AdminAttendance';
 import AdminUnlockUsers from './components/ADMIN/Users/AdminUnlockUsers';
 import AdminStoreOperations from './components/ADMIN/Store/AdminStoreOperations';
 import AdminOrders from './components/ADMIN/Orders/AdminOrders';
+import AdminReports from './components/ADMIN/Reports/AdminReports';
+import AdminSettings from './components/ADMIN/Settings/AdminSettings';
+import AdminAuditLogs from './components/ADMIN/AuditLogs/AdminAuditLogs';
 import TechMainScreen from './components/TECH/Dashboard/TechMainScreen';
 import TaskScreens from './components/TECH/Tasks/TaskScreens';
 import TaskDetails from './components/TECH/Tasks/TaskDetails';
@@ -280,6 +284,30 @@ function AppContent() {
         }
       />
       <Route
+        path="/admin/reports"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminReports />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/admin/settings"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminSettings />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/admin/audit-logs"
+        element={
+          <RoleRoute allowedRoles={['admin']}>
+            <AdminAuditLogs />
+          </RoleRoute>
+        }
+      />
+      <Route
         path="/admin/profile"
         element={
           <RoleRoute allowedRoles={['admin']}>
@@ -435,14 +463,16 @@ function AppContent() {
 function App() {
   return (
     <UserProvider>
-      <CartProvider>
-        <Router>
-          <div className="App">
-            <AppContent />
-            <GlobalDialog />
-          </div>
-        </Router>
-      </CartProvider>
+      <AdminSettingsProvider>
+        <CartProvider>
+          <Router>
+            <div className="App">
+              <AppContent />
+              <GlobalDialog />
+            </div>
+          </Router>
+        </CartProvider>
+      </AdminSettingsProvider>
     </UserProvider>
   );
 }

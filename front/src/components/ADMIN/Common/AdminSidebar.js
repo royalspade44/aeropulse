@@ -13,8 +13,11 @@ const navItems = [
   { to: '/admin/attendance', label: 'Attendance', icon: icons.visit },
   { to: '/admin/orders', label: 'Orders', icon: icons.clipboardList },
   { to: '/admin/store', label: 'Store', icon: icons.houseChimney },
-  { to: '/admin/unlock-users', label: 'Unlock Users', icon: icons.lock },
   { to: '/admin/reorder', label: 'Reorder', icon: icons.cartShoppingFast },
+  { to: '/admin/reports', label: 'Reports', icon: icons.clipboardList },
+  { to: '/admin/unlock-users', label: 'Unlock Users', icon: icons.lock },
+  { to: '/admin/settings', label: 'Settings', icon: icons.customize },
+  { to: '/admin/audit-logs', label: 'Audit Logs', icon: icons.clipboardList },
   { to: '/admin/profile', label: 'Profile', icon: icons.memberList }
 ];
 

@@ -5,8 +5,12 @@ function OrderSummary({
   cart,
   selectedPayment,
   totals,
-  onPlaceOrder
+  onPlaceOrder,
+  stockIssues = [],
+  stockCheckedAt = ''
 }) {
+  const hasStockIssues = Array.isArray(stockIssues) && stockIssues.length > 0;
+
   return (
     <div className="checkout-section order-summary">
       <h2 style={{ marginBottom: '20px' }}>Order Summary</h2>
@@ -42,8 +46,27 @@ function OrderSummary({
           : ' Payment stays in processing for COD or pay-on-installation until the milestone is reached.'}
       </p>
 
-      <button type="button" className="place-order-btn" onClick={onPlaceOrder}>
-        Place order
+      {hasStockIssues ? (
+        <div style={{ marginBottom: '12px', padding: '12px', borderRadius: '10px', border: '1px solid #fecaca', background: '#fef2f2', color: '#7f1d1d' }}>
+          <div style={{ fontWeight: 800, marginBottom: '6px' }}>Out of stock items detected</div>
+          <div style={{ fontSize: '13px', lineHeight: 1.35 }}>
+            {stockIssues.slice(0, 4).map((issue) => (
+              <div key={issue.id || issue.name}>
+                {issue.name}: requested {issue.desired}, available {issue.available}
+              </div>
+            ))}
+            {stockIssues.length > 4 ? <div>+{stockIssues.length - 4} more</div> : null}
+          </div>
+          {stockCheckedAt ? (
+            <div style={{ marginTop: '8px', fontSize: '12px', opacity: 0.8 }}>
+              Last checked: {new Date(stockCheckedAt).toLocaleTimeString()}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <button type="button" className="place-order-btn" onClick={onPlaceOrder} disabled={hasStockIssues}>
+        {hasStockIssues ? 'Update cart to continue' : 'Place order'}
       </button>
     </div>
   );

@@ -20,12 +20,14 @@ import tools from './tools.png';
 import visit from './visit.png';
 import windowFrame from './window-frame.png';
 import wind from './wind.png';
+import bellNotification from './bell-notification-social-media.png';
 
 /** Shared raster icons for use across the app (import URLs from here). */
 const icons = {
   bolt,
   boxOpen,
   broom,
+  bellNotification,
   cartShoppingFast,
   checkCircle,
   clipboardList,

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import icons from '../common/icons';
 
 function productPlaceholderIcon(product) {
@@ -32,12 +32,31 @@ function ModalProductImage({ product }) {
 function ProductModal({ product, onClose, onAddToCart }) {
   const [quantity, setQuantity] = useState(1);
 
-  if (!product) return null;
+  const stockValue = product?.stock;
+  const availableStock = useMemo(() => {
+    if (typeof stockValue !== 'number') return null;
+    return Number.isFinite(stockValue) ? Math.max(0, Math.floor(stockValue)) : null;
+  }, [stockValue]);
+
+  const isOutOfStock = availableStock === 0;
+  const maxQuantity = availableStock && availableStock > 0 ? availableStock : null;
+
+  useEffect(() => {
+    setQuantity(1);
+  }, [product?.id, product?.model, product?.sku]);
+
+  useEffect(() => {
+    if (!maxQuantity) return;
+    setQuantity((prev) => Math.min(prev, maxQuantity));
+  }, [maxQuantity]);
 
   const handleAddToCart = () => {
+    if (isOutOfStock) return;
     onAddToCart(product, quantity);
     onClose();
   };
+
+  if (!product) return null;
 
   return (
     <div className="product-modal-overlay" onClick={onClose} role="presentation">
@@ -63,13 +82,27 @@ function ProductModal({ product, onClose, onAddToCart }) {
               <li><span className="spec-label">Energy Rating:</span><span>{product.energyRating}</span></li>
               <li><span className="spec-label">Warranty:</span><span>{product.warranty}</span></li>
             </ul>
+            {typeof availableStock === 'number' ? (
+              <div className="product-warranty" style={{ marginBottom: '10px' }}>
+                {availableStock > 0 ? `${availableStock} units available` : 'Out of Stock'}
+              </div>
+            ) : null}
             <div className="quantity-selector">
               <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
               <span>{quantity}</span>
-              <button type="button" onClick={() => setQuantity(quantity + 1)}>+</button>
+              <button
+                type="button"
+                onClick={() => setQuantity((prev) => (maxQuantity ? Math.min(maxQuantity, prev + 1) : prev + 1))}
+                disabled={Boolean(maxQuantity) && quantity >= maxQuantity}
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
             </div>
-            <button type="button" className="add-to-cart-modal" onClick={handleAddToCart}>
-              Add to Cart - {'\u20b1'}{(product.price * quantity).toLocaleString()}
+            <button type="button" className="add-to-cart-modal" onClick={handleAddToCart} disabled={isOutOfStock}>
+              {isOutOfStock
+                ? 'Out of Stock'
+                : `Add to Cart - \u20b1${(product.price * quantity).toLocaleString()}`}
             </button>
           </div>
         </div>

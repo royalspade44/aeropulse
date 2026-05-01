@@ -7,6 +7,7 @@ function SideMenu({ isOpen, onClose, activePage, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useUser();
+  const [avatarBroken, setAvatarBroken] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState(activePage);
 
@@ -49,6 +50,10 @@ function SideMenu({ isOpen, onClose, activePage, onLogout }) {
     }
     return null;
   };
+
+  useEffect(() => {
+    setAvatarBroken(false);
+  }, [user?.avatarUrl]);
 
   const handleNavigation = (path, itemId) => {
     setActiveMenuItem(itemId);
@@ -96,7 +101,14 @@ function SideMenu({ isOpen, onClose, activePage, onLogout }) {
         <div className="menu-header">
           <div className="menu-header-content">
             <div className="user-avatar">
-              {getUserInitial() ? (
+              {user?.avatarUrl && !avatarBroken ? (
+                <img
+                  src={user.avatarUrl}
+                  alt="Profile"
+                  className="inline-icon inline-icon--lg"
+                  onError={() => setAvatarBroken(true)}
+                />
+              ) : getUserInitial() ? (
                 <span className="user-initial">{getUserInitial()}</span>
               ) : (
                 <img src={icons.memberList} alt="" className="inline-icon inline-icon--lg" />

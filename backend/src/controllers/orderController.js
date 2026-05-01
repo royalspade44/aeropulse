@@ -40,19 +40,26 @@ const isValidAddress = (address = {}) => {
   return true;
 };
 
-const resolveProductForOrderItem = async (item) => {
+const resolveProductForOrderItem = async (item, session = null) => {
   const productId = String(item.id || "").trim();
   if (mongoose.Types.ObjectId.isValid(productId)) {
-    const byId = await Product.findById(productId);
+    const byId = await Product.findById(productId).session(session);
     if (byId) return byId;
   }
   const sku = String(item.model || item.sku || "").trim();
   if (sku) {
-    const bySku = await Product.findOne({ sku });
+    const bySku = await Product.findOne({ sku }).session(session);
     if (bySku) return bySku;
   }
   return null;
 };
+
+class HttpError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.status = status;
+  }
+}
 
 const createOrderNotification = async ({ customerId, title, message }) => {
   if (!customerId || !title || !message) return;
@@ -77,140 +84,179 @@ const createOrderNotification = async ({ customerId, title, message }) => {
 };
 
 const createOrder = async (req, res) => {
-  try {
-    const user = req.authUser;
-    const { items = [], address = {}, addressId = "", paymentMethod = "cod", total = 0 } = req.body;
-    const savedAddresses = Array.isArray(user.addresses) ? user.addresses.map((item) => normalizeAddress(item)) : [];
-    const fallbackLegacyAddress = normalizeAddress({
-      name: user.name || `${user.name_first || ""} ${user.name_last || ""}`.trim(),
-      phone: user.phone || "",
-      street: user.address || "",
-      city: "",
-      postalCode: "",
-    });
+  const user = req.authUser;
+  const { items = [], address = {}, addressId = "", paymentMethod = "cod", total = 0 } = req.body;
+  const savedAddresses = Array.isArray(user.addresses) ? user.addresses.map((item) => normalizeAddress(item)) : [];
+  const fallbackLegacyAddress = normalizeAddress({
+    name: user.name || `${user.name_first || ""} ${user.name_last || ""}`.trim(),
+    phone: user.phone || "",
+    street: user.address || "",
+    city: "",
+    postalCode: "",
+  });
 
-    const normalizedAddress = (() => {
-      const requestedId = String(addressId || address.id || address._id || "").trim();
-      if (requestedId) {
-        const matchedById = savedAddresses.find((item) => String(item._id || "") === requestedId);
-        if (matchedById) return matchedById;
-      }
+  const normalizedAddress = (() => {
+    const requestedId = String(addressId || address.id || address._id || "").trim();
+    if (requestedId) {
+      const matchedById = savedAddresses.find((item) => String(item._id || "") === requestedId);
+      if (matchedById) return matchedById;
+    }
 
-      if (savedAddresses.length > 0) {
-        const byPayload = normalizeAddress(address);
-        const matchedByFields = savedAddresses.find(
-          (item) =>
-            item.street === byPayload.street &&
-            item.city === byPayload.city &&
-            item.phone === byPayload.phone &&
-            item.name === byPayload.name
+    if (savedAddresses.length > 0) {
+      const byPayload = normalizeAddress(address);
+      const matchedByFields = savedAddresses.find(
+        (item) =>
+          item.street === byPayload.street &&
+          item.city === byPayload.city &&
+          item.phone === byPayload.phone &&
+          item.name === byPayload.name
+      );
+      if (matchedByFields) return matchedByFields;
+      const defaultAddress = savedAddresses.find((item) => item.isDefault);
+      return defaultAddress || savedAddresses[0];
+    }
+
+    return fallbackLegacyAddress;
+  })();
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ message: "Order items are required." });
+  }
+  if (savedAddresses.length === 0) {
+    return res.status(400).json({ message: "No delivery address found. Please add an address to proceed." });
+  }
+  if (!isValidAddress(normalizedAddress)) {
+    return res.status(400).json({ message: "Invalid delivery address." });
+  }
+
+  const orderCode = `ORD-${Date.now()}`;
+  const receiptNumber = `RCP-${Date.now()}`;
+  const trackingNumber = `TRK-${Math.floor(Math.random() * 1000000000)}`;
+  const eta = new Date();
+  eta.setDate(eta.getDate() + 7);
+  const installDate = new Date(eta);
+  installDate.setDate(installDate.getDate() + 1);
+
+  const preferredBranch = resolvePreferredBranch(normalizedAddress);
+  const branchSearchOrder = getBranchSearchOrder(preferredBranch);
+  const assignedTechnician = preferredBranch ? `${preferredBranch} Technician Team` : "";
+
+  const attemptCreateOrder = async () => {
+    const session = await mongoose.startSession();
+    try {
+      let createdOrder = null;
+      await session.withTransaction(async () => {
+        const mutableProducts = [];
+        const resolvedItems = [];
+
+        for (const item of items) {
+          const quantityNeeded = Number(item.quantity) || 0;
+          if (quantityNeeded < 1) {
+            throw new HttpError(400, "Invalid cart item payload.");
+          }
+
+          const product = await resolveProductForOrderItem(item, session);
+          if (!product) {
+            throw new HttpError(404, `Product not found: ${item.name || item.id || item.model}`);
+          }
+
+          const selectedBranch = branchSearchOrder.find((branch) => {
+            return Number(product.branchStock?.get(branch) || 0) >= quantityNeeded;
+          });
+
+          const hasBranchSnapshot = branchSearchOrder.some((branch) => Number(product.branchStock?.get(branch) || 0) > 0);
+          const fallbackBranch = !hasBranchSnapshot && Number(product.stock || 0) >= quantityNeeded ? preferredBranch : null;
+          const finalBranch = selectedBranch || fallbackBranch;
+
+          if (!finalBranch) {
+            throw new HttpError(
+              409,
+              `Insufficient branch stock for ${product.name}. Tried preferred and nearby branches.`
+            );
+          }
+
+          const branchStock = Number(product.branchStock?.get(finalBranch) || 0);
+          product.branchStock.set(finalBranch, Math.max(0, branchStock - quantityNeeded));
+          product.stock = Math.max(0, Number(product.stock || 0) - quantityNeeded);
+          mutableProducts.push(product);
+
+          resolvedItems.push({
+            productId: String(product.id || ""),
+            name: item.name || product.name,
+            price: Number(item.price) || Number(product.price || 0),
+            quantity: quantityNeeded,
+            specs: item.specs || product.specs || "",
+            sourceBranch: finalBranch,
+          });
+        }
+
+        await Promise.all(mutableProducts.map((product) => product.save({ session })));
+
+        const itemsSummary = resolvedItems.map((item) => `${item.name} x${item.quantity}`).join(", ");
+
+        createdOrder = await Order.create(
+          [
+            {
+              orderCode,
+              customer: user._id,
+              customerName: user.name || `${user.name_first} ${user.name_last}`.trim(),
+              items: resolvedItems,
+              address: normalizedAddress,
+              paymentMethod,
+              trackingNumber,
+              estimatedDelivery: eta.toISOString().split("T")[0],
+              estimatedArrival: eta.toISOString(),
+              installationDate: installDate.toISOString(),
+              assignedTechnician,
+              stockSourceBranch: preferredBranch,
+              receipt: {
+                receiptNumber,
+                issuedAt: new Date().toISOString(),
+                paymentMethod,
+                amountPaid: Number(total) || 0,
+                itemsSummary,
+              },
+              totalAmount: total,
+              workflowStatus: "to_pay",
+              status: "pending",
+            },
+          ],
+          { session }
         );
-        if (matchedByFields) return matchedByFields;
-        const defaultAddress = savedAddresses.find((item) => item.isDefault);
-        return defaultAddress || savedAddresses[0];
-      }
-
-      return fallbackLegacyAddress;
-    })();
-
-    if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ message: "Order items are required." });
-    }
-    if (savedAddresses.length === 0) {
-      return res.status(400).json({ message: "No delivery address found. Please add an address to proceed." });
-    }
-    if (!isValidAddress(normalizedAddress)) {
-      return res.status(400).json({ message: "Invalid delivery address." });
-    }
-
-    const orderCode = `ORD-${Date.now()}`;
-    const receiptNumber = `RCP-${Date.now()}`;
-    const trackingNumber = `TRK-${Math.floor(Math.random() * 1000000000)}`;
-    const eta = new Date();
-    eta.setDate(eta.getDate() + 7);
-    const installDate = new Date(eta);
-    installDate.setDate(installDate.getDate() + 1);
-
-    const preferredBranch = resolvePreferredBranch(normalizedAddress);
-    const branchSearchOrder = getBranchSearchOrder(preferredBranch);
-    const mutableProducts = [];
-    const resolvedItems = [];
-
-    for (const item of items) {
-      const quantityNeeded = Number(item.quantity) || 0;
-      if (quantityNeeded < 1) {
-        return res.status(400).json({ message: "Invalid cart item payload." });
-      }
-      const product = await resolveProductForOrderItem(item);
-      if (!product) {
-        return res.status(404).json({ message: `Product not found: ${item.name || item.id || item.model}` });
-      }
-
-      const selectedBranch = branchSearchOrder.find((branch) => {
-        return Number(product.branchStock?.get(branch) || 0) >= quantityNeeded;
       });
 
-      const hasBranchSnapshot = branchSearchOrder.some((branch) => Number(product.branchStock?.get(branch) || 0) > 0);
-      const fallbackBranch = !hasBranchSnapshot && Number(product.stock || 0) >= quantityNeeded ? preferredBranch : null;
-      const finalBranch = selectedBranch || fallbackBranch;
+      return Array.isArray(createdOrder) ? createdOrder[0] : createdOrder;
+    } finally {
+      await session.endSession();
+    }
+  };
 
-      if (!finalBranch) {
-        return res.status(409).json({
-          message: `Insufficient branch stock for ${product.name}. Tried preferred and nearby branches.`,
+  const isRetryableTransactionError = (error) => {
+    const message = String(error?.message || "");
+    return message.includes("WriteConflict") || message.includes("TransientTransactionError");
+  };
+
+  try {
+    let lastError = null;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const order = await attemptCreateOrder();
+        return res.status(201).json({
+          order: {
+            ...order.toJSON(),
+            workflowLabel: workflowLabel(order.workflowStatus),
+          },
         });
+      } catch (error) {
+        if (error instanceof HttpError) {
+          return res.status(error.status).json({ message: error.message });
+        }
+        lastError = error;
+        if (!isRetryableTransactionError(error)) break;
       }
-
-      const branchStock = Number(product.branchStock?.get(finalBranch) || 0);
-      product.branchStock.set(finalBranch, Math.max(0, branchStock - quantityNeeded));
-      product.stock = Math.max(0, Number(product.stock || 0) - quantityNeeded);
-      mutableProducts.push(product);
-
-      resolvedItems.push({
-        productId: String(product.id || ""),
-        name: item.name || product.name,
-        price: Number(item.price) || Number(product.price || 0),
-        quantity: quantityNeeded,
-        specs: item.specs || product.specs || "",
-        sourceBranch: finalBranch,
-      });
     }
-
-    await Promise.all(mutableProducts.map((product) => product.save()));
-
-    const assignedTechnician = preferredBranch ? `${preferredBranch} Technician Team` : "";
-    const itemsSummary = resolvedItems.map((item) => `${item.name} x${item.quantity}`).join(", ");
-
-    const order = await Order.create({
-      orderCode,
-      customer: user._id,
-      customerName: user.name || `${user.name_first} ${user.name_last}`.trim(),
-      items: resolvedItems,
-      address: normalizedAddress,
-      paymentMethod,
-      trackingNumber,
-      estimatedDelivery: eta.toISOString().split("T")[0],
-      estimatedArrival: eta.toISOString(),
-      installationDate: installDate.toISOString(),
-      assignedTechnician,
-      stockSourceBranch: preferredBranch,
-      receipt: {
-        receiptNumber,
-        issuedAt: new Date().toISOString(),
-        paymentMethod,
-        amountPaid: Number(total) || 0,
-        itemsSummary,
-      },
-      totalAmount: total,
-      workflowStatus: "to_pay",
-      status: "pending",
-    });
-
-    return res.status(201).json({
-      order: {
-        ...order.toJSON(),
-        workflowLabel: workflowLabel(order.workflowStatus),
-      },
-    });
+    console.error("Failed to create order:", lastError);
+    return res.status(500).json({ message: "Unable to create order right now." });
   } catch (error) {
     console.error("Failed to create order:", error);
     return res.status(500).json({ message: "Unable to create order right now." });

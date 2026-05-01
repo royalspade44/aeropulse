@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useUser } from '../../../context/UserContext';
 import AdminSidebar from './AdminSidebar';
+import AdminNotificationsBell from './AdminNotificationsBell';
 import '../adminShared.css';
 import './styles.css';
 
@@ -59,6 +60,7 @@ const AdminLayout = ({ title, subtitle, children }) => {
                 </div>
               </div>
               <div className="admin-header-user">
+                <AdminNotificationsBell />
                 <div className="admin-user-avatar">{initials}</div>
                 <div>{user?.name || 'Admin'}</div>
               </div>

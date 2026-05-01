@@ -47,6 +47,11 @@ function CartSidebar({ isOpen, onClose, cart, onUpdateQuantity, onRemoveItem, on
                 <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '6px' }}>
                   ₱{item.price.toLocaleString()} each
                 </div>
+                {typeof item.stock === 'number' && item.stock <= 0 ? (
+                  <div style={{ fontSize: '12px', color: '#b91c1c', fontWeight: 700, marginBottom: '6px' }}>
+                    Out of Stock
+                  </div>
+                ) : null}
 
                 {/* Quantity controls */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -61,6 +66,7 @@ function CartSidebar({ isOpen, onClose, cart, onUpdateQuantity, onRemoveItem, on
                   <button
                     className="qty-btn"
                     onClick={() => onUpdateQuantity(item.id, (item.quantity || 1) + 1)}
+                    disabled={typeof item.stock === 'number' && (item.quantity || 1) >= item.stock}
                     style={{ width: '24px', height: '24px', border: '1px solid #e5e7eb', background: 'white', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: 700, color: '#4b5563', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                   >+</button>
                   <button

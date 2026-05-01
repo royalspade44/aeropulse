@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { apiRequest } from '../../../config/api';
 import { ACTIVE_BRANCH_KEY, BRANCHES } from '../../../domain/branches/branches';
+import { useUser } from '../../../context/UserContext';
+import { appendAuditLog } from '../../../utils/auditLogs';
 import './styles.css';
 
 const initialForm = {
@@ -21,6 +23,7 @@ const initialForm = {
 };
 
 const AddProduct = ({ onCreated }) => {
+  const { user } = useUser();
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -56,6 +59,11 @@ const AddProduct = ({ onCreated }) => {
             return acc;
           }, {}),
         }),
+      });
+      appendAuditLog({
+        user: user?.email || user?.name || 'admin',
+        action: 'create_inventory_item',
+        details: `Created product sku=${form.sku} name=${form.name}`,
       });
       onCreated?.(result.product);
       setForm(initialForm);
