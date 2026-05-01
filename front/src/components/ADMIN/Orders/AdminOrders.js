@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AdminLayout from '../Common/AdminLayout';
 import { apiRequest } from '../../../config/api';
+import { useUser } from '../../../context/UserContext';
+import { appendAuditLog } from '../../../utils/auditLogs';
 import './AdminOrders.css';
 
 const statusActionMap = {
@@ -10,6 +12,7 @@ const statusActionMap = {
 };
 
 const AdminOrders = () => {
+  const { user } = useUser();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -44,6 +47,11 @@ const AdminOrders = () => {
       await apiRequest(`/orders/${order.id}/process`, {
         method: 'PATCH',
         body: JSON.stringify({ action: config.action })
+      });
+      appendAuditLog({
+        user: user?.email || user?.name || 'admin',
+        action: 'change_order_status',
+        details: `Order ${order.orderCode || order.id}: ${order.workflowStatus} -> ${config.action}`,
       });
       await loadOrders();
     } catch (e) {

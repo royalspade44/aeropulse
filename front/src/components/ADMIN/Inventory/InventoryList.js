@@ -1,8 +1,11 @@
 import React from 'react';
 import { apiRequest } from '../../../config/api';
+import { useUser } from '../../../context/UserContext';
+import { appendAuditLog } from '../../../utils/auditLogs';
 import './styles.css';
 
 const InventoryList = ({ products, loading, onRefresh }) => {
+  const { user } = useUser();
   const [pendingId, setPendingId] = React.useState('');
   const [rowState, setRowState] = React.useState({});
   const [editingId, setEditingId] = React.useState('');
@@ -27,6 +30,11 @@ const InventoryList = ({ products, loading, onRefresh }) => {
           action,
           quantity: Number(quantity) || 0,
         }),
+      });
+      appendAuditLog({
+        user: user?.email || user?.name || 'admin',
+        action: 'update_inventory_stock',
+        details: `Product ${productId} stock action=${action} qty=${quantity}`,
       });
       setRowValue(productId, { quantity: '' });
       onRefresh?.();
@@ -60,6 +68,11 @@ const InventoryList = ({ products, loading, onRefresh }) => {
           threshold: Number(editForm.threshold) || 0,
         }),
       });
+      appendAuditLog({
+        user: user?.email || user?.name || 'admin',
+        action: 'edit_inventory_item',
+        details: `Edited product ${productId} (name=${editForm.name}, brand=${editForm.brand}, category=${editForm.category})`,
+      });
       setEditingId('');
       onRefresh?.();
     } catch (error) {
@@ -75,6 +88,11 @@ const InventoryList = ({ products, loading, onRefresh }) => {
     try {
       setPendingId(productId);
       await apiRequest(`/products/${productId}`, { method: 'DELETE' });
+      appendAuditLog({
+        user: user?.email || user?.name || 'admin',
+        action: 'delete_inventory_item',
+        details: `Deleted product ${productId}`,
+      });
       onRefresh?.();
     } catch (error) {
       alert(error.message || 'Unable to delete product');

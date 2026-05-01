@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../Common/AdminLayout';
 import { apiRequest } from '../../../config/api';
+import { useUser } from '../../../context/UserContext';
+import { appendAuditLog } from '../../../utils/auditLogs';
 import '../adminShared.css';
 
 const AdminUnlockUsers = () => {
+  const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [users, setUsers] = useState([]);
@@ -28,6 +31,11 @@ const AdminUnlockUsers = () => {
   const unlock = async (id) => {
     try {
       await apiRequest(`/users/${id}/unlock`, { method: 'POST' });
+      appendAuditLog({
+        user: user?.email || user?.name || 'admin',
+        action: 'unlock_user',
+        details: `Unlocked userId=${id}`,
+      });
       await load();
     } catch (e) {
       alert(e.message);

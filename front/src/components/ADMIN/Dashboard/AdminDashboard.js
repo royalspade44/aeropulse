@@ -13,6 +13,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [statsError, setStatsError] = useState('');
+  const [report, setReport] = useState({ topProducts: [], monthlySeries: [] });
 
   useEffect(() => {
     const load = async () => {
@@ -25,6 +26,45 @@ const AdminDashboard = () => {
       }
     };
     load();
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadReport = async () => {
+      try {
+        const now = new Date();
+        const fromTop = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const top = await apiRequest(
+          `/reports/sales?interval=weekly&from=${encodeURIComponent(fromTop.toISOString())}&to=${encodeURIComponent(now.toISOString())}&topN=5`
+        );
+
+        const fromMonthly = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
+        const monthly = await apiRequest(
+          `/reports/sales?interval=monthly&from=${encodeURIComponent(fromMonthly.toISOString())}&to=${encodeURIComponent(now.toISOString())}&topN=5`
+        );
+
+        if (!mounted) return;
+        setReport({
+          topProducts: Array.isArray(top.topProducts) ? top.topProducts : [],
+          monthlySeries: Array.isArray(monthly.series) ? monthly.series : [],
+        });
+      } catch (_e) {
+        if (!mounted) return;
+        setReport({ topProducts: [], monthlySeries: [] });
+      }
+    };
+
+    loadReport();
+    const pollId = window.setInterval(loadReport, 15000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') loadReport();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      mounted = false;
+      window.clearInterval(pollId);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
   const recentActivities = [
@@ -60,6 +100,28 @@ const AdminDashboard = () => {
   ];
 
   const weeklySalesData = [42, 38, 55, 68, 72, 85, 78];
+
+  const monthComparison = (() => {
+    const series = report.monthlySeries || [];
+    if (series.length === 0) return null;
+    const sorted = [...series].sort((a, b) => new Date(a.bucket).getTime() - new Date(b.bucket).getTime());
+    const current = sorted[sorted.length - 1];
+    const previous = sorted.length >= 2 ? sorted[sorted.length - 2] : null;
+    const currentUnits = Number(current?.unitsSold || 0);
+    const prevUnits = Number(previous?.unitsSold || 0);
+    const deltaUnits = currentUnits - prevUnits;
+    const currentRevenue = Number(current?.revenue || 0);
+    const prevRevenue = Number(previous?.revenue || 0);
+    const deltaRevenue = currentRevenue - prevRevenue;
+    return {
+      currentUnits,
+      prevUnits,
+      deltaUnits,
+      currentRevenue,
+      prevRevenue,
+      deltaRevenue,
+    };
+  })();
 
   return (
     <AdminLayout title="Admin Dashboard" subtitle={`Monitor sales, inventory, technicians, and requests${activeBranch ? ` for ${activeBranch}` : ''}`}>
@@ -114,6 +176,78 @@ const AdminDashboard = () => {
 
         <div className="chart-section">
           <Charts sales={weeklySalesData} />
+        </div>
+
+        <div className="dashboard-two-column" style={{ marginTop: '16px' }}>
+          <div className="recent-activity">
+            <h3>Top Selling Items</h3>
+            <div className="activity-list">
+              {(report.topProducts || []).length === 0 ? (
+                <div style={{ padding: '12px', color: '#6b7280', fontSize: '13px', fontWeight: 600 }}>
+                  No sales data yet.
+                </div>
+              ) : (
+                report.topProducts.slice(0, 5).map((item, index) => (
+                  <div key={`${item.productId || item.name}-${index}`} className="activity-item">
+                    <div className="activity-icon">
+                      <img src={icons.boxOpen} alt="" className="inline-icon inline-icon--md" />
+                    </div>
+                    <div className="activity-content" style={{ width: '100%' }}>
+                      <div className="activity-text" style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          #{index + 1} {item.name}
+                        </span>
+                        <span style={{ fontWeight: 800, color: '#1E88E5' }}>
+                          {Number(item.unitsSold || 0)} units
+                        </span>
+                      </div>
+                      <div className="time">₱{Number(item.revenue || 0).toLocaleString()}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="admin-oversight">
+            <h3>Monthly Comparison</h3>
+            {monthComparison ? (
+              <div className="oversight-list">
+                <div className="oversight-item">
+                  <div className="oversight-title">Units sold (latest month)</div>
+                  <div className="oversight-desc">
+                    {monthComparison.currentUnits} units
+                    {Number.isFinite(monthComparison.deltaUnits) ? (
+                      <span style={{ marginLeft: '8px', fontWeight: 800, color: monthComparison.deltaUnits >= 0 ? '#166534' : '#b91c1c' }}>
+                        ({monthComparison.deltaUnits >= 0 ? '+' : ''}{monthComparison.deltaUnits} vs prev)
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="oversight-item">
+                  <div className="oversight-title">Revenue (latest month)</div>
+                  <div className="oversight-desc">
+                    ₱{Number(monthComparison.currentRevenue || 0).toLocaleString()}
+                    {Number.isFinite(monthComparison.deltaRevenue) ? (
+                      <span style={{ marginLeft: '8px', fontWeight: 800, color: monthComparison.deltaRevenue >= 0 ? '#166534' : '#b91c1c' }}>
+                        ({monthComparison.deltaRevenue >= 0 ? '+' : ''}₱{Number(monthComparison.deltaRevenue || 0).toLocaleString()} vs prev)
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="oversight-item">
+                  <div className="oversight-title">Technician performance</div>
+                  <div className="oversight-desc">
+                    Coming soon: completion rate and average resolution time.
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: '12px', color: '#6b7280', fontSize: '13px', fontWeight: 600 }}>
+                No monthly data available yet.
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="quick-actions">
