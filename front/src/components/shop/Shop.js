@@ -12,52 +12,17 @@ import ProductModal from './ProductModal';
 import ServiceAreaSelector from '../customer/ServiceAreaSelector';
 import Footer from '../home/Footer';
 
-function Shop() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { cart, addToCart, updateQuantity, removeFromCart, getCartCount, getCartTotal } = useCart();
-  const { isAuthenticated, showAuthRequiredPrompt } = useUser();
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedBrand, setSelectedBrand] = useState('all');
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
-  const [sortBy, setSortBy] = useState('default');
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [serviceAreaLabel, setServiceAreaLabel] = useState('');
-  const [backendProducts, setBackendProducts] = useState([]);
-
-  const onServiceAreaChange = useCallback((area) => {
-    setServiceAreaLabel(area?.label || '');
-  }, []);
-
-  useEffect(() => {
-    apiRequest('/products/public')
-      .then((response) => {
-        const mapped = (response.products || []).map((product) => ({
-          id: product.id,
-          name: product.name,
-          brand: product.brand || 'Generic',
-          category: product.category || 'split',
-          price: Number(product.price) || 0,
-          specs: product.specs || '',
-          description: Array.isArray(product.features) && product.features.length > 0
-            ? product.features.join(', ')
-            : 'Energy efficient AC unit ready for installation.',
-          inStock: Number(product.stock) > 0,
-          stock: Number(product.stock) || 0,
-          model: product.sku || '',
-          energyRating: '5 Stars',
-          warranty: '1 year parts & labor, 5 years compressor',
-          imageUrl: '',
-        }));
-        setBackendProducts(mapped);
-      })
-      .catch(() => setBackendProducts([]));
-  }, []);
-
-  // Products with imageUrl support only (no productUrl)
-  const fallbackProducts = [
+// Products with imageUrl support only (no productUrl)
+const fallbackProducts = [
+  // ===== AMERICAN HOME INVERTER (Split Type) =====
+  { 
+    id: 1, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
+    price: 18499, oldPrice: 20999, specs: '1.0HP', model: 'AHAC-MINV1023EHW', 
+    energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
+    description: 'Energy efficient inverter AC with rapid cooling technology', 
+    discount: 12, inStock: true,
+    imageUrl: 'https://ansons.ph/wp-content/uploads/2024/12/29_AHAC-MINV1023EHW.jpg' // Add your image URL here
+  },
     // ===== AMERICAN HOME INVERTER (Split Type) =====
     { 
       id: 1, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
@@ -397,6 +362,51 @@ function Shop() {
     }
   ];
 
+// Products with imageUrl support only (no productUrl)
+function Shop() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { cart, addToCart, updateQuantity, removeFromCart, getCartCount, getCartTotal } = useCart();
+  const { isAuthenticated, showAuthRequiredPrompt } = useUser();
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedBrand, setSelectedBrand] = useState('all');
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
+  const [sortBy, setSortBy] = useState('default');
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [serviceAreaLabel, setServiceAreaLabel] = useState('');
+  const [backendProducts, setBackendProducts] = useState([]);
+
+  const onServiceAreaChange = useCallback((area) => {
+    setServiceAreaLabel(area?.label || '');
+  }, []);
+
+  useEffect(() => {
+    apiRequest('/products/public')
+      .then((response) => {
+        const mapped = (response.products || []).map((product) => ({
+          id: product.id,
+          name: product.name,
+          brand: product.brand || 'Generic',
+          category: product.category || 'split',
+          price: Number(product.price) || 0,
+          specs: product.specs || '',
+          description: Array.isArray(product.features) && product.features.length > 0
+            ? product.features.join(', ')
+            : 'Energy efficient AC unit ready for installation.',
+          inStock: Number(product.stock) > 0,
+          stock: Number(product.stock) || 0,
+          model: product.sku || '',
+          energyRating: '5 Stars',
+          warranty: '1 year parts & labor, 5 years compressor',
+          imageUrl: '',
+        }));
+        setBackendProducts(mapped);
+      })
+      .catch(() => setBackendProducts([]));
+  }, []);
+
   const products = useMemo(() => {
     // Combine backend products with fallback products, prioritizing backend data
     const combined = [...fallbackProducts];
@@ -416,7 +426,7 @@ function Shop() {
     }
     
     return combined;
-  }, [backendProducts, fallbackProducts]);
+  }, [backendProducts]);
 
   const categories = useMemo(() => {
     const counts = products.reduce((acc, product) => {
