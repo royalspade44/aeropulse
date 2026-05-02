@@ -55,6 +55,8 @@ export const UserProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentSession, setCurrentSession] = useState(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [loginPromptMessage, setLoginPromptMessage] = useState('Please log in to access this feature.');
 
   const currentLanguage = user?.preferences?.language || "English";
   const currentTheme = user?.preferences?.theme || (user?.preferences?.darkMode ? "dark" : "light");
@@ -254,6 +256,15 @@ export const UserProvider = ({ children }) => {
     return result;
   };
 
+  const showAuthRequiredPrompt = (message = 'Please log in to access this feature.') => {
+    setLoginPromptMessage(message);
+    setShowLoginPrompt(true);
+  };
+
+  const hideAuthRequiredPrompt = () => {
+    setShowLoginPrompt(false);
+  };
+
   const getUserByEmail = () => null;
   const getAllUsers = () => [];
   const getUsersByRole = () => [];
@@ -273,6 +284,8 @@ export const UserProvider = ({ children }) => {
     currentSession,
     currentLanguage,
     currentTheme,
+    showLoginPrompt,
+    loginPromptMessage,
     register,
     login,
     loginAsAdmin,
@@ -287,6 +300,8 @@ export const UserProvider = ({ children }) => {
     changePassword,
     requestPasswordChangeEmail,
     deleteAccount,
+    showAuthRequiredPrompt,
+    hideAuthRequiredPrompt,
     getUserByEmail,
     getAllUsers,
     getUsersByRole,

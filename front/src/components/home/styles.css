@@ -2005,6 +2005,67 @@ body {
 }
 
 /* =============================================
+   UNAUTHENTICATED MENU STATE
+   ============================================= */
+.menu-info-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 20px;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  margin: 16px 12px;
+  text-align: center;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+
+.menu-info-box svg {
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.menu-info-box p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-muted);
+}
+
+.menu-login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 24px);
+  margin: 0 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.menu-login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.menu-login-btn:active {
+  transform: translateY(0);
+}
+
+.menu-login-btn img {
+  width: 16px;
+  height: 16px;
+}
+
+/* =============================================
    RESPONSIVE
    ============================================= */
 @media (max-width: 1024px) {

@@ -43,6 +43,7 @@ import SuperAdminInventory from './components/SUPERADMIN/Dashboard/SuperAdminInv
 import SuperAdminTasks from './components/SUPERADMIN/Dashboard/SuperAdminTasks';
 import SuperAdminAlerts from './components/SUPERADMIN/Dashboard/SuperAdminAlerts';
 import GlobalDialog from './components/common/GlobalDialog';
+import LoginPromptModal from './components/common/LoginPromptModal';
 import CustomerChatbot from './components/chatbot/CustomerChatbot';
 import './App.css';
 
@@ -99,9 +100,20 @@ const PublicRoute = ({ children }) => {
   return !isAuthenticated ? children : <Navigate to={getRoleHomePath(userRole)} replace />;
 };
 
+// Home Route - Accessible to both authenticated and unauthenticated users
+const HomeRoute = ({ children }) => {
+  const { loading } = useUser();
+
+  if (loading) {
+    return <div className="loading-screen">Loading...</div>;
+  }
+
+  return children;
+};
+
 // Main App content with routes
 function AppContent() {
-  const { isAuthenticated, loading, userRole } = useUser();
+  const { isAuthenticated, loading, userRole, showLoginPrompt, loginPromptMessage, hideAuthRequiredPrompt } = useUser();
   const location = useLocation();
 
   if (loading) {
@@ -119,14 +131,10 @@ function AppContent() {
   return (
     <>
       <Routes>
-        {/* Root path redirects based on auth status */}
+        {/* Root path redirects to home */}
         <Route 
           path="/" 
-          element={
-            isAuthenticated ? 
-              <Navigate to={getRoleHomePath(userRole)} replace /> : 
-              <Navigate to="/login" replace />
-          } 
+          element={<Navigate to="/home" replace />}
         />
       
       {/* Public routes */}
@@ -152,13 +160,13 @@ function AppContent() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
       
-      {/* Protected routes */}
+      {/* Home route - accessible to both authenticated and unauthenticated users */}
       <Route 
         path="/home" 
         element={
-          <ProtectedRoute>
+          <HomeRoute>
             <Home />
-          </ProtectedRoute>
+          </HomeRoute>
         } 
       />
       
@@ -192,9 +200,9 @@ function AppContent() {
       <Route 
         path="/shop" 
         element={
-          <ProtectedRoute>
+          <HomeRoute>
             <Shop />
-          </ProtectedRoute>
+          </HomeRoute>
         } 
       />
       
@@ -446,15 +454,18 @@ function AppContent() {
         }
       />
       
-        {/* Catch all - redirect to home or login based on auth */}
+        {/* Catch all - redirect to home */}
         <Route 
           path="*" 
-          element={
-            <Navigate to={isAuthenticated ? getRoleHomePath(userRole) : "/login"} replace />
-          } 
+          element={<Navigate to="/home" replace />}
         />
       </Routes>
       {shouldShowCustomerChatbot && <CustomerChatbot />}
+      <LoginPromptModal 
+        isOpen={showLoginPrompt} 
+        onClose={hideAuthRequiredPrompt}
+        message={loginPromptMessage}
+      />
     </>
   );
 }

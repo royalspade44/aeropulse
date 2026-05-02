@@ -167,6 +167,48 @@
     background: #1a1a2e;
     border-color: rgba(238, 238, 238, 0.16);
   }
+
+  /* ========== AUTH BANNER ========== */
+  .shop-auth-banner {
+    background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+    border-bottom: 1px solid #fcd34d;
+    padding: 12px 28px;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+  }
+
+  .banner-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #92400e;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .banner-content svg {
+    color: #f59e0b;
+    flex-shrink: 0;
+  }
+
+  .banner-content strong {
+    color: #d97706;
+  }
+
+  :root[data-theme='dark'] .shop-auth-banner {
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.2) 0%, rgba(245, 158, 11, 0.15) 100%);
+    border-bottom-color: rgba(245, 158, 11, 0.3);
+  }
+
+  :root[data-theme='dark'] .banner-content {
+    color: #fcd34d;
+  }
+
+  :root[data-theme='dark'] .banner-content strong {
+    color: #fbbf24;
+  }
   
   /* ========== LAYOUT ========== */
   .shop-main {

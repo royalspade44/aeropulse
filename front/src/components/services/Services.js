@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../context/UserContext';
 import './Services.css';
 import icons from '../common/icons';
 import ServiceBookingModal from './ServiceBookingModal';
@@ -7,6 +8,7 @@ import Footer from '../home/Footer';
 
 function Services() {
   const navigate = useNavigate();
+  const { isAuthenticated, showAuthRequiredPrompt } = useUser();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedService, setSelectedService] = useState(null);
@@ -105,6 +107,10 @@ function Services() {
   };
 
   const handleBookService = (service) => {
+    if (!isAuthenticated) {
+      showAuthRequiredPrompt('Please log in to book a service.');
+      return;
+    }
     setSelectedService(service);
     setShowBookingModal(true);
   };

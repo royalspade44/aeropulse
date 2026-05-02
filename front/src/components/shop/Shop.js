@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { useUser } from '../../context/UserContext';
 import { apiRequest } from '../../config/api';
 import icons from '../common/icons';
 import './Shop.css';
@@ -15,6 +16,7 @@ function Shop() {
   const navigate = useNavigate();
   const location = useLocation();
   const { cart, addToCart, updateQuantity, removeFromCart, getCartCount, getCartTotal } = useCart();
+  const { isAuthenticated, showAuthRequiredPrompt } = useUser();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
@@ -395,7 +397,26 @@ function Shop() {
     }
   ];
 
-  const products = backendProducts.length > 0 ? backendProducts : fallbackProducts;
+  const products = useMemo(() => {
+    // Combine backend products with fallback products, prioritizing backend data
+    const combined = [...fallbackProducts];
+    
+    // If we have backend products, merge them (backend takes precedence for matching IDs)
+    if (backendProducts.length > 0) {
+      backendProducts.forEach(backendProduct => {
+        const existingIndex = combined.findIndex(p => p.id === backendProduct.id);
+        if (existingIndex >= 0) {
+          // Update existing product with backend data
+          combined[existingIndex] = { ...combined[existingIndex], ...backendProduct };
+        } else {
+          // Add new backend product
+          combined.push(backendProduct);
+        }
+      });
+    }
+    
+    return combined;
+  }, [backendProducts, fallbackProducts]);
 
   const categories = useMemo(() => {
     const counts = products.reduce((acc, product) => {
@@ -464,15 +485,27 @@ function Shop() {
   };
 
   const handleAddToCart = (product, quantity = 1) => {
+    if (!isAuthenticated) {
+      showAuthRequiredPrompt('Please log in to add items to your cart.');
+      return;
+    }
     addToCart(product, quantity);
   };
 
   const handleCheckout = () => {
+    if (!isAuthenticated) {
+      showAuthRequiredPrompt('Please log in to proceed to checkout.');
+      return;
+    }
     navigate('/checkout');
     setIsCartOpen(false);
   };
 
   const handleBuyNow = (product) => {
+    if (!isAuthenticated) {
+      showAuthRequiredPrompt('Please log in to make a purchase.');
+      return;
+    }
     addToCart(product, 1);
     navigate('/checkout');
   };
@@ -504,6 +537,18 @@ function Shop() {
           </div>
         </div>
       </div>
+
+      {!isAuthenticated && (
+        <div className="shop-auth-banner">
+          <div className="banner-content">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+            <span>You're browsing as a guest. <strong>Log in to add items to cart and checkout.</strong></span>
+          </div>
+        </div>
+      )}
 
       <div className="shop-main">
         <div className="shop-sidebar">

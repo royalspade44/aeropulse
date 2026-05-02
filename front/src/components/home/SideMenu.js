@@ -6,7 +6,7 @@ import icons from '../common/icons';
 function SideMenu({ isOpen, onClose, activePage, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useUser();
+  const { user, isAuthenticated } = useUser();
   const [avatarBroken, setAvatarBroken] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState(activePage);
@@ -56,8 +56,17 @@ function SideMenu({ isOpen, onClose, activePage, onLogout }) {
   }, [user?.avatarUrl]);
 
   const handleNavigation = (path, itemId) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
     setActiveMenuItem(itemId);
     navigate(path);
+    onClose();
+  };
+
+  const handleLoginClick = () => {
+    navigate('/login');
     onClose();
   };
 
@@ -98,79 +107,131 @@ function SideMenu({ isOpen, onClose, activePage, onLogout }) {
       </div>
 
       <div className={`side-menu ${isOpen ? 'open' : ''}`}>
-        <div className="menu-header">
-          <div className="menu-header-content">
-            <div className="user-avatar">
-              {user?.avatarUrl && !avatarBroken ? (
-                <img
-                  src={user.avatarUrl}
-                  alt="Profile"
-                  className="inline-icon inline-icon--lg"
-                  onError={() => setAvatarBroken(true)}
-                />
-              ) : getUserInitial() ? (
-                <span className="user-initial">{getUserInitial()}</span>
-              ) : (
-                <img src={icons.memberList} alt="" className="inline-icon inline-icon--lg" />
-              )}
-            </div>
-            <div className="user-info">
-              <h3>Welcome Back,</h3>
-              <p className="user-name">{getUserDisplayName()}</p>
-              <span className="user-role">{getUserRole()}</span>
-            </div>
-          </div>
-          <button type="button" className="close-menu" onClick={onClose} aria-label="Close menu">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-
-        <div className="menu-nav">
-          {menuItems.map((item) => (
-            <div
-              key={item.id}
-              className={`menu-item ${activeMenuItem === item.id ? 'active' : ''}`}
-              onClick={() => handleNavigation(item.path, item.id)}
-              role="presentation"
-            >
-              <div className="menu-icon-wrapper">
-                <span className="menu-icon">
-                  <img src={item.iconSrc} alt="" className="inline-icon inline-icon--md" />
-                </span>
+        {isAuthenticated ? (
+          <>
+            <div className="menu-header">
+              <div className="menu-header-content">
+                <div className="user-avatar">
+                  {user?.avatarUrl && !avatarBroken ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt="Profile"
+                      className="inline-icon inline-icon--lg"
+                      onError={() => setAvatarBroken(true)}
+                    />
+                  ) : getUserInitial() ? (
+                    <span className="user-initial">{getUserInitial()}</span>
+                  ) : (
+                    <img src={icons.memberList} alt="" className="inline-icon inline-icon--lg" />
+                  )}
+                </div>
+                <div className="user-info">
+                  <h3>Welcome Back,</h3>
+                  <p className="user-name">{getUserDisplayName()}</p>
+                  <span className="user-role">{getUserRole()}</span>
+                </div>
               </div>
-              <div className="menu-item-content">
-                <span className="menu-label">{item.label}</span>
-                <span className="menu-description">{item.description}</span>
+              <button type="button" className="close-menu" onClick={onClose} aria-label="Close menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="menu-nav">
+              {menuItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`menu-item ${activeMenuItem === item.id ? 'active' : ''}`}
+                  onClick={() => handleNavigation(item.path, item.id)}
+                  role="presentation"
+                >
+                  <div className="menu-icon-wrapper">
+                    <span className="menu-icon">
+                      <img src={item.iconSrc} alt="" className="inline-icon inline-icon--md" />
+                    </span>
+                  </div>
+                  <div className="menu-item-content">
+                    <span className="menu-label">{item.label}</span>
+                    <span className="menu-description">{item.description}</span>
+                  </div>
+                  {activeMenuItem === item.id && (
+                    <div className="active-indicator"></div>
+                  )}
+                </div>
+              ))}
+
+              <div className="menu-divider"></div>
+
+              <div className="menu-item logout-item" onClick={handleLogoutClick} role="presentation">
+                <div className="menu-icon-wrapper">
+                  <span className="menu-icon">
+                    <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" />
+                  </span>
+                </div>
+                <div className="menu-item-content">
+                  <span className="menu-label">Logout</span>
+                  <span className="menu-description">Sign out of your account</span>
+                </div>
               </div>
-              {activeMenuItem === item.id && (
-                <div className="active-indicator"></div>
-              )}
             </div>
-          ))}
 
-          <div className="menu-divider"></div>
-
-          <div className="menu-item logout-item" onClick={handleLogoutClick} role="presentation">
-            <div className="menu-icon-wrapper">
-              <span className="menu-icon">
-                <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" />
-              </span>
+            <div className="menu-footer">
+              <div className="version-info">
+                <span>Version 1.0.0</span>
+                <span>© Cold Air</span>
+              </div>
             </div>
-            <div className="menu-item-content">
-              <span className="menu-label">Logout</span>
-              <span className="menu-description">Sign out of your account</span>
+          </>
+        ) : (
+          <>
+            {/* Unauthenticated view */}
+            <div className="menu-header">
+              <div className="menu-header-content">
+                <div className="user-avatar">
+                  <img src={icons.memberList} alt="" className="inline-icon inline-icon--lg" />
+                </div>
+                <div className="user-info">
+                  <h3>Welcome,</h3>
+                  <p className="user-name">Guest User</p>
+                  <span className="user-role">Not logged in</span>
+                </div>
+              </div>
+              <button type="button" className="close-menu" onClick={onClose} aria-label="Close menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+              </button>
             </div>
-          </div>
-        </div>
 
-        <div className="menu-footer">
-          <div className="version-info">
-            <span>Version 1.0.0</span>
-            <span>© Cold Air</span>
-          </div>
-        </div>
+            <div className="menu-nav">
+              <div className="menu-info-box">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+                <p>Log in to access all features and manage your account.</p>
+              </div>
+
+              <button 
+                type="button" 
+                className="menu-login-btn"
+                onClick={handleLoginClick}
+              >
+                <img src={icons.signOutAlt} alt="" className="inline-icon" />
+                <span>Go to Login</span>
+              </button>
+            </div>
+
+            <div className="menu-footer">
+              <div className="version-info">
+                <span>Version 1.0.0</span>
+                <span>© Cold Air</span>
+              </div>
+            </div>
+          </>
+        )}
+
       </div>
 
       {showLogoutModal && (
