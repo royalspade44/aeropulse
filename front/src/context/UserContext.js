@@ -136,7 +136,7 @@ export const UserProvider = ({ children }) => {
   }, [currentLanguage]);
 
   const login = async (email, password, roleOrBranch = "", branchMaybe = "") => {
-    const knownRoles = new Set(["customer", "admin", "technician", "superadmin"]);
+    const knownRoles = new Set(["customer", "admin", "superadmin"]);
     const branch = knownRoles.has(roleOrBranch) ? branchMaybe : roleOrBranch;
     const result = await apiRequest("/auth/login", {
       method: "POST",
@@ -161,7 +161,6 @@ export const UserProvider = ({ children }) => {
   };
 
   const loginAsAdmin = async (email, password, branch = "") => login(email, password, "admin", branch);
-  const loginAsTechnician = async (email, password, branch = "") => login(email, password, "technician", branch);
   const loginAsSuperAdmin = async (email, password) => login(email, password, "superadmin");
 
   const logout = () => {
@@ -269,11 +268,9 @@ export const UserProvider = ({ children }) => {
   const getAllUsers = () => [];
   const getUsersByRole = () => [];
   const getAllCustomers = () => [];
-  const getAllTechnicians = () => [];
   const getAllAdmins = () => [];
   const hasRole = (role) => userRole === role;
   const isAdmin = () => userRole === "admin" || userRole === "superadmin";
-  const isTechnician = () => userRole === "technician";
   const isCustomer = () => userRole === "customer";
 
   const value = {
@@ -289,7 +286,6 @@ export const UserProvider = ({ children }) => {
     register,
     login,
     loginAsAdmin,
-    loginAsTechnician,
     loginAsSuperAdmin,
     logout,
     updateProfile,
@@ -306,11 +302,9 @@ export const UserProvider = ({ children }) => {
     getAllUsers,
     getUsersByRole,
     getAllCustomers,
-    getAllTechnicians,
     getAllAdmins,
     hasRole,
     isAdmin,
-    isTechnician,
     isCustomer,
   };
 

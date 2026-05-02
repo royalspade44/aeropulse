@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const roleHome = (role) => {
   if (role === 'admin') return '/admin/dashboard';
-  if (role === 'technician') return '/tech/dashboard';
   if (role === 'superadmin') return '/superadmin/dashboard';
   return '/home';
 };

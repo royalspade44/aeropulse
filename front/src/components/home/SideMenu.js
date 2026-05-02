@@ -38,7 +38,8 @@ function SideMenu({ isOpen, onClose, activePage, onLogout }) {
 
   const getUserRole = () => {
     if (!user) return 'Guest';
-    if (user.role) return user.role === 'technician' ? 'Technician' : 'Customer';
+    if (user.role === 'admin') return 'Admin';
+    if (user.role === 'superadmin') return 'Super Admin';
     if (user.isGoogleAccount) return 'Google User';
     return 'Customer';
   };

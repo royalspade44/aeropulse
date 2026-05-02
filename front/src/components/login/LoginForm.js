@@ -45,7 +45,7 @@ function LoginForm({
           disabled={disabled}
           className={errors.branch ? 'input-error' : ''}
         >
-          <option value="">Select branch (required for admin and technician accounts)</option>
+          <option value="">Select branch (required for administrative accounts)</option>
           {branchOptions.map((branchName) => (
             <option key={branchName} value={branchName}>
               {branchName}

@@ -30,11 +30,6 @@ import AdminOrders from './components/ADMIN/Orders/AdminOrders';
 import AdminReports from './components/ADMIN/Reports/AdminReports';
 import AdminSettings from './components/ADMIN/Settings/AdminSettings';
 import AdminAuditLogs from './components/ADMIN/AuditLogs/AdminAuditLogs';
-import TechMainScreen from './components/TECH/Dashboard/TechMainScreen';
-import TaskScreens from './components/TECH/Tasks/TaskScreens';
-import TaskDetails from './components/TECH/Tasks/TaskDetails';
-import ProfileTechnicianScreen from './components/TECH/Profile/ProfileTechnicianScreen';
-import TechEditProfile from './components/TECH/Profile/TechEditProfile';
 import SuperAdminDashboard from './components/SUPERADMIN/Dashboard/SuperAdminDashboard';
 import SuperAdminBranches from './components/SUPERADMIN/Dashboard/SuperAdminBranches';
 import SuperAdminAttendance from './components/SUPERADMIN/Dashboard/SuperAdminAttendance';
@@ -49,8 +44,6 @@ import './App.css';
 
 const getRoleHomePath = (role) => {
   switch (role) {
-    case 'technician':
-      return '/tech/dashboard';
     case 'admin':
       return '/admin/dashboard';
     case 'superadmin':
@@ -356,46 +349,6 @@ function AppContent() {
         }
       />
 
-      <Route
-        path="/tech/dashboard"
-        element={
-          <RoleRoute allowedRoles={['technician']}>
-            <TechMainScreen />
-          </RoleRoute>
-        }
-      />
-      <Route
-        path="/tech/tasks"
-        element={
-          <RoleRoute allowedRoles={['technician']}>
-            <TaskScreens />
-          </RoleRoute>
-        }
-      />
-      <Route
-        path="/tech/tasks/:taskId"
-        element={
-          <RoleRoute allowedRoles={['technician']}>
-            <TaskDetails />
-          </RoleRoute>
-        }
-      />
-      <Route
-        path="/tech/profile"
-        element={
-          <RoleRoute allowedRoles={['technician']}>
-            <ProfileTechnicianScreen />
-          </RoleRoute>
-        }
-      />
-      <Route
-        path="/tech/profile/edit"
-        element={
-          <RoleRoute allowedRoles={['technician']}>
-            <TechEditProfile />
-          </RoleRoute>
-        }
-      />
 
       <Route
         path="/superadmin/dashboard"

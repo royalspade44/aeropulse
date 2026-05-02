@@ -11,7 +11,6 @@ import LockoutWarning from './LockOutWarning';
 import GoogleButton from './GoogleButton';
 
 const getRoleHomePath = (role) => {
-  if (role === 'technician') return '/tech/dashboard';
   if (role === 'admin') return '/admin/dashboard';
   if (role === 'superadmin') return '/superadmin/dashboard';
   return '/home';

@@ -3,7 +3,6 @@ export function detectRoleFromEmail(email = '') {
 
   if (normalizedEmail.includes('superadmin')) return 'superadmin';
   if (normalizedEmail.includes('admin')) return 'admin';
-  if (normalizedEmail.includes('tech')) return 'technician';
   return 'customer';
 }
 
