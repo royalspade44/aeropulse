@@ -1,3 +1,5 @@
+const path = require("path");
+const fs = require("fs");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -43,6 +45,20 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/inventory-change-requests", inventoryChangeRequestRoutes);
 app.use("/api/restock-orders", restockOrderRoutes);
 app.use("/api/reports", reportRoutes);
+
+const buildPath = path.resolve(__dirname, '..', '..', 'front', 'build');
+const indexHtml = path.join(buildPath, 'index.html');
+
+if (fs.existsSync(indexHtml)) {
+  app.use(express.static(buildPath));
+
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    res.sendFile(indexHtml);
+  });
+}
 
 app.use((err, _req, res, _next) => {
   console.error(err);

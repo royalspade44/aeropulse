@@ -68,6 +68,7 @@ function Login() {
       email_not_verified: 'Please verify your Google account email before signing in.',
       missing_payload: 'Google sign-in payload is missing.',
       invalid_payload: 'Google sign-in payload is invalid.',
+      technician_account: 'Technician accounts cannot access the web platform. Please use the mobile app.',
     };
     setAuthMessage(errorMap[googleError] || 'Google sign-in failed. Please try again.');
   }, [location.search]);

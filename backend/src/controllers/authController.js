@@ -67,7 +67,6 @@ const detectRoleFromEmail = (email = "") => {
   const normalizedEmail = String(email).trim().toLowerCase();
   if (normalizedEmail.includes("superadmin")) return "superadmin";
   if (normalizedEmail.includes("admin")) return "admin";
-  if (normalizedEmail.includes("tech")) return "technician";
   return "customer";
 };
 
@@ -262,6 +261,10 @@ const login = async (req, res) => {
     user.role = detectedRole;
   }
 
+  if (user.role === "technician") {
+    return res.status(403).json({ message: "Technician accounts cannot access the web platform. Please use the mobile app." });
+  }
+
   if (user.lockoutUntil && user.lockoutUntil.getTime() > Date.now()) {
     const secondsLeft = Math.max(1, Math.ceil((user.lockoutUntil.getTime() - Date.now()) / 1000));
     return res.status(423).json({
@@ -288,7 +291,7 @@ const login = async (req, res) => {
     return res.status(401).json({ message: "Incorrect password. Please try again.", attempts: user.failedLoginAttempts });
   }
 
-  const isBranchScopedRole = user.role === "admin" || user.role === "technician";
+  const isBranchScopedRole = user.role === "admin";
   if (isBranchScopedRole) {
     const selectedBranch = typeof branch === "string" ? branch.trim() : "";
     const effectiveBranch = BRANCHES.includes(selectedBranch)
@@ -374,6 +377,10 @@ const googleCallback = async (req, res, next) => {
     }
 
     const detectedRole = detectRoleFromEmail(email);
+
+    if (detectedRole === "technician") {
+      return res.redirect(`${env.frontendUrl}/login?google_error=technician_account`);
+    }
 
     let user = await User.findOne({ email });
     if (!user) {
