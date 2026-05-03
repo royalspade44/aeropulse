@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import AdminLayout from '../Common/AdminLayout';
 import { useUser } from '../../../context/UserContext';
 import { loadBranchNetwork } from '../../../domain/branches/branchNetworkStorage';
@@ -16,7 +16,7 @@ const DEFAULT_BRANCH_LOCATIONS = {
 
 const AdminStoreOperations = () => {
   const { user } = useUser();
-  const [branches, setBranches] = useState(() => loadBranchNetwork());
+  const branches = useMemo(() => loadBranchNetwork(), []);
 
   const assignedBranch = useMemo(() => {
     const pickedBranch = localStorage.getItem('activeBranch') || user?.activeBranch || user?.assignedBranch || '';
