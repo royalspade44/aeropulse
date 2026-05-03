@@ -569,6 +569,7 @@
 
 .admin-sidebar-logout {
   width: 100%;
+  box-sizing: border-box;
   background: transparent;
   border: 1px solid var(--gray-200);
   border-radius: var(--radius-md);
@@ -582,6 +583,9 @@
   cursor: pointer;
   transition: all var(--transition);
   font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .admin-sidebar-logout:hover {

@@ -30,77 +30,85 @@ function AdminSettings() {
       <div className="admin-grid-2">
         <div className="admin-card">
           <h3>General</h3>
-          <label>
-            Store name
-            <input
-              value={draft.general.storeName}
-              onChange={(e) => setDraft((p) => ({ ...p, general: { ...p.general, storeName: e.target.value } }))}
-              placeholder="AeroPulse"
-            />
-          </label>
-          <label>
-            Address
-            <input
-              value={draft.general.address}
-              onChange={(e) => setDraft((p) => ({ ...p, general: { ...p.general, address: e.target.value } }))}
-              placeholder="Store address"
-            />
-          </label>
-          <label>
-            Tax rate (%)
-            <input
-              type="number"
-              min="0"
-              value={draft.general.taxRate}
-              onChange={(e) => setDraft((p) => ({ ...p, general: { ...p.general, taxRate: Number(e.target.value) || 0 } }))}
-            />
-          </label>
-          <label>
-            Currency
-            <select
-              value={draft.general.currency}
-              onChange={(e) => setDraft((p) => ({ ...p, general: { ...p.general, currency: e.target.value } }))}
-            >
-              <option value="PHP">PHP</option>
-              <option value="USD">USD</option>
-            </select>
-          </label>
+          <div className="admin-field-group">
+            <label>
+              Store name
+              <input
+                value={draft.general.storeName}
+                onChange={(e) => setDraft((p) => ({ ...p, general: { ...p.general, storeName: e.target.value } }))}
+                placeholder="AeroPulse"
+              />
+            </label>
+            <label>
+              Address
+              <input
+                value={draft.general.address}
+                onChange={(e) => setDraft((p) => ({ ...p, general: { ...p.general, address: e.target.value } }))}
+                placeholder="Store address"
+              />
+            </label>
+            <label>
+              Tax rate (%)
+              <input
+                type="number"
+                min="0"
+                value={draft.general.taxRate}
+                onChange={(e) => setDraft((p) => ({ ...p, general: { ...p.general, taxRate: Number(e.target.value) || 0 } }))}
+              />
+            </label>
+            <label>
+              Currency
+              <select
+                value={draft.general.currency}
+                onChange={(e) => setDraft((p) => ({ ...p, general: { ...p.general, currency: e.target.value } }))}
+              >
+                <option value="PHP">PHP</option>
+                <option value="USD">USD</option>
+              </select>
+            </label>
+          </div>
         </div>
 
         <div className="admin-card">
           <h3>Notifications</h3>
-          <label>
-            Low stock threshold
-            <input
-              type="number"
-              min="1"
-              value={draft.notifications.lowStockThreshold}
-              onChange={(e) =>
-                setDraft((p) => ({
-                  ...p,
-                  notifications: { ...p.notifications, lowStockThreshold: Math.max(1, Number(e.target.value) || 5) },
-                }))
-              }
-            />
-          </label>
+          <div className="admin-field-group">
+            <label>
+              Low stock threshold
+              <input
+                type="number"
+                min="1"
+                value={draft.notifications.lowStockThreshold}
+                onChange={(e) =>
+                  setDraft((p) => ({
+                    ...p,
+                    notifications: { ...p.notifications, lowStockThreshold: Math.max(1, Number(e.target.value) || 5) },
+                  }))
+                }
+              />
+            </label>
+          </div>
 
-          <h3 style={{ marginTop: 16 }}>Roles</h3>
-          <label>
-            Admin permissions mode
-            <select
-              value={draft.roles.adminMode}
-              onChange={(e) => setDraft((p) => ({ ...p, roles: { ...p.roles, adminMode: e.target.value } }))}
-            >
-              <option value="full">Full admin</option>
-              <option value="view">View-only admin</option>
-            </select>
-          </label>
+          <div className="admin-card-section">
+            <h3>Roles</h3>
+            <div className="admin-field-group">
+              <label>
+                Admin permissions mode
+                <select
+                  value={draft.roles.adminMode}
+                  onChange={(e) => setDraft((p) => ({ ...p, roles: { ...p.roles, adminMode: e.target.value } }))}
+                >
+                  <option value="full">Full admin</option>
+                  <option value="view">View-only admin</option>
+                </select>
+              </label>
+            </div>
+          </div>
 
-          <button type="button" onClick={onSave} style={{ marginTop: 12, fontWeight: 800 }}>
+          <button type="button" onClick={onSave}>
             Save settings
           </button>
           {savedAt ? (
-            <p style={{ marginTop: 10, color: '#6b7280', fontWeight: 700 }}>
+            <p className="admin-section-note">
               Saved at {new Date(savedAt).toLocaleString()}
             </p>
           ) : null}

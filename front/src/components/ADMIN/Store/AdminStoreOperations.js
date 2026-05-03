@@ -17,9 +17,6 @@ const DEFAULT_BRANCH_LOCATIONS = {
 const AdminStoreOperations = () => {
   const { user } = useUser();
   const [branches, setBranches] = useState(() => loadBranchNetwork());
-  const [totp, setTotp] = useState('');
-  const [serverTotp, setServerTotp] = useState('');
-  const [error, setError] = useState('');
 
   const assignedBranch = useMemo(() => {
     const pickedBranch = localStorage.getItem('activeBranch') || user?.activeBranch || user?.assignedBranch || '';
@@ -43,33 +40,6 @@ const AdminStoreOperations = () => {
 
   const refreshBranch = () => setBranches(loadBranchNetwork());
 
-  const closeStore = () => {
-    setError('');
-    if (totp !== TOTP_DEMO) {
-      setError('Invalid TOTP for store close confirmation.');
-      return;
-    }
-    updateBranchOps(assignedBranch.id, { storeStatus: 'closed' });
-    setTotp('');
-    refreshBranch();
-    alert('Store close confirmed. You can now shut down the branch server.');
-  };
-
-  const shutdownServer = () => {
-    setError('');
-    if (serverTotp !== TOTP_DEMO) {
-      setError('Invalid TOTP for server shutdown.');
-      return;
-    }
-    updateBranchOps(assignedBranch.id, {
-      serverStatus: 'offline',
-      networkHealth: 'scheduled-shutdown',
-      requests: [...(assignedBranch.requests || []), 'Server was shut down by branch admin']
-    });
-    setServerTotp('');
-    refreshBranch();
-    alert('Server shut down confirmed. It is now safe to power off the branch computer.');
-  };
 
   return (
     <AdminLayout title="Store" subtitle="Branch closing flow and server shutdown controls">
@@ -87,42 +57,6 @@ const AdminStoreOperations = () => {
           </p>
         </div>
 
-        <div className="admin-card">
-          <h3>Close Store Flow</h3>
-          <p>1) Go to Store</p>
-          <p>2) Click on close store at the top</p>
-          <p>3) Enter TOTP to confirm</p>
-          <p>4) Click on shut down server before shutting down branch computer</p>
-          <p>5) Enter TOTP to confirm</p>
-
-          <label htmlFor="close-store-totp">Close store TOTP</label>
-          <input
-            id="close-store-totp"
-            value={totp}
-            onChange={(e) => setTotp(e.target.value)}
-            placeholder="Enter 6-digit TOTP"
-            maxLength={6}
-          />
-          <button type="button" onClick={closeStore} style={{ marginTop: 8 }}>
-            Close Store
-          </button>
-
-          <label htmlFor="shutdown-server-totp" style={{ marginTop: 14, display: 'block' }}>
-            Shut down server TOTP
-          </label>
-          <input
-            id="shutdown-server-totp"
-            value={serverTotp}
-            onChange={(e) => setServerTotp(e.target.value)}
-            placeholder="Enter 6-digit TOTP"
-            maxLength={6}
-          />
-          <button type="button" onClick={shutdownServer} style={{ marginTop: 8 }}>
-            Shut Down Server
-          </button>
-
-          {error ? <p style={{ color: '#b91c1c' }}>{error}</p> : null}
-        </div>
       </div>
     </AdminLayout>
   );

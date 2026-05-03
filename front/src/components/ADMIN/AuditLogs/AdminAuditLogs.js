@@ -40,57 +40,71 @@ function AdminAuditLogs() {
       <div className="admin-grid-2">
         <div className="admin-card">
           <h3>Filters</h3>
-          <label>
-            User contains
-            <input value={filters.user} onChange={(e) => setFilters((p) => ({ ...p, user: e.target.value }))} placeholder="email or name" />
-          </label>
-          <label>
-            Date from
-            <input type="date" value={filters.from} onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))} />
-          </label>
-          <label>
-            Date to
-            <input type="date" value={filters.to} onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))} />
-          </label>
-          <button type="button" onClick={() => setLogs(loadAuditLogs())} style={{ marginTop: 10, fontWeight: 800 }}>
-            Refresh
-          </button>
+          <div className="admin-field-group">
+            <label>
+              User contains
+              <input value={filters.user} onChange={(e) => setFilters((p) => ({ ...p, user: e.target.value }))} placeholder="email or name" />
+            </label>
+            <label>
+              Date from
+              <input type="date" value={filters.from} onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))} />
+            </label>
+            <label>
+              Date to
+              <input type="date" value={filters.to} onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))} />
+            </label>
+          </div>
+          <div className="admin-card-actions">
+            <button type="button" onClick={() => setLogs(loadAuditLogs())}>
+              Refresh
+            </button>
+          </div>
         </div>
 
         <div className="admin-card">
           <h3>Summary</h3>
-          <p><strong>Total logs:</strong> {logs.length}</p>
-          <p><strong>Filtered:</strong> {filtered.length}</p>
+          <div className="admin-summary-list">
+            <div className="admin-summary-item">
+              <span>Total logs</span>
+              <strong>{logs.length}</strong>
+            </div>
+            <div className="admin-summary-item">
+              <span>Filtered</span>
+              <strong>{filtered.length}</strong>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="admin-card" style={{ marginTop: 16 }}>
+      <div className="admin-card admin-card--spacious admin-card--spaced">
         <h3>Entries</h3>
         {filtered.length === 0 ? (
-          <p style={{ color: '#6b7280', fontWeight: 700 }}>No logs match the selected filters.</p>
+          <div className="admin-empty-state">No logs match the selected filters.</div>
         ) : (
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>User</th>
-                <th>Action</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((row) => (
-                <tr key={row.id}>
-                  <td>{new Date(row.timestamp).toLocaleString()}</td>
-                  <td>{row.user}</td>
-                  <td>{row.action}</td>
-                  <td style={{ maxWidth: 640, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={row.details}>
-                    {row.details}
-                  </td>
+          <div className="admin-table-wrap">
+            <table className="admin-table admin-audit-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>User</th>
+                  <th>Action</th>
+                  <th>Details</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((row) => (
+                  <tr key={row.id}>
+                    <td>{new Date(row.timestamp).toLocaleString()}</td>
+                    <td>{row.user}</td>
+                    <td>{row.action}</td>
+                    <td className="admin-table-cell-truncate" title={row.details}>
+                      {row.details}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </AdminLayout>
