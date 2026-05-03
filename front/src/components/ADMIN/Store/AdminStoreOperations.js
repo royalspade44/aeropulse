@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import AdminLayout from '../Common/AdminLayout';
 import { useUser } from '../../../context/UserContext';
-import { loadBranchNetwork, updateBranchOps } from '../../../domain/branches/branchNetworkStorage';
+import { loadBranchNetwork } from '../../../domain/branches/branchNetworkStorage';
 import '../adminShared.css';
 
 const TOTP_DEMO = '123456';
@@ -37,9 +37,6 @@ const AdminStoreOperations = () => {
     const email = String(user?.email || '').toLowerCase();
     return branches.find((branch) => branch.branchAdmin === email) || branches[0];
   }, [branches, user?.email, user?.activeBranch, user?.assignedBranch]);
-
-  const refreshBranch = () => setBranches(loadBranchNetwork());
-
 
   return (
     <AdminLayout title="Store" subtitle="Branch closing flow and server shutdown controls">
