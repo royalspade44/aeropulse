@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
 const User = require("../models/User");
+const OtpRequest = require("../models/OtpRequest");
 const { signAccessToken } = require("../utils/token");
 const env = require("../config/env");
 const { BRANCHES } = require("../domain/branchRouting");
@@ -9,13 +10,9 @@ const { canSendEmail, sendEmail } = require("../utils/email");
 
 const OAUTH_GOOGLE_STATE_COOKIE = "oauth_google_state";
 const PASSWORD_RESET_MINUTES = Math.max(15, Math.min(30, Number(env.passwordResetTokenTtlMinutes || 20)));
+const OTP_TTL_MINUTES = Math.max(3, Math.min(15, Number(env.otpTtlMinutes || 5)));
 
-const oauthClient = new OAuth2Client({
-  clientId: env.googleClientId,
-  clientSecret: env.googleClientSecret,
-  redirectUri: env.googleRedirectUri,
-});
-
+const normalizeEmail = (email = "") => String(email).trim().toLowerCase();
 const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "");
 const canonicalizePhMobile = (phone = "") => {
   const digits = normalizePhone(phone);
@@ -36,6 +33,94 @@ const isStrongPassword = (value = "") => {
   return true;
 };
 
+const generateOtpCode = () => String(Math.floor(100000 + Math.random() * 900000)).padStart(6, "0");
+const hashValue = (value = "") => crypto.createHash("sha256").update(String(value)).digest("hex");
+const isOtpExpired = (otp) => !otp || !otp.expiresAt || otp.expiresAt.getTime() < Date.now();
+
+const sendOtpMessage = async ({ recipient, channel, action, code }) => {
+  const subject = `Your AeroPulse verification code`;
+  const message = `Your AeroPulse ${action.replace("_", " ")} code is ${code}. It expires in ${OTP_TTL_MINUTES} minutes.`;
+
+  if (channel === "email") {
+    if (canSendEmail()) {
+      await sendEmail({
+        to: recipient,
+        subject,
+        text: `${message}\n\nIf you did not request this, ignore this message.`,
+        html: `<p>${message}</p><p>If you did not request this, ignore this message.</p>`,
+      });
+    } else {
+      console.log("[OTP] Email not configured. OTP code:", code, "for", recipient);
+    }
+    return;
+  }
+
+  if (channel === "sms") {
+    console.log("[OTP] SMS placeholder code:", code, "for", recipient);
+    return;
+  }
+};
+
+const createOtpRequest = async ({ email = "", phone = "", action, channel, metadata = {} }) => {
+  const code = generateOtpCode();
+  const codeHash = hashValue(code);
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + OTP_TTL_MINUTES * 60 * 1000);
+  const otpRequest = await OtpRequest.create({
+    email: normalizeEmail(email),
+    phone: canonicalizePhMobile(phone),
+    action,
+    channel,
+    codeHash,
+    requestedAt: now,
+    expiresAt,
+    metadata,
+  });
+
+  await sendOtpMessage({
+    recipient: channel === "email" ? normalizeEmail(email) : canonicalizePhMobile(phone),
+    channel,
+    action,
+    code,
+  });
+
+  return otpRequest;
+};
+
+const findOtpRequest = async ({ email = "", phone = "", action, channel }) => {
+  const query = { action, channel, verifiedAt: null };
+  if (email) query.email = normalizeEmail(email);
+  if (phone) query.phone = canonicalizePhMobile(phone);
+  return OtpRequest.findOne(query).sort({ createdAt: -1 });
+};
+
+const verifyOtpRequest = async ({ email = "", phone = "", action, channel, code }) => {
+  const otp = await findOtpRequest({ email, phone, action, channel });
+  if (!otp) {
+    return { ok: false, reason: "not_found" };
+  }
+  if (isOtpExpired(otp)) {
+    return { ok: false, reason: "expired" };
+  }
+
+  otp.attempts = (otp.attempts || 0) + 1;
+  const isValid = hashValue(code) === otp.codeHash;
+  if (!isValid) {
+    await otp.save();
+    return { ok: false, reason: "invalid" };
+  }
+
+  otp.verifiedAt = new Date();
+  await otp.save();
+  return { ok: true, otp };
+};
+
+const oauthClient = new OAuth2Client({
+  clientId: env.googleClientId,
+  clientSecret: env.googleClientSecret,
+  redirectUri: env.googleRedirectUri,
+});
+
 const normalizeBillingAddress = (payload = {}) => ({
   region: String(payload.region || "").trim(),
   province: String(payload.province || "").trim(),
@@ -43,6 +128,18 @@ const normalizeBillingAddress = (payload = {}) => ({
   barangay: String(payload.barangay || "").trim(),
   street: String(payload.street || "").trim(),
 });
+
+const escapeRegExp = (value = "") => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const findUserByIdentifier = async (identifier = "") => {
+  const normalizedIdentifier = normalizeEmail(identifier);
+  if (!normalizedIdentifier) return null;
+
+  const emailQuery = { email: normalizedIdentifier };
+  const aliasQuery = { alias: { $regex: new RegExp(`^${escapeRegExp(normalizedIdentifier)}$`, "i") } };
+
+  return User.findOne({ $or: [emailQuery, aliasQuery] });
+};
 
 const formatBillingAddress = (billingAddress = {}) => ([
   billingAddress.street,
@@ -146,16 +243,14 @@ const register = async (req, res) => {
     phone,
     address = "",
     billingAddress,
-    emailOtp,
-    smsCode,
+    role, // Allow explicit role specification for mobile
   } = req.body;
-  const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
+  const normalizedEmail = normalizeEmail(email);
   console.log("[Auth][Register] Request received", {
     email: normalizedEmail || "(missing)",
     hasPhone: Boolean(phone),
-    hasEmailOtp: Boolean(emailOtp),
-    hasSmsCode: Boolean(smsCode),
+    requestedRole: role,
   });
 
   if (!normalizedEmail || !password || !name_first || !name_last || !phone) {
@@ -173,20 +268,14 @@ const register = async (req, res) => {
   }
 
   const normalizedPhone = canonicalizePhMobile(phone);
-  const detectedRole = detectRoleFromEmail(normalizedEmail);
+  // Use explicit role if provided, otherwise detect from email
+  const userRole = role && ["customer", "technician"].includes(role) ? role : detectRoleFromEmail(normalizedEmail);
   const normalizedBillingAddress = normalizeBillingAddress(billingAddress || {});
   const composedBillingAddress = formatBillingAddress(normalizedBillingAddress);
   const normalizedAddress = typeof address === "string" ? address.trim() : "";
 
-  if (!isValidSixDigitCode(emailOtp) || !isValidSixDigitCode(smsCode)) {
-    console.warn("[Auth][Register] Invalid code format", { email: normalizedEmail });
-    return res.status(400).json({
-      message: "Invalid demo code format. Email OTP and SMS code must be exactly 6 digits.",
-    });
-  }
-
-  if (detectedRole === "customer" && !isBillingAddressComplete(normalizedBillingAddress) && !normalizedAddress) {
-    console.warn("[Auth][Register] Missing customer billing address", { email: normalizedEmail, detectedRole });
+  if (userRole === "customer" && !isBillingAddressComplete(normalizedBillingAddress) && !normalizedAddress) {
+    console.warn("[Auth][Register] Missing customer billing address", { email: normalizedEmail, userRole });
     return res.status(400).json({ message: "Billing address is required for customer accounts." });
   }
 
@@ -194,6 +283,28 @@ const register = async (req, res) => {
   if (existing) {
     console.warn("[Auth][Register] Duplicate account", { email: normalizedEmail, phone: normalizedPhone });
     return res.status(409).json({ message: "Email or phone already registered" });
+  }
+
+  const emailOtpVerified = await OtpRequest.findOne({
+    action: "register_email",
+    channel: "email",
+    email: normalizedEmail,
+    verifiedAt: { $ne: null },
+  });
+
+  if (!emailOtpVerified) {
+    return res.status(400).json({ message: "Please verify your email before completing registration." });
+  }
+
+  const phoneOtpVerified = await OtpRequest.findOne({
+    action: "register_phone",
+    channel: "sms",
+    phone: normalizedPhone,
+    verifiedAt: { $ne: null },
+  });
+
+  if (!phoneOtpVerified) {
+    return res.status(400).json({ message: "Please verify your mobile number before completing registration." });
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -218,10 +329,15 @@ const register = async (req, res) => {
     name_first,
     name_last,
     phone: normalizedPhone,
-    address: detectedRole === "customer" ? (composedBillingAddress || normalizedAddress) : "",
-    billingAddress: detectedRole === "customer" ? normalizedBillingAddress : {},
-    addresses: detectedRole === "customer" ? [defaultAddress] : [],
-    role: detectedRole,
+    address: userRole === "customer" ? (composedBillingAddress || normalizedAddress) : "",
+    billingAddress: userRole === "customer" ? normalizedBillingAddress : {},
+    addresses: userRole === "customer" ? [defaultAddress] : [],
+    role: userRole,
+  });
+
+  await OtpRequest.deleteMany({
+    action: { $in: ["register_email", "register_phone"] },
+    $or: [{ email: normalizedEmail }, { phone: normalizedPhone }],
   });
 
   const token = signAccessToken({ sub: user.id, role: user.role });
@@ -235,16 +351,17 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password, branch } = req.body;
-  const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+  const { identifier, email, password, branch } = req.body;
+  const loginValue = String(identifier || email || "").trim();
+  const normalizedLoginValue = normalizeEmail(loginValue);
 
-  if (!normalizedEmail || !password) {
-    return res.status(400).json({ message: "Email and password are required" });
+  if (!normalizedLoginValue || !password) {
+    return res.status(400).json({ message: "Email or alias and password are required" });
   }
 
-  const user = await User.findOne({ email: normalizedEmail });
+  const user = await findUserByIdentifier(loginValue);
   if (!user) {
-    return res.status(401).json({ message: "Email not found. Please register first." });
+    return res.status(401).json({ message: "Email or alias not found. Please register first." });
   }
   if (user.isDeleted || user.accountStatus === "deleted" || user.accountStatus === "disabled") {
     return res.status(403).json({ message: "Account is not active." });
@@ -261,7 +378,8 @@ const login = async (req, res) => {
     user.role = detectedRole;
   }
 
-  if (user.role === "technician") {
+  const clientType = String(req.body?.clientType || "web").trim().toLowerCase();
+  if (user.role === "technician" && clientType !== "mobile") {
     return res.status(403).json({ message: "Technician accounts cannot access the web platform. Please use the mobile app." });
   }
 
@@ -292,30 +410,181 @@ const login = async (req, res) => {
   }
 
   const isBranchScopedRole = user.role === "admin";
+  let selectedBranch = "";
+  let effectiveBranch = "";
+
   if (isBranchScopedRole) {
-    const selectedBranch = typeof branch === "string" ? branch.trim() : "";
-    const effectiveBranch = BRANCHES.includes(selectedBranch)
+    selectedBranch = typeof branch === "string" ? branch.trim() : "";
+    effectiveBranch = BRANCHES.includes(selectedBranch)
       ? selectedBranch
       : (BRANCHES.includes(user.activeBranch) ? user.activeBranch : user.assignedBranch);
 
     if (!effectiveBranch || !BRANCHES.includes(effectiveBranch)) {
       return res.status(400).json({ message: "A valid branch is required for this account." });
     }
-    user.activeBranch = effectiveBranch;
-    if (!user.assignedBranch) {
-      user.assignedBranch = effectiveBranch;
-    }
-  } else if (user.role === "superadmin") {
-    user.activeBranch = "";
   }
 
-  user.failedLoginAttempts = 0;
-  user.lockoutUntil = null;
-  user.lastLogin = new Date();
-  await user.save();
+  const otpMetadata = { branch: effectiveBranch };
+  if (user.role === "superadmin") {
+    otpMetadata.branch = "";
+  }
 
-  const token = signAccessToken({ sub: user.id, role: user.role });
-  return res.json({ token, user: user.toJSON() });
+  await createOtpRequest({
+    email: normalizedEmail,
+    action: "login",
+    channel: "email",
+    metadata: otpMetadata,
+  });
+
+  return res.json({
+    otpRequired: true,
+    action: "login",
+    message: "A one-time code has been sent to your email.",
+  });
+};
+
+const requestOtp = async (req, res) => {
+  const action = String(req.body?.action || "").trim();
+  const email = normalizeEmail(req.body?.email);
+  const phone = canonicalizePhMobile(req.body?.phone);
+  const channel = String(req.body?.channel || (action === "register_phone" ? "sms" : "email")).trim();
+
+  if (!action || !["register_email", "register_phone", "password_reset"].includes(action)) {
+    return res.status(400).json({ message: "Invalid OTP request action." });
+  }
+
+  if (action === "register_email" && !email) {
+    return res.status(400).json({ message: "Email is required to request registration OTP." });
+  }
+
+  if (action === "register_phone" && !phone) {
+    return res.status(400).json({ message: "Phone number is required to request registration OTP." });
+  }
+
+  if (action === "password_reset" && !email) {
+    return res.status(400).json({ message: "Email is required to request password reset OTP." });
+  }
+
+  if (action === "register_email") {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ message: "An account with this email already exists." });
+    }
+  }
+
+  if (action === "register_phone") {
+    const existingUser = await User.findOne({ phone });
+    if (existingUser) {
+      return res.status(409).json({ message: "An account with this mobile number already exists." });
+    }
+  }
+
+  if (action === "password_reset") {
+    const user = await User.findOne({ email });
+    if (!user || user.isDeleted || user.accountStatus !== "active") {
+      return res.json({ message: "If this email is registered, a reset code has been sent." });
+    }
+  }
+
+  await createOtpRequest({ email, phone, action, channel });
+  return res.json({ message: "One-time code sent.", action });
+};
+
+const verifyOtp = async (req, res) => {
+  const action = String(req.body?.action || "").trim();
+  const email = normalizeEmail(req.body?.email);
+  const phone = canonicalizePhMobile(req.body?.phone);
+  const code = String(req.body?.code || "").trim();
+  const branch = String(req.body?.branch || "").trim();
+  const newPassword = String(req.body?.new_password || "").trim();
+  const channel = action === "register_phone" ? "sms" : "email";
+
+  if (!action || !code) {
+    return res.status(400).json({ message: "Verification action and code are required." });
+  }
+
+  if (!isValidSixDigitCode(code)) {
+    return res.status(400).json({ message: "Invalid verification code format." });
+  }
+
+  const verification = await verifyOtpRequest({ email, phone, action, channel, code });
+  if (!verification.ok) {
+    if (verification.reason === "expired") {
+      return res.status(410).json({ message: "This code has expired." });
+    }
+    return res.status(400).json({ message: "Invalid verification code." });
+  }
+
+  if (action === "register_email" || action === "register_phone") {
+    return res.json({ message: "Verification successful." });
+  }
+
+  if (action === "login") {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: "No account found for this email." });
+    }
+    if (user.isDeleted || user.accountStatus === "deleted" || user.accountStatus === "disabled") {
+      return res.status(403).json({ message: "Account is not active." });
+    }
+    if (user.role === "technician") {
+      return res.status(403).json({ message: "Technician accounts cannot access the web platform. Please use the mobile app." });
+    }
+    if (!user.passwordHash) {
+      return res.status(400).json({ message: "This account uses Google Sign-In. Please continue with Google." });
+    }
+
+    let effectiveBranch = branch || verification.otp.metadata?.branch || "";
+    if (user.role === "admin") {
+      effectiveBranch = BRANCHES.includes(effectiveBranch) ? effectiveBranch : user.assignedBranch;
+      if (!effectiveBranch || !BRANCHES.includes(effectiveBranch)) {
+        return res.status(400).json({ message: "A valid branch is required for this account." });
+      }
+      user.activeBranch = effectiveBranch;
+      if (!user.assignedBranch) {
+        user.assignedBranch = effectiveBranch;
+      }
+    } else if (user.role === "superadmin") {
+      user.activeBranch = "";
+    }
+
+    user.failedLoginAttempts = 0;
+    user.lockoutUntil = null;
+    user.lastLogin = new Date();
+    await user.save();
+
+    const token = signAccessToken({ sub: user.id, role: user.role });
+    return res.json({ token, user: user.toJSON() });
+  }
+
+  if (action === "password_reset") {
+    if (!newPassword) {
+      return res.status(400).json({ message: "New password is required." });
+    }
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({ message: "Password must be at least 8 characters and include uppercase, lowercase, number, and special character." });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "No account found for this email." });
+    }
+    if (user.isDeleted || user.accountStatus === "deleted" || user.accountStatus === "disabled") {
+      return res.status(403).json({ message: "Account is not active." });
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    user.authProvider = user.googleId ? "google" : "local";
+    user.failedLoginAttempts = 0;
+    user.lockoutUntil = null;
+    user.lastLogin = new Date();
+    await user.save();
+
+    const token = signAccessToken({ sub: user.id, role: user.role });
+    return res.json({ message: "Password reset successful.", token, user: user.toJSON() });
+  }
+
+  return res.status(400).json({ message: "Unsupported verification action." });
 };
 
 const me = async (req, res) => {
@@ -516,6 +785,54 @@ const resetPassword = async (req, res) => {
   });
 };
 
+const resetPasswordWithCode = async (req, res) => {
+  const email = normalizeEmail(req.body?.email);
+  const code = String(req.body?.code || "").trim();
+  const newPassword = String(req.body?.new_password || "").trim();
+
+  if (!email || !code || !newPassword) {
+    return res.status(400).json({ message: "Email, code and new password are required." });
+  }
+  if (!isValidSixDigitCode(code)) {
+    return res.status(400).json({ message: "Invalid verification code format." });
+  }
+  if (!isStrongPassword(newPassword)) {
+    return res.status(400).json({
+      message: "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+    });
+  }
+
+  const verification = await verifyOtpRequest({ email, action: "password_reset", channel: "email", code });
+  if (!verification.ok) {
+    if (verification.reason === "expired") {
+      return res.status(410).json({ message: "This reset code has expired." });
+    }
+    return res.status(400).json({ message: "Invalid verification code." });
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(400).json({ message: "No account found for this email." });
+  }
+  if (user.isDeleted || user.accountStatus === "deleted" || user.accountStatus === "disabled") {
+    return res.status(403).json({ message: "Account is not active." });
+  }
+
+  user.passwordHash = await bcrypt.hash(newPassword, 10);
+  user.authProvider = user.googleId ? "google" : "local";
+  user.failedLoginAttempts = 0;
+  user.lockoutUntil = null;
+  user.lastLogin = new Date();
+  await user.save();
+
+  const appToken = signAccessToken({ sub: user.id, role: user.role });
+  return res.json({
+    message: "Password reset successful.",
+    token: appToken,
+    user: user.toJSON(),
+  });
+};
+
 module.exports = {
   register,
   login,
@@ -524,4 +841,7 @@ module.exports = {
   googleCallback,
   requestPasswordReset,
   resetPassword,
+  requestOtp,
+  verifyOtp,
+  resetPasswordWithCode,
 };

@@ -1,0 +1,303 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
+import React, { useEffect, useState } from "react";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
+
+import QrCameraScanner from "../../components/technician/QrCameraScanner";
+import TechnicianScreen, { TechHero } from "../../components/technician/TechnicianScreen";
+import TechButton from "../../components/technician/TechButton";
+import Card from "../../components/ui/Card";
+import IconRow from "../../components/ui/IconRow";
+import StatusChip from "../../components/ui/StatusChip";
+import TextField from "../../components/ui/TextField";
+import { COLORS, FONT, RADIUS, SPACING } from "../../constants/theme";
+import { lookupUnitContext } from "../../services/qrLookupService";
+import { TASK_STATUS } from "../../services/taskStorage";
+import {
+  ensureSeededScannerUnit,
+  SEEDED_SCANNER_UNIT_QR,
+} from "../../services/unitStorage";
+
+const TASK_STATUS_COLOR = {
+  [TASK_STATUS.PENDING]: COLORS.warning,
+  [TASK_STATUS.IN_PROGRESS]: COLORS.tech,
+  [TASK_STATUS.COMPLETED]: COLORS.success,
+  [TASK_STATUS.CANCELLED]: COLORS.textMuted,
+};
+
+function DetailPair({ label, value }) {
+  if (!value) return null;
+  return (
+    <View
+      style={{
+        flexBasis: "48%",
+        flexGrow: 1,
+        backgroundColor: COLORS.surfaceAlt,
+        borderRadius: RADIUS.md,
+        padding: SPACING.sm,
+        marginBottom: SPACING.sm,
+      }}
+    >
+      <Text style={{ color: COLORS.textSecondary, fontSize: FONT.sm }}>{label}</Text>
+      <Text style={{ color: COLORS.textPrimary, fontWeight: FONT.black, marginTop: 2 }}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function SectionTitle({ icon, title, count }) {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: SPACING.sm,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Ionicons name={icon} size={20} color={COLORS.tech} />
+        <Text
+          style={{
+            fontWeight: FONT.black,
+            color: COLORS.textPrimary,
+            fontSize: FONT.lg,
+            marginLeft: SPACING.xs,
+          }}
+        >
+          {title}
+        </Text>
+      </View>
+      {count !== undefined ? <StatusChip label={String(count)} color={COLORS.tech} /> : null}
+    </View>
+  );
+}
+
+export default function ScanScreen() {
+  const [code, setCode] = useState("");
+  const [lastScannedCode, setLastScannedCode] = useState("");
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [scannerActive, setScannerActive] = useState(true);
+
+  useEffect(() => {
+    ensureSeededScannerUnit().catch(() => {});
+  }, []);
+
+  const lookup = async (rawValue, options = {}) => {
+    const value = String(rawValue || "").trim();
+    if (!value) {
+      Alert.alert("Missing Input", "Enter or scan a serial number or AC unit code.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = await lookupUnitContext(value);
+      setResult(data);
+      setCode(value);
+      if (options.fromCamera) {
+        setLastScannedCode(value);
+        setScannerActive(false);
+      }
+      if (!data.unit) Alert.alert("Not Found", "No AC unit matched that code.");
+    } catch {
+      Alert.alert("Error", "AC unit search failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleScanned = (value) => {
+    lookup(value, { fromCamera: true });
+  };
+
+  const handleClear = () => {
+    setCode("");
+    setResult(null);
+    setLastScannedCode("");
+    setScannerActive(true);
+  };
+
+  return (
+    <TechnicianScreen
+      title="Scan AC Unit"
+      subtitle="Scan a QR code or search by unit code"
+      icon="qr-code-sharp"
+    >
+      <TechHero
+        title="AC unit lookup"
+        subtitle="Scan with the camera or enter the AC unit code below."
+        icon="scan-sharp"
+      >
+        <View style={{ flexDirection: "row", gap: SPACING.sm }}>
+          <TechButton
+            title="Camera"
+            onPress={() => setScannerActive(true)}
+            variant={scannerActive ? "secondary" : "ghost"}
+            style={{ flex: 1 }}
+            leftIcon={<Ionicons name="camera-sharp" size={18} color={COLORS.tech} />}
+          />
+          <TechButton
+            title="Manual"
+            onPress={() => setScannerActive(false)}
+            variant={!scannerActive ? "secondary" : "ghost"}
+            style={{ flex: 1 }}
+            leftIcon={<Ionicons name="keypad-sharp" size={18} color={COLORS.tech} />}
+          />
+        </View>
+      </TechHero>
+
+      {scannerActive ? (
+        <QrCameraScanner active={scannerActive && !loading} onScanned={handleScanned} />
+      ) : null}
+
+      {lastScannedCode ? (
+        <Card
+          style={{
+            backgroundColor: COLORS.techLight,
+            borderColor: COLORS.tech,
+          }}
+        >
+          <IconRow
+            icon="checkmark-circle-sharp"
+            title="QR captured"
+            subtitle={lastScannedCode}
+            color={COLORS.success}
+            right={
+              <TouchableOpacity
+                onPress={() => {
+                  setLastScannedCode("");
+                  setScannerActive(true);
+                }}
+                hitSlop={10}
+              >
+                <Text style={{ color: COLORS.tech, fontWeight: FONT.black }}>Scan again</Text>
+              </TouchableOpacity>
+            }
+          />
+        </Card>
+      ) : null}
+
+      <Card>
+        <SectionTitle
+          icon="keypad-sharp"
+          title={scannerActive ? "Manual Search" : "Manual AC Unit Search"}
+        />
+        <TextField
+          label="Serial Number or AC Unit Code"
+          value={code}
+          onChangeText={setCode}
+          placeholder={SEEDED_SCANNER_UNIT_QR}
+          autoCapitalize="none"
+        />
+        <View style={{ flexDirection: "row", gap: SPACING.sm }}>
+          <TechButton
+            title={loading ? "Searching..." : "Search"}
+            onPress={() => lookup(code)}
+            loading={loading}
+            leftIcon={<Ionicons name="search-sharp" size={18} color={COLORS.surface} />}
+            style={{ flex: 1 }}
+          />
+          <TechButton
+            title="Clear"
+            onPress={handleClear}
+            variant="secondary"
+            leftIcon={<Ionicons name="close-circle-sharp" size={18} color={COLORS.tech} />}
+            style={{ flex: 1 }}
+          />
+        </View>
+      </Card>
+
+      {result?.unit ? (
+        <>
+          <Card>
+            <SectionTitle icon="snow-sharp" title={result.unit.unitName || "AC Unit Details"} />
+            <Text style={{ color: COLORS.textSecondary, marginBottom: SPACING.sm }}>
+              {`${result.unit.brand || "Brand not set"} ${result.unit.model || ""}`.trim()}
+            </Text>
+            {result.health ? (
+              <View
+                style={{
+                  backgroundColor: `${result.health.color}14`,
+                  borderRadius: RADIUS.lg,
+                  padding: SPACING.md,
+                  marginBottom: SPACING.sm,
+                  borderWidth: 1,
+                  borderColor: `${result.health.color}33`,
+                }}
+              >
+                <Text
+                  style={{
+                    color: result.health.color,
+                    fontSize: 30,
+                    fontWeight: FONT.black,
+                  }}
+                >
+                  {result.health.score}
+                </Text>
+                <Text style={{ color: COLORS.textPrimary, fontWeight: FONT.black }}>
+                  {result.health.label}
+                </Text>
+                <Text style={{ color: COLORS.textSecondary, marginTop: 4, lineHeight: 20 }}>
+                  {result.health.recommendation}
+                </Text>
+              </View>
+            ) : null}
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}>
+              <DetailPair label="Serial" value={result.unit.serialNumber || "Not provided"} />
+              <DetailPair label="Installed" value={result.unit.installationDate} />
+              <DetailPair label="Placement" value={result.unit.placementArea || "Not provided"} />
+              <DetailPair
+                label="Next Maintenance"
+                value={result.health?.aiPrediction?.nextMaintenanceDate}
+              />
+            </View>
+          </Card>
+
+          {result.requests.length > 0 ? (
+            <Card>
+              <SectionTitle
+                icon="document-text-sharp"
+                title="Service Requests"
+                count={result.requests.length}
+              />
+              {result.requests.map((request) => (
+                <View key={request.id} style={{ paddingVertical: SPACING.xs }}>
+                  <IconRow
+                    icon="construct-sharp"
+                    title={request.issueType || request.serviceType || "Service Request"}
+                    subtitle={`Status: ${request.status || "Unknown"} • ${request.preferredDate || "No date"}`}
+                    color={COLORS.tech}
+                  />
+                </View>
+              ))}
+            </Card>
+          ) : null}
+
+          {result.tasks.length > 0 ? (
+            <Card>
+              <SectionTitle icon="clipboard-sharp" title="Related Work Orders" count={result.tasks.length} />
+              {result.tasks.map((task) => (
+                <View key={task.id} style={{ paddingVertical: SPACING.xs }}>
+                  <IconRow
+                    icon="briefcase-sharp"
+                    title={task.title || "Work Order"}
+                    subtitle={`${task.assignedTechnicianName || "Unassigned"} • ${task.scheduledDate || "Unscheduled"}`}
+                    color={TASK_STATUS_COLOR[task.status] || COLORS.textSecondary}
+                    right={
+                      <StatusChip
+                        label={task.status}
+                        color={TASK_STATUS_COLOR[task.status] || COLORS.textSecondary}
+                      />
+                    }
+                  />
+                </View>
+              ))}
+            </Card>
+          ) : null}
+        </>
+      ) : null}
+    </TechnicianScreen>
+  );
+}

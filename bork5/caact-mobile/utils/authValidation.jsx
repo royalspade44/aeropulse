@@ -1,0 +1,163 @@
+// utils/authValidation.js
+
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function normalizeEmail(value = "") {
+  return String(value).trim().toLowerCase();
+}
+
+export function normalizePhone(value = "") {
+  return String(value).replace(/\D/g, "");
+}
+
+export function validateRequired(value, fieldLabel = "This field") {
+  if (!String(value || "").trim()) {
+    return `${fieldLabel} is required.`;
+  }
+  return "";
+}
+
+export function validatePersonName(value, fieldLabel = "Name", { required = true } = {}) {
+  const text = String(value || "").trim();
+
+  if (!text) {
+    return required ? `${fieldLabel} is required.` : "";
+  }
+
+  if (/\d/.test(text)) {
+    return `${fieldLabel} cannot contain numbers.`;
+  }
+
+  if (!/^[A-Za-zÀ-ÖØ-öø-ÿÑñ .'-]+$/.test(text)) {
+    return `${fieldLabel} can only use letters, spaces, apostrophes, periods, and hyphens.`;
+  }
+
+  if (text.length < 2) {
+    return `${fieldLabel} must be at least 2 characters.`;
+  }
+
+  return "";
+}
+
+export function validateEmail(email) {
+  const normalized = normalizeEmail(email);
+
+  if (!normalized) {
+    return "Email is required.";
+  }
+
+  if (!EMAIL_REGEX.test(normalized)) {
+    return "Enter a valid email address.";
+  }
+
+  return "";
+}
+
+export function validatePhone(phone) {
+  const digits = normalizePhone(phone);
+
+  if (!digits) {
+    return "Phone number is required.";
+  }
+
+  if (digits.length < 10) {
+    return "Enter a valid phone number.";
+  }
+
+  return "";
+}
+
+export function validatePassword(password) {
+  if (!password) {
+    return "Password is required.";
+  }
+
+  if (String(password).length < 8) {
+    return "Password must be at least 8 characters.";
+  }
+
+  return "";
+}
+
+export function validateConfirmPassword(password, confirmPassword) {
+  if (!confirmPassword) {
+    return "Please confirm your password.";
+  }
+
+  if (password !== confirmPassword) {
+    return "Passwords do not match.";
+  }
+
+  return "";
+}
+
+export function validateLoginForm({ email, password }) {
+  const errors = {};
+
+  const identifier = String(email || "").trim();
+  const emailError = identifier.includes("@")
+    ? validateEmail(identifier)
+    : validateRequired(identifier, "Email or alias");
+  const passwordError = validateRequired(password, "Password");
+
+  if (emailError) errors.email = emailError;
+  if (passwordError) errors.password = passwordError;
+
+  return errors;
+}
+
+export function validateRegistrationForm({
+  name_first,
+  email,
+  phone,
+  password,
+  confirmPassword,
+}) {
+  const errors = {};
+
+  const firstNameError = validatePersonName(name_first, "First name");
+  const emailError = validateEmail(email);
+  const phoneError = validatePhone(phone);
+  const passwordError = validatePassword(password);
+  const confirmPasswordError = validateConfirmPassword(
+    password,
+    confirmPassword,
+  );
+
+  if (firstNameError) errors.name_first = firstNameError;
+  if (emailError) errors.email = emailError;
+  if (phoneError) errors.phone = phoneError;
+  if (passwordError) errors.password = passwordError;
+  if (confirmPasswordError) errors.confirmPassword = confirmPasswordError;
+
+  return errors;
+}
+
+export function hasValidationErrors(errors = {}) {
+  return Object.keys(errors).length > 0;
+}
+
+export function validatePasswordStrength(password) {
+  // Simplified zxcvbn-like strength check
+  // Returns { score: 0-100 } based on length, complexity
+  if (!password) return { score: 0 };
+
+  let score = 0;
+
+  // Length scoring
+  if (password.length >= 8) score += 20;
+  if (password.length >= 12) score += 10;
+  if (password.length >= 16) score += 10;
+
+  // Character variety
+  if (/[a-z]/.test(password)) score += 15;
+  if (/[A-Z]/.test(password)) score += 15;
+  if (/[0-9]/.test(password)) score += 15;
+  if (/[^a-zA-Z0-9]/.test(password)) score += 15;
+
+  // Common patterns (reduce score)
+  if (/^\d+$/.test(password)) score = Math.min(score, 30); // All digits
+  if (/^(.)\1+$/.test(password)) score = Math.min(score, 20); // Repeated chars
+
+  return { score: Math.min(100, Math.max(0, score)) };
+}
