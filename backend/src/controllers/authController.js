@@ -1,14 +1,12 @@
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
-const { OAuth2Client } = require("google-auth-library");
 const User = require("../models/User");
 const OtpRequest = require("../models/OtpRequest");
 const { signAccessToken } = require("../utils/token");
 const env = require("../config/env");
-const { BRANCHES } = require("../domain/branchRouting");
+const { BRANCHES, resolvePreferredBranch } = require("../domain/branchRouting");
 const { canSendEmail, sendEmail } = require("../utils/email");
 
-const OAUTH_GOOGLE_STATE_COOKIE = "oauth_google_state";
 const PASSWORD_RESET_MINUTES = Math.max(15, Math.min(30, Number(env.passwordResetTokenTtlMinutes || 20)));
 const OTP_TTL_MINUTES = Math.max(3, Math.min(15, Number(env.otpTtlMinutes || 5)));
 
@@ -114,12 +112,6 @@ const verifyOtpRequest = async ({ email = "", phone = "", action, channel, code 
   await otp.save();
   return { ok: true, otp };
 };
-
-const oauthClient = new OAuth2Client({
-  clientId: env.googleClientId,
-  clientSecret: env.googleClientSecret,
-  redirectUri: env.googleRedirectUri,
-});
 
 const normalizeBillingAddress = (payload = {}) => ({
   region: String(payload.region || "").trim(),
@@ -245,6 +237,7 @@ const register = async (req, res) => {
     address = "",
     billingAddress,
     role, // Allow explicit role specification for mobile
+    branch, // Branch selection for staff roles
   } = req.body;
 
   const normalizedEmail = normalizeEmail(email);
@@ -252,6 +245,7 @@ const register = async (req, res) => {
     email: normalizedEmail || "(missing)",
     hasPhone: Boolean(phone),
     requestedRole: role,
+    requestedBranch: branch,
   });
 
   if (!normalizedEmail || !password || !name_first || !name_last || !phone) {
@@ -270,10 +264,31 @@ const register = async (req, res) => {
 
   const normalizedPhone = canonicalizePhMobile(phone);
   // Use explicit role if provided, otherwise detect from email
-  const userRole = role && ["customer", "technician"].includes(role) ? role : detectRoleFromEmail(normalizedEmail);
+  const userRole = role && ["customer", "technician", "admin", "superadmin"].includes(role) ? role : detectRoleFromEmail(normalizedEmail);
   const normalizedBillingAddress = normalizeBillingAddress(billingAddress || {});
   const composedBillingAddress = formatBillingAddress(normalizedBillingAddress);
   const normalizedAddress = typeof address === "string" ? address.trim() : "";
+
+  // Branch handling based on role
+  let assignedBranch = "";
+  if (userRole === "customer") {
+    // Auto-assign branch based on location for customers
+    if (isBillingAddressComplete(normalizedBillingAddress)) {
+      assignedBranch = resolvePreferredBranch(normalizedBillingAddress);
+    } else if (normalizedAddress) {
+      // Try to extract location from address string
+      assignedBranch = resolvePreferredBranch({ street: normalizedAddress });
+    } else {
+      assignedBranch = "Bulacan"; // Default fallback
+    }
+  } else if (["admin", "technician", "superadmin"].includes(userRole)) {
+    // Require branch selection for staff roles
+    const selectedBranch = typeof branch === "string" ? branch.trim() : "";
+    if (!selectedBranch || !BRANCHES.includes(selectedBranch)) {
+      return res.status(400).json({ message: "A valid branch must be selected for this role." });
+    }
+    assignedBranch = selectedBranch;
+  }
 
   if (userRole === "customer" && !isBillingAddressComplete(normalizedBillingAddress) && !normalizedAddress) {
     console.warn("[Auth][Register] Missing customer billing address", { email: normalizedEmail, userRole });
@@ -334,6 +349,8 @@ const register = async (req, res) => {
     billingAddress: userRole === "customer" ? normalizedBillingAddress : {},
     addresses: userRole === "customer" ? [defaultAddress] : [],
     role: userRole,
+    assignedBranch,
+    activeBranch: assignedBranch, // Set active branch to assigned branch initially
   });
 
   await OtpRequest.deleteMany({
@@ -346,6 +363,7 @@ const register = async (req, res) => {
     id: user.id,
     email: user.email,
     role: user.role,
+    assignedBranch,
     hasAddress: Boolean(user.address),
   });
   return res.status(201).json({ token, user: user.toJSON() });
@@ -382,7 +400,7 @@ const login = async (req, res) => {
 
   if (!user.passwordHash) {
     return res.status(400).json({
-      message: "This account uses Google Sign-In. Please continue with Google.",
+      message: "This account requires a password. Please reset your password if you've forgotten it.",
     });
   }
 
@@ -439,7 +457,7 @@ const login = async (req, res) => {
     return res.status(401).json({ message: "Incorrect password. Please try again.", attempts: user.failedLoginAttempts });
   }
 
-  const isBranchScopedRole = user.role === "admin";
+  const isBranchScopedRole = ["admin", "technician", "superadmin"].includes(user.role);
   let selectedBranch = "";
   let effectiveBranch = "";
 
@@ -452,7 +470,18 @@ const login = async (req, res) => {
     if (!effectiveBranch || !BRANCHES.includes(effectiveBranch)) {
       return res.status(400).json({ message: "A valid branch is required for this account." });
     }
+
+    // Update activeBranch if different from selected
+    if (effectiveBranch !== user.activeBranch) {
+      user.activeBranch = effectiveBranch;
+    }
   }
+
+  // Reset failed attempts and update last login on success
+  user.failedLoginAttempts = 0;
+  user.lockoutUntil = null;
+  user.lastLogin = new Date();
+  await user.save();
 
   const token = signAccessToken({ sub: user.id, role: user.role });
 
@@ -622,98 +651,6 @@ const me = async (req, res) => {
   return res.json({ user: req.authUser.toJSON() });
 };
 
-const googleStart = async (req, res) => {
-  if (!env.googleClientId || !env.googleClientSecret) {
-    return res.status(500).json({ message: "Google OAuth is not configured on server." });
-  }
-
-  const oauthState = crypto.randomBytes(24).toString("hex");
-  res.cookie(OAUTH_GOOGLE_STATE_COOKIE, oauthState, getOAuthCookieOptions(req));
-
-  const authUrl = oauthClient.generateAuthUrl({
-    access_type: "offline",
-    scope: ["openid", "email", "profile"],
-    prompt: "select_account",
-    state: oauthState,
-  });
-
-  return res.redirect(authUrl);
-};
-
-const googleCallback = async (req, res, next) => {
-  try {
-    const { code, state } = req.query;
-    const cookieState = req.cookies?.[OAUTH_GOOGLE_STATE_COOKIE] || "";
-    res.clearCookie(OAUTH_GOOGLE_STATE_COOKIE, { path: "/" });
-
-    if (!state || !cookieState || state !== cookieState) {
-      return res.redirect(`${env.frontendUrl}/login?google_error=invalid_state`);
-    }
-
-    if (!code) {
-      return res.redirect(`${env.frontendUrl}/login?google_error=missing_code`);
-    }
-
-    const { tokens } = await oauthClient.getToken(code);
-    oauthClient.setCredentials(tokens);
-
-    if (!tokens.id_token) {
-      return res.redirect(`${env.frontendUrl}/login?google_error=missing_id_token`);
-    }
-
-    const ticket = await oauthClient.verifyIdToken({
-      idToken: tokens.id_token,
-      audience: env.googleClientId,
-    });
-    const profile = ticket.getPayload() || {};
-    const email = String(profile.email || "").trim().toLowerCase();
-
-    if (!profile.email_verified) {
-      return res.redirect(`${env.frontendUrl}/login?google_error=email_not_verified`);
-    }
-
-    if (!email) {
-      return res.redirect(`${env.frontendUrl}/login?google_error=missing_email`);
-    }
-
-    const detectedRole = detectRoleFromEmail(email);
-
-    if (detectedRole === "technician") {
-      return res.redirect(`${env.frontendUrl}/login?google_error=technician_account`);
-    }
-
-    let user = await User.findOne({ email });
-    if (!user) {
-      const [firstName = "Google", ...rest] = (profile.name || "Google User").split(" ");
-      user = await User.create({
-        email,
-        name: profile.name || "Google User",
-        name_first: profile.given_name || firstName,
-        name_last: profile.family_name || rest.join(" ") || "User",
-        role: detectedRole,
-        authProvider: "google",
-        googleId: profile.sub,
-        avatarUrl: profile.picture || "",
-      });
-    } else {
-      user.authProvider = "google";
-      user.googleId = profile.sub || user.googleId;
-      user.avatarUrl = profile.picture || user.avatarUrl;
-      if (!user.role) {
-        user.role = detectedRole;
-      }
-      await user.save();
-    }
-
-    const appToken = signAccessToken({ sub: user.id, role: user.role });
-    const payload = encodeURIComponent(JSON.stringify(user.toJSON()));
-    return res.redirect(`${env.frontendUrl}/auth/google/callback?token=${appToken}&user=${payload}`);
-  } catch (error) {
-    console.error("[Auth][Google] Callback failed", error);
-    return next(error);
-  }
-};
-
 const requestPasswordReset = async (req, res) => {
   const normalizedEmail = String(req.body?.email || "").trim().toLowerCase();
   if (!normalizedEmail) {
@@ -869,8 +806,6 @@ module.exports = {
   login,
   logout,
   me,
-  googleStart,
-  googleCallback,
   requestPasswordReset,
   resetPassword,
   requestOtp,

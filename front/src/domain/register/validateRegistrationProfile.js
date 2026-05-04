@@ -166,5 +166,12 @@ export function validateProfileAndSecurityStep(formData) {
     errors.confirmPassword = 'Passwords do not match';
   }
 
+  // Branch validation for staff roles
+  const detectedRole = formData.email ? formData.email.includes('superadmin') ? 'superadmin' :
+                      formData.email.includes('admin') ? 'admin' : 'customer' : 'customer';
+  if (detectedRole !== 'customer' && !formData.branch?.trim()) {
+    errors.branch = 'Branch selection is required for this account type';
+  }
+
   return { errors, valid: Object.keys(errors).length === 0 };
 }

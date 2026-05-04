@@ -4,6 +4,7 @@ import icons from '../common/icons';
 import { defaultAliasFromEmail } from '../../domain/register/defaultAliasFromEmail';
 import { generateTotpSecretStub } from '../../domain/register/generateTotpSecretStub';
 import { verifyTotpCodeStub } from '../../domain/register/verifyTotpCodeStub';
+import { BRANCHES } from '../../domain/branches/branches';
 
 function RegisterProfilePasswordStep({ formData, errors, onFieldChange, detectedRole, detectedRoleLabel, onNext, onBack, totpSecret, onTotpSecret }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -87,6 +88,31 @@ function RegisterProfilePasswordStep({ formData, errors, onFieldChange, detected
       {detectedRole !== 'customer' && (
         <div className="register-role-inline">
           Detected account type: <strong>{detectedRoleLabel}</strong>
+        </div>
+      )}
+
+      {detectedRole !== 'customer' && (
+        <div className="input-group">
+          <label>Branch <span className="required-star">*</span></label>
+          <select
+            value={formData.branch || ''}
+            onChange={(event) => onFieldChange('branch', event.target.value)}
+            className={errors.branch ? 'input-error' : ''}
+            required
+          >
+            <option value="">Select your branch</option>
+            {BRANCHES.map((branchName) => (
+              <option key={branchName} value={branchName}>
+                {branchName}
+              </option>
+            ))}
+          </select>
+          {errors.branch && (
+            <div className="error-message">
+              <img src={icons.diamondExclamation} alt="" className="inline-icon" />
+              <span>{errors.branch}</span>
+            </div>
+          )}
         </div>
       )}
 

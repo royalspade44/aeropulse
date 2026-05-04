@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { CartProvider } from './context/CartContext';
 import { UserProvider, useUser } from './context/UserContext';
 import Login from './components/login/Login';
-import GoogleAuthCallback from './components/login/GoogleAuthCallback';
 import Register from './components/register/Register';
 import ForgotPassword from './components/recover/ForgotPassword';
 import ResetPassword from './components/recover/ResetPassword';
@@ -134,7 +133,6 @@ function AppContent() {
           </PublicRoute>
         } 
       />
-      <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
       
       <Route 
         path="/register" 

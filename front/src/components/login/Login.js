@@ -2,13 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useUser } from '../../context/UserContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api';
-import { BRANCHES } from '../../domain/branches/branches';
 import './Login.css';
 import icons from '../common/icons';
 import LoginBrandSection from './LoginBrandSection';
 import LoginForm from './LoginForm';
 import LockoutWarning from './LockOutWarning';
-import GoogleButton from './GoogleButton';
 
 const getRoleHomePath = (role) => {
   if (role === 'admin') return '/admin/dashboard';
@@ -24,14 +22,12 @@ function Login() {
   const [user, setUser] = useState({
     email: '',
     password: '',
-    branch: '',
   });
   const [errors, setErrors] = useState({});
   const [authMessage, setAuthMessage] = useState('');
   const [lockoutInfo, setLockoutInfo] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   
   const timerRef = useRef(null);
 
@@ -52,25 +48,7 @@ function Login() {
   }, [secondsLeft]);
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const googleError = params.get('google_error');
-    if (!googleError) {
-      setAuthMessage('');
-      return;
-    }
-
-    const errorMap = {
-      invalid_state: 'Google sign-in session expired. Please try again.',
-      missing_code: 'Google sign-in failed. Please try again.',
-      token_exchange_failed: 'Unable to verify Google account. Please try again.',
-      missing_id_token: 'Google sign-in response was incomplete. Please try again.',
-      missing_email: 'Google account email is unavailable.',
-      email_not_verified: 'Please verify your Google account email before signing in.',
-      missing_payload: 'Google sign-in payload is missing.',
-      invalid_payload: 'Google sign-in payload is invalid.',
-      technician_account: 'Technician accounts cannot access the web platform. Please use the mobile app.',
-    };
-    setAuthMessage(errorMap[googleError] || 'Google sign-in failed. Please try again.');
+    setAuthMessage('');
   }, [location.search]);
 
   const handleEmailChange = (email) => {
@@ -87,13 +65,6 @@ function Login() {
     }
   };
 
-  const handleBranchChange = (branch) => {
-    setUser((prev) => ({ ...prev, branch }));
-    if (errors.branch) {
-      setErrors((prev) => ({ ...prev, branch: '' }));
-    }
-  };
-
   const handleForgotPassword = () => {
     navigate('/forgot-password', {
       state: { email: user.email || '' },
@@ -106,7 +77,7 @@ function Login() {
 
     // Check for empty fields
     for (const [k, v] of Object.entries(user)) {
-      if (k !== 'branch' && (!v || v.length < 1)) {
+      if (!v || v.length < 1) {
         setErrors(prev => ({ ...prev, [k]: 'This field is required' }));
         alert('All fields must be filled!');
         setLoading(false);
@@ -115,8 +86,8 @@ function Login() {
     }
 
     try {
-      const loggedInUser = await login(user.email, user.password, user.branch);
-      const activeBranch = loggedInUser?.activeBranch || loggedInUser?.assignedBranch || user.branch || '';
+      const loggedInUser = await login(user.email, user.password);
+      const activeBranch = loggedInUser?.activeBranch || loggedInUser?.assignedBranch || '';
 
       if (activeBranch) {
         localStorage.setItem('activeBranch', activeBranch);
@@ -157,11 +128,6 @@ function Login() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
-    window.location.href = `${API_BASE_URL}/auth/google/start`;
-  };
-
   const handleSignUp = () => {
     const fromCheckout = location.state?.from?.pathname === '/checkout';
     navigate('/register', { state: { returnToCheckout: fromCheckout } });
@@ -195,23 +161,14 @@ function Login() {
           <LoginForm
             email={user.email}
             password={user.password}
-            branch={user.branch}
             errors={errors}
             onEmailChange={handleEmailChange}
             onPasswordChange={handlePasswordChange}
-            onBranchChange={handleBranchChange}
-            branchOptions={BRANCHES}
             onSubmit={authenticateUser}
             loading={loading}
             disabled={!!lockoutInfo}
             onForgotPassword={handleForgotPassword}
           />
-
-          <div className="divider">
-            <span>or</span>
-          </div>
-
-          <GoogleButton onClick={handleGoogleSignIn} loading={googleLoading} />
 
           <div className="signup-link">
             Don't have an account? <button onClick={handleSignUp}>Sign up</button>
@@ -225,7 +182,7 @@ function Login() {
             <div className="tips-list">
               <span>• 3 login attempts before temporary lockout</span>
               <span>• Lockout duration increases with failed attempts</span>
-              <span>• Branch-scoped accounts reuse the branch you enter here</span>
+              <span>• Your account will automatically use the assigned branch</span>
             </div>
           </div>
         </div>

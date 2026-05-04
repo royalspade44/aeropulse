@@ -135,14 +135,12 @@ export const UserProvider = ({ children }) => {
     localStorage.setItem("language", lang);
   }, [currentLanguage]);
 
-  const login = async (email, password, roleOrBranch = "", branchMaybe = "") => {
-    const knownRoles = new Set(["customer", "admin", "superadmin"]);
-    const branch = knownRoles.has(roleOrBranch) ? branchMaybe : roleOrBranch;
+  const login = async (email, password) => {
     const result = await apiRequest("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password, branch }),
+      body: JSON.stringify({ email, password }),
     });
-    const userBranch = result.user?.activeBranch || result.user?.assignedBranch || branch || "";
+    const userBranch = result.user?.activeBranch || result.user?.assignedBranch || "";
     saveSession(result.token, result.user, userBranch);
     activateSingleSession(result.user);
     setUser(result.user);
@@ -159,9 +157,6 @@ export const UserProvider = ({ children }) => {
     });
     return result.user;
   };
-
-  const loginAsAdmin = async (email, password, branch = "") => login(email, password, "admin", branch);
-  const loginAsSuperAdmin = async (email, password) => login(email, password, "superadmin");
 
   const logout = () => {
     const active = readActiveSession();
