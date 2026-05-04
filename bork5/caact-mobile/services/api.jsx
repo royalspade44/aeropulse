@@ -164,6 +164,29 @@ export async function me(token) {
 }
 
 // ---------------------------------------------------------------------------
+// AI health insights
+// ---------------------------------------------------------------------------
+
+export async function getUnitHealthInsight(token, payload) {
+  const { ok, data } = await post("/ai/unit-health", payload, token);
+
+  if (ok) {
+    return {
+      success: true,
+      provider: data.provider || "openai",
+      insight: data.insight || null,
+      generatedAt: data.generatedAt || new Date().toISOString(),
+    };
+  }
+
+  return {
+    success: false,
+    provider: data.provider || "unavailable",
+    error: data.message || data.error || "AI health lookup failed.",
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Password reset
 // ---------------------------------------------------------------------------
 

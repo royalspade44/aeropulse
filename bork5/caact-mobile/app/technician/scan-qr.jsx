@@ -1,4 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 
@@ -10,6 +11,7 @@ import IconRow from "../../components/ui/IconRow";
 import StatusChip from "../../components/ui/StatusChip";
 import TextField from "../../components/ui/TextField";
 import { COLORS, FONT, RADIUS, SPACING } from "../../constants/theme";
+import { useUserContext } from "../../context/UserContext";
 import { lookupUnitContext } from "../../services/qrLookupService";
 import { TASK_STATUS } from "../../services/taskStorage";
 import {
@@ -74,6 +76,8 @@ function SectionTitle({ icon, title, count }) {
 }
 
 export default function ScanScreen() {
+  const router = useRouter();
+  const { token } = useUserContext();
   const [code, setCode] = useState("");
   const [lastScannedCode, setLastScannedCode] = useState("");
   const [result, setResult] = useState(null);
@@ -93,12 +97,18 @@ export default function ScanScreen() {
 
     setLoading(true);
     try {
-      const data = await lookupUnitContext(value);
+      const data = await lookupUnitContext(value, { token });
       setResult(data);
       setCode(value);
       if (options.fromCamera) {
         setLastScannedCode(value);
         setScannerActive(false);
+      }
+      if (
+        data.matchedTask &&
+        String(data.matchedTask.status || "").toLowerCase() === TASK_STATUS.IN_PROGRESS
+      ) {
+        router.push(`/technician/task/${data.matchedTask.id}/unit/log/select`);
       }
       if (!data.unit) Alert.alert("Not Found", "No AC unit matched that code.");
     } catch {
@@ -243,6 +253,14 @@ export default function ScanScreen() {
                   {result.health.recommendation}
                 </Text>
               </View>
+            ) : null}
+            {result.matchedTask && String(result.matchedTask.status || "").toLowerCase() === TASK_STATUS.IN_PROGRESS ? (
+              <TechButton
+                title="Open Log Form"
+                onPress={() => router.push(`/technician/task/${result.matchedTask.id}/unit/log/select`)}
+                style={{ marginTop: SPACING.sm }}
+                leftIcon={<Ionicons name="document-text-sharp" size={18} color={COLORS.surface} />}
+              />
             ) : null}
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}>
               <DetailPair label="Serial" value={result.unit.serialNumber || "Not provided"} />

@@ -105,6 +105,12 @@ export default function CustomerHomeScreen() {
             leftIcon={<Ionicons name="globe-sharp" size={18} color={COLORS.primary} />}
           />
         </View>
+        <Button
+          title="Scan QR"
+          onPress={() => router.push("/customer/scan-qr")}
+          style={{ marginTop: SPACING.sm }}
+          leftIcon={<Ionicons name="qr-code-sharp" size={18} color={COLORS.surface} />}
+        />
       </AppHero>
 
       <View

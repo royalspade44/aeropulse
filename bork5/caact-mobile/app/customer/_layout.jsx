@@ -35,6 +35,7 @@ export default function CustomerLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="home" />
+        <Stack.Screen name="scan-qr" />
         <Stack.Screen name="units/[id]" />
         <Stack.Screen name="orders" />
         <Stack.Screen name="requests/index" />

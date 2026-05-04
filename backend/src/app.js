@@ -19,6 +19,7 @@ const taskRoutes = require("./routes/taskRoutes");
 const inventoryChangeRequestRoutes = require("./routes/inventoryChangeRequestRoutes");
 const restockOrderRoutes = require("./routes/restockOrderRoutes");
 const reportRoutes = require("./routes/reportRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/inventory-change-requests", inventoryChangeRequestRoutes);
 app.use("/api/restock-orders", restockOrderRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/ai", aiRoutes);
 
 const buildPath = path.resolve(__dirname, '..', '..', 'front', 'build');
 const indexHtml = path.join(buildPath, 'index.html');
