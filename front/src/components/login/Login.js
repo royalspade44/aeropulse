@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useUser } from '../../context/UserContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { API_BASE_URL } from '../../config/api';
 import './Login.css';
 import icons from '../common/icons';
 import LoginBrandSection from './LoginBrandSection';
