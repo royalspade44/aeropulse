@@ -6,6 +6,16 @@ const taskSchema = new mongoose.Schema(
     title: { type: String, required: true },
     customer: { type: String, required: true },
     address: { type: String, required: true },
+    customerId: { type: String, default: "" },
+    customerEmail: { type: String, default: "" },
+    customerPhone: { type: String, default: "" },
+    unitId: { type: String, default: "" },
+    unitName: { type: String, default: "" },
+    unitType: { type: String, default: "" },
+    issueType: { type: String, default: "" },
+    description: { type: String, default: "" },
+    assignedTechnicianId: { type: String, default: "", index: true },
+    assignedTechnicianName: { type: String, default: "" },
     status: {
       type: String,
       enum: ["pending", "in-progress", "completed"],
@@ -21,6 +31,7 @@ const taskSchema = new mongoose.Schema(
     assignedRole: { type: String, default: "technician" },
     branch: { type: String, default: "", index: true },
     completedAt: { type: Date, default: null },
+    payload: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
   { timestamps: true }
 );

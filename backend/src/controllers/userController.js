@@ -584,6 +584,64 @@ const deleteAccount = async (req, res) => {
   return res.json({ message: "Account deleted successfully", mode });
 };
 
+const deleteUserById = async (req, res) => {
+  const target = await User.findById(req.params.id);
+  if (!target || target.isDeleted || target.accountStatus === "deleted") {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  if (!canManageTargetProfile(req.authUser, target)) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const mode = String(env.accountDeleteMode || "soft").toLowerCase() === "hard" ? "hard" : "soft";
+  const userId = target._id;
+
+  if (mode === "hard") {
+    await anonymizeRelatedData(userId);
+    await target.deleteOne();
+    return res.json({ message: "Account deleted successfully", mode });
+  }
+
+  const deletedAlias = `deleted_${String(userId)}@deleted.local`;
+  target.email = deletedAlias;
+  target.username = undefined;
+  target.name = "Deleted User";
+  target.name_first = "Deleted";
+  target.name_last = "User";
+  target.phone = undefined;
+  target.passwordHash = "";
+  target.avatarUrl = "";
+  target.address = "";
+  target.billingAddress = { region: "", province: "", city: "", barangay: "", street: "" };
+  target.addresses = [];
+  target.privacy = normalizePrivacy(target.privacy?.toObject?.() || {}, {
+    profileVisibility: "private",
+    showEmail: false,
+    showPhone: false,
+    activityStatus: false,
+    dataSharing: false,
+  });
+  target.notifications = normalizeNotifications(target.notifications?.toObject?.() || {}, {
+    email: false,
+    inApp: false,
+    push: false,
+    sms: false,
+    accountUpdates: false,
+    orderUpdates: false,
+    systemAlerts: false,
+    promotions: false,
+    serviceUpdates: false,
+  });
+  target.accountStatus = "deleted";
+  target.isDeleted = true;
+  target.deletedAt = new Date();
+
+  await target.save();
+  await anonymizeRelatedData(userId);
+  return res.json({ message: "Account deleted successfully", mode });
+};
+
 const listUsers = async (req, res) => {
   const role = String(req.query.role || "").trim();
   const locked = req.query.locked;
@@ -620,6 +678,26 @@ const unlockUser = async (req, res) => {
   return res.json({ user: user.toJSON() });
 };
 
+const updateUserStatus = async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user || user.isDeleted || user.accountStatus === "deleted") {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  if (!canManageTargetProfile(req.authUser, user)) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const nextStatus = String(req.body?.status || "").trim().toLowerCase();
+  if (!nextStatus || !["active", "disabled"].includes(nextStatus)) {
+    return res.status(400).json({ message: "Invalid status" });
+  }
+
+  user.accountStatus = nextStatus;
+  await user.save();
+  return res.json({ user: user.toJSON() });
+};
+
 const shouldCreateInAppNotification = (user, type = "system") => {
   if (!user) return false;
   const notifications = user.notifications?.toObject?.() || user.notifications || {};
@@ -649,6 +727,8 @@ module.exports = {
   changePassword,
   requestPasswordChangeEmail,
   deleteAccount,
+  deleteUserById,
   unlockUser,
+  updateUserStatus,
   shouldCreateInAppNotification,
 };

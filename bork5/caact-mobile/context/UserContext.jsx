@@ -16,7 +16,7 @@ function normalizeUser(user = {}) {
   if (!user) return null;
 
   const rawRole = user.role || (user.isTechnician ? "technician" : "customer");
-  const role = String(rawRole).replace("-", "_");
+  const role = String(rawRole).trim().replace(/-/g, "_").toLowerCase();
 
   return {
     ...user,
@@ -309,6 +309,7 @@ export function UserProvider({ children }) {
       case "owner":
       case "manager":
       case "admin":
+      case "superadmin":
       case "super_admin":
         return "/manager";
       default:

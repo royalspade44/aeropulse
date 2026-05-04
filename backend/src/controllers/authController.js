@@ -163,6 +163,7 @@ const isBillingAddressComplete = (billingAddress = {}) => {
 const detectRoleFromEmail = (email = "") => {
   const normalizedEmail = String(email).trim().toLowerCase();
   if (normalizedEmail.includes("superadmin")) return "superadmin";
+  if (normalizedEmail.includes("technician") || normalizedEmail.includes("tech")) return "technician";
   if (normalizedEmail.includes("admin")) return "admin";
   return "customer";
 };
@@ -359,8 +360,20 @@ const login = async (req, res) => {
     return res.status(400).json({ message: "Email or alias and password are required" });
   }
 
+  const clientType = String(req.body?.clientType || "web").trim().toLowerCase();
+  console.log("[Auth][Login] Attempt", {
+    identifier: normalizedLoginValue || "(missing)",
+    clientType,
+    branch: typeof branch === "string" ? branch.trim() : "",
+  });
+
   const user = await findUserByIdentifier(loginValue);
   if (!user) {
+    console.warn("[Auth][Login] Failed", {
+      identifier: normalizedLoginValue,
+      reason: "not_found",
+      clientType,
+    });
     return res.status(401).json({ message: "Email or alias not found. Please register first." });
   }
   if (user.isDeleted || user.accountStatus === "deleted" || user.accountStatus === "disabled") {
@@ -373,18 +386,21 @@ const login = async (req, res) => {
     });
   }
 
-  const detectedRole = detectRoleFromEmail(normalizedEmail);
-  if (user.role !== detectedRole) {
-    user.role = detectedRole;
+  if (!user.role) {
+    user.role = detectRoleFromEmail(normalizedLoginValue);
   }
-
-  const clientType = String(req.body?.clientType || "web").trim().toLowerCase();
   if (user.role === "technician" && clientType !== "mobile") {
     return res.status(403).json({ message: "Technician accounts cannot access the web platform. Please use the mobile app." });
   }
 
   if (user.lockoutUntil && user.lockoutUntil.getTime() > Date.now()) {
     const secondsLeft = Math.max(1, Math.ceil((user.lockoutUntil.getTime() - Date.now()) / 1000));
+    console.warn("[Auth][Login] Locked", {
+      id: user.id,
+      role: user.role,
+      secondsLeft,
+      clientType,
+    });
     return res.status(423).json({
       message: `Account locked. Try again in ${secondsLeft} seconds.`,
       secondsLeft,
@@ -400,12 +416,26 @@ const login = async (req, res) => {
     }
     await user.save();
     if (lockSeconds > 0) {
+      console.warn("[Auth][Login] Failed", {
+        id: user.id,
+        role: user.role,
+        reason: "locked",
+        attempts: user.failedLoginAttempts,
+        clientType,
+      });
       return res.status(423).json({
         message: `Account locked. Try again in ${lockSeconds} seconds.`,
         secondsLeft: lockSeconds,
         attempts: user.failedLoginAttempts,
       });
     }
+    console.warn("[Auth][Login] Failed", {
+      id: user.id,
+      role: user.role,
+      reason: "invalid_password",
+      attempts: user.failedLoginAttempts,
+      clientType,
+    });
     return res.status(401).json({ message: "Incorrect password. Please try again.", attempts: user.failedLoginAttempts });
   }
 
@@ -424,22 +454,19 @@ const login = async (req, res) => {
     }
   }
 
-  const otpMetadata = { branch: effectiveBranch };
-  if (user.role === "superadmin") {
-    otpMetadata.branch = "";
-  }
+  const token = signAccessToken({ sub: user.id, role: user.role });
 
-  await createOtpRequest({
-    email: normalizedEmail,
-    action: "login",
-    channel: "email",
-    metadata: otpMetadata,
+  console.log("[Auth][Login] Success", {
+    id: user.id,
+    role: user.role,
+    clientType,
+    branch: effectiveBranch,
   });
 
   return res.json({
-    otpRequired: true,
-    action: "login",
-    message: "A one-time code has been sent to your email.",
+    success: true,
+    token,
+    user: user.toJSON(),
   });
 };
 
@@ -587,6 +614,10 @@ const verifyOtp = async (req, res) => {
   return res.status(400).json({ message: "Unsupported verification action." });
 };
 
+const logout = async (_req, res) => {
+  return res.json({ success: true });
+};
+
 const me = async (req, res) => {
   return res.json({ user: req.authUser.toJSON() });
 };
@@ -668,7 +699,7 @@ const googleCallback = async (req, res, next) => {
       user.authProvider = "google";
       user.googleId = profile.sub || user.googleId;
       user.avatarUrl = profile.picture || user.avatarUrl;
-      if (user.role !== detectedRole) {
+      if (!user.role) {
         user.role = detectedRole;
       }
       await user.save();
@@ -836,6 +867,7 @@ const resetPasswordWithCode = async (req, res) => {
 module.exports = {
   register,
   login,
+  logout,
   me,
   googleStart,
   googleCallback,

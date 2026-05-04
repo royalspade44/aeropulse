@@ -14,6 +14,7 @@ import StatusChip from "../../components/ui/StatusChip";
 import { COLD_AIR_WEBSITE } from "../../constants/company";
 import { COLORS, SPACING } from "../../constants/theme";
 import { useUserContext } from "../../context/UserContext";
+import { fetchMyOrders } from "../../services/api";
 import { getOrdersByUser } from "../../services/orderStorage";
 
 function statusColor(status = "") {
@@ -28,19 +29,29 @@ function statusColor(status = "") {
 }
 
 export default function CustomerOrdersScreen() {
-  const { current } = useUserContext();
+  const { current, token } = useUserContext();
   const [orders, setOrders] = useState([]);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      getOrdersByUser(current).then((items) => {
-        if (active) setOrders(items);
-      });
+      const load = async () => {
+        const result = token
+          ? await fetchMyOrders(token)
+          : { success: false, orders: [] };
+
+        const nextOrders = result.success
+          ? result.orders
+          : await getOrdersByUser(current);
+
+        if (active) setOrders(nextOrders);
+      };
+
+      load();
       return () => {
         active = false;
       };
-    }, [current]),
+    }, [current, token]),
   );
 
   return (

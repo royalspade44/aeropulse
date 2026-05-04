@@ -4,7 +4,7 @@ dotenv.config();
 
 const parseCorsOrigins = (value = "") => {
   if (!value || !String(value).trim()) {
-    return ["http://localhost:3000"];
+    return ["http://localhost:3000", "http://localhost:8081"];
   }
   return String(value)
     .split(",")

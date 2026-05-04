@@ -1,5 +1,6 @@
 // services/serviceRequestStorage.jsx
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as api from "./api";
 
 const STORAGE_KEY = "service_requests_storage_v2";
 
@@ -90,6 +91,17 @@ function appendTimeline(request, event) {
 }
 
 export async function getAllServiceRequests() {
+  try {
+    const token = await api.getStoredToken();
+    if (token) {
+      const result = await api.fetchMyServiceRequests(token);
+      if (result.success) {
+        await saveAllServiceRequests(result.requests);
+        return result.requests.map(normalizeServiceRequest);
+      }
+    }
+  } catch {}
+
   const raw = await AsyncStorage.getItem(STORAGE_KEY);
   const parsed = safeParse(raw, []);
   return Array.isArray(parsed) ? parsed.map(normalizeServiceRequest) : [];
@@ -102,6 +114,19 @@ export async function saveAllServiceRequests(items = []) {
 }
 
 export async function createServiceRequest(payload = {}) {
+  try {
+    const token = await api.getStoredToken();
+    if (token) {
+      const result = await api.createServiceRequest(token, normalizeServiceRequest(payload));
+      if (result.success) {
+        const created = normalizeServiceRequest(result.request);
+        const requests = await getAllServiceRequests();
+        await saveAllServiceRequests([created, ...requests.filter((r) => r.id !== created.id)]);
+        return created;
+      }
+    }
+  } catch {}
+
   const requests = await getAllServiceRequests();
   const created = normalizeServiceRequest(payload);
   const next = [created, ...requests];
@@ -141,6 +166,24 @@ export async function updateServiceRequestStatus(
   actor = "System",
   description = ""
 ) {
+  try {
+    const token = await api.getStoredToken();
+    if (token) {
+      const result = await api.updateServiceRequestStatus(token, requestId, status, {
+        actor,
+        description,
+      });
+      if (result.success) {
+        const updated = normalizeServiceRequest(result.request);
+        const requests = await getAllServiceRequests();
+        await saveAllServiceRequests(
+          requests.map((item) => (String(item.id) === String(updated.id) ? updated : item)),
+        );
+        return updated;
+      }
+    }
+  } catch {}
+
   const requests = await getAllServiceRequests();
 
   const next = requests.map((item) =>

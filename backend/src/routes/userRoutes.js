@@ -19,6 +19,8 @@ const {
   requestPasswordChangeEmail,
   deleteAccount,
   unlockUser,
+  updateUserStatus,
+  deleteUserById,
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -48,7 +50,10 @@ router.delete("/me", deleteAccount);
 
 router.get("/", allowRoles("admin", "superadmin"), listUsers);
 router.get("/:id/profile", allowRoles("admin", "superadmin"), getProfileById);
+router.patch("/:id", allowRoles("admin", "superadmin"), updateProfileById);
+router.patch("/:id/status", allowRoles("admin", "superadmin"), updateUserStatus);
 router.put("/:id/profile", allowRoles("admin", "superadmin"), updateProfileById);
+router.delete("/:id", allowRoles("admin", "superadmin"), deleteUserById);
 router.post("/:id/unlock", allowRoles("admin", "superadmin"), unlockUser);
 
 module.exports = router;

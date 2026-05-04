@@ -61,10 +61,23 @@ export async function login(identifier, password) {
     password,
     clientType: "mobile",
   });
-  if (ok) return { success: true, token: data.token, user: data.user };
+
+  if (ok && data?.token && data?.user) {
+    return { success: true, token: data.token, user: data.user };
+  }
+
+  if (ok && data?.otpRequired) {
+    return {
+      success: false,
+      error:
+        data.message ||
+        "A one-time code is required. Mobile login currently expects direct session login.",
+    };
+  }
+
   return {
     success: false,
-    error: data.error || "Login failed.",
+    error: data.error || data.message || "Login failed.",
     locked: data.locked || false,
     secondsLeft: data.seconds_left || 0,
   };
@@ -264,9 +277,134 @@ export async function deleteUser(token, userId) {
  * Update the current user's own profile.
  */
 export async function updateProfile(token, payload) {
-  const { ok, data } = await patch("/profile", payload, token);
+  const { ok, data } = await patch("/users/profile", payload, token);
   if (ok) return { success: true, user: data.user };
   return { success: false, error: data.error || "Profile update failed." };
+}
+
+// ---------------------------------------------------------------------------
+// Orders
+// ---------------------------------------------------------------------------
+
+function normalizeBackendOrder(order = {}) {
+  const workflow = String(order.workflowStatus || "").toLowerCase();
+  const status = String(order.status || "").toLowerCase();
+
+  const deliveryStatus = (() => {
+    if (workflow === "complete") return "DELIVERED";
+    if (workflow === "to_deliver") return "OUT_FOR_DELIVERY";
+    if (workflow === "cancelled") return "CANCELLED";
+    return "NOT_STARTED";
+  })();
+
+  const paymentStatus = (() => {
+    if (status === "paid") return "VERIFIED";
+    if (status === "cancelled") return "FAILED";
+    return "PENDING_VERIFICATION";
+  })();
+
+  return {
+    id: order.id || order._id || "",
+    items: Array.isArray(order.items) ? order.items : [],
+    status: workflow || status || "pending",
+    deliveryStatus,
+    paymentStatus,
+    serviceRequestId: order.serviceRequestId || "",
+    total: Number(order.totalAmount || order.total || 0),
+    createdAt: order.createdAt || "",
+    updatedAt: order.updatedAt || order.createdAt || "",
+  };
+}
+
+export async function fetchMyOrders(token) {
+  const { ok, data } = await get("/orders/me", token);
+  if (ok) {
+    const orders = Array.isArray(data.orders)
+      ? data.orders.map(normalizeBackendOrder)
+      : [];
+    return { success: true, orders };
+  }
+  return {
+    success: false,
+    error: data.error || "Failed to fetch orders.",
+    orders: [],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Service requests
+// ---------------------------------------------------------------------------
+
+function normalizeBackendServiceRequest(item = {}) {
+  return {
+    ...item,
+    id: item.id || item._id || "",
+    status: item.status || "Submitted",
+    createdAt: item.createdAt || "",
+    updatedAt: item.updatedAt || item.createdAt || "",
+  };
+}
+
+export async function fetchMyServiceRequests(token) {
+  const { ok, data } = await get("/service-requests/me", token);
+  if (ok) {
+    const requests = Array.isArray(data.requests)
+      ? data.requests.map(normalizeBackendServiceRequest)
+      : [];
+    return { success: true, requests };
+  }
+  return { success: false, error: data.error || "Failed to fetch requests.", requests: [] };
+}
+
+export async function createServiceRequest(token, payload) {
+  const { ok, data } = await post("/service-requests/me", payload, token);
+  if (ok) return { success: true, request: normalizeBackendServiceRequest(data.request) };
+  return { success: false, error: data.error || "Failed to create request." };
+}
+
+export async function updateServiceRequestStatus(token, requestId, status, payload = {}) {
+  const { ok, data } = await patch(
+    `/service-requests/${encodeURIComponent(requestId)}/status`,
+    { status, ...payload },
+    token,
+  );
+  if (ok) return { success: true, request: normalizeBackendServiceRequest(data.request) };
+  return { success: false, error: data.error || "Failed to update request." };
+}
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+function normalizeBackendNotification(item = {}) {
+  return {
+    ...item,
+    id: item.id || item._id || "",
+    read: item.unread === false || item.status === "read",
+  };
+}
+
+export async function fetchMyNotifications(token) {
+  const { ok, data } = await get("/notifications/me", token);
+  if (ok) {
+    const notifications = Array.isArray(data.notifications)
+      ? data.notifications.map(normalizeBackendNotification)
+      : [];
+    return { success: true, notifications };
+  }
+  return { success: false, error: data.error || "Failed to fetch notifications.", notifications: [] };
+}
+
+export async function markNotificationRead(token, notificationId) {
+  const { ok, data } = await patch(`/notifications/${encodeURIComponent(notificationId)}/read`, {}, token);
+  if (ok) return { success: true, notification: normalizeBackendNotification(data.notification) };
+  return { success: false, error: data.error || "Failed to update notification." };
+}
+
+export async function markAllNotificationsRead(token) {
+  const { ok, data } = await patch("/notifications/me/read-all", {}, token);
+  if (ok) return { success: true, message: data.message };
+  return { success: false, error: data.error || "Failed to update notifications." };
 }
 
 // ---------------------------------------------------------------------------
