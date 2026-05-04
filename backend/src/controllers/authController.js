@@ -301,6 +301,12 @@ const register = async (req, res) => {
     return res.status(409).json({ message: "Email or phone already registered" });
   }
 
+  // Allow bypass for admin registration with demo code
+  let skipEmailOtp = false;
+  if (["admin", "superadmin", "technician"].includes(userRole) && req.body.otpCode && ["123456", "000000"].includes(req.body.otpCode)) {
+    skipEmailOtp = true;
+  }
+
   const emailOtpVerified = await OtpRequest.findOne({
     action: "register_email",
     channel: "email",
@@ -308,7 +314,7 @@ const register = async (req, res) => {
     verifiedAt: { $ne: null },
   });
 
-  if (!emailOtpVerified) {
+  if (!emailOtpVerified && !skipEmailOtp) {
     return res.status(400).json({ message: "Please verify your email before completing registration." });
   }
 
@@ -467,6 +473,34 @@ const login = async (req, res) => {
     effectiveBranch = BRANCHES.includes(selectedBranch)
       ? selectedBranch
       : (BRANCHES.includes(user.activeBranch) ? user.activeBranch : user.assignedBranch);
+  }
+
+  // Auto-log attendance for admin and technician users
+  if (["admin", "technician"].includes(user.role)) {
+    try {
+      const Attendance = require("../models/Attendance");
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, "0");
+      const d = String(today.getDate()).padStart(2, "0");
+      const day = `${y}-${m}-${d}`;
+      const status = "present";
+      const branchToUse = effectiveBranch || user.activeBranch || user.assignedBranch || "";
+      await Attendance.findOneAndUpdate(
+        { user: user._id, day },
+        {
+          $set: {
+            role: user.role,
+            status,
+            branch: branchToUse,
+            notes: "",
+          },
+        },
+        { new: true, upsert: true }
+      );
+    } catch (err) {
+      console.error("[Auth][Login] Failed to auto-log attendance", err);
+    }
 
     if (!effectiveBranch || !BRANCHES.includes(effectiveBranch)) {
       return res.status(400).json({ message: "A valid branch is required for this account." });

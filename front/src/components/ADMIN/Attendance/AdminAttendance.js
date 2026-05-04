@@ -16,10 +16,8 @@ const STATUSES = [
 
 const ROLES = [
   { value: '', label: 'All roles' },
-  { value: 'customer', label: 'Customer' },
   { value: 'technician', label: 'Tech' },
   { value: 'admin', label: 'Admin' },
-  { value: 'superadmin', label: 'Super Admin' },
 ];
 
 const AdminAttendance = () => {
@@ -44,7 +42,8 @@ const AdminAttendance = () => {
   const loadUsers = async () => {
     try {
       const result = await apiRequest('/attendance/users');
-      setUsers(result.users || []);
+      // Only include admin and technician users
+      setUsers((result.users || []).filter(u => u.role === 'admin' || u.role === 'technician'));
     } catch (_e) {
       setUsers([]);
     }

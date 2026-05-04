@@ -262,7 +262,7 @@ body {
 .register-form-section {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   padding: 48px 44px;
   background: var(--surface);
@@ -273,6 +273,62 @@ body {
   border: 1px solid rgba(79, 70, 229, 0.1);
   max-height: 95vh;
   position: relative;
+}
+
+.register-step {
+  margin-top: 18px;
+  margin-bottom: 18px;
+}
+
+.register-step-title {
+  margin-bottom: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.register-step-desc {
+  margin-bottom: 18px;
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.input-group {
+  margin-bottom: 14px;
+}
+
+.register-totp-box {
+  margin-top: 18px;
+  margin-bottom: 18px;
+  padding: 16px 14px;
+  background: var(--surface-2);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.register-totp-secret {
+  display: block;
+  margin: 10px 0 12px 0;
+  padding: 8px 12px;
+  background: #222;
+  color: #fff;
+  border-radius: 6px;
+  font-family: 'Fira Mono', 'Consolas', monospace;
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+
+.register-step-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
 }
 
 /* Inner width cap */
@@ -978,7 +1034,7 @@ select:focus-visible {
 
 @media (max-width: 600px) {
   .register-form-section {
-    padding: 36px 24px;
+    padding: 36px 16px;
     border-radius: 16px;
   }
 
@@ -987,7 +1043,13 @@ select:focus-visible {
   }
 
   .form-row {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .register-totp-box {
+    padding: 12px 6px;
+  }
   }
 
   .register-step-actions {
