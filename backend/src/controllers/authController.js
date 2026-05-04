@@ -325,7 +325,8 @@ const register = async (req, res) => {
     verifiedAt: { $ne: null },
   });
 
-  if (!phoneOtpVerified) {
+  // Bypass phone OTP for admin, technician, and superadmin registration (for demo)
+  if (!phoneOtpVerified && !skipEmailOtp) {
     return res.status(400).json({ message: "Please verify your mobile number before completing registration." });
   }
 
