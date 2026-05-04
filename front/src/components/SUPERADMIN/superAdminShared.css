@@ -2,43 +2,50 @@
    SUPER ADMIN SHARED — Admin-aligned interface
    ============================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+
 :root {
-  --super-primary: #1e88e5;
-  --super-primary-dark: #0d47a1;
-  --super-bg: #f8fafc;
+  --super-primary: #4f46e5;
+  --super-primary-dark: #3730a3;
+  --super-primary-soft: rgba(79, 70, 229, 0.14);
+  --super-bg: #f6f7fb;
   --super-card: #ffffff;
-  --super-text: #0f172a;
-  --super-muted: #64748b;
+  --super-text: #1f2937;
+  --super-muted: #6b7280;
+  --super-border: #e5e7eb;
+  --super-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 .super-layout {
   min-height: 100vh;
-  background: var(--super-bg);
-  font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at 20% 0%, #eef2ff 0%, var(--super-bg) 38%, #f9fafb 100%);
+  font-family: 'DM Sans', -apple-system, 'Segoe UI', sans-serif;
 }
 
 .super-layout-main {
-  margin-left: 320px;
-  padding: 24px 22px 32px;
+  margin-left: 280px;
+  padding: 20px 20px 28px;
   min-height: 100vh;
+  max-width: 1400px;
+  margin-right: auto;
 }
 
 /* ========== BURGER BUTTON ========== */
 .super-burger-button {
   position: fixed;
-  top: 1.25rem;
-  left: 1.25rem;
+  top: 1rem;
+  left: 1rem;
   z-index: 980;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border-radius: 14px;
+  border-radius: 12px;
   background: #ffffff;
-  border: 1px solid #dbeafe;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
@@ -53,9 +60,9 @@
 }
 
 .super-burger-button span {
-  width: 18px;
+  width: 16px;
   height: 2px;
-  background-color: #2563eb;
+  background-color: var(--super-primary);
   border-radius: 2px;
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
@@ -85,14 +92,14 @@
 .super-sidebar {
   position: fixed;
   top: 0;
-  left: -340px;
-  width: 300px;
+  left: -320px;
+  width: 260px;
   height: 100vh;
-  background: var(--super-card);
+  background: linear-gradient(180deg, #ffffff 0%, #f7f8ff 100%);
   border-radius: 0 18px 18px 0;
-  border-right: 1px solid rgba(30, 136, 229, 0.13);
-  box-shadow: 6px 0 28px rgba(15, 23, 42, 0.12);
-  padding: 22px 18px;
+  border-right: 1px solid rgba(79, 70, 229, 0.18);
+  box-shadow: 6px 0 24px rgba(15, 23, 42, 0.12);
+  padding: 20px 16px 16px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -107,21 +114,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 14px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid #eef2ff;
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e8eaf8;
 }
 
 .super-sidebar-brand {
-  font-weight: 900;
-  font-size: 18px;
+  font-weight: 800;
+  font-size: 15.5px;
   color: var(--super-text);
   letter-spacing: -0.02em;
 }
 
 .super-close {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
@@ -141,7 +148,7 @@
 .super-nav {
   margin-top: 12px;
   display: grid;
-  gap: 6px;
+  gap: 8px;
   flex: 1;
 }
 
@@ -149,30 +156,45 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 14px;
-  color: #475569;
+  color: #4b5563;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   transition: background 0.18s ease, color 0.18s ease;
 }
 
 .super-nav-link:hover,
 .super-nav-link.active {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--super-primary-soft);
+  color: #3730a3;
 }
 
 .super-nav-link.active {
   font-weight: 700;
 }
 
+.super-nav-icon-wrap {
+  width: 30px;
+  height: 30px;
+  border-radius: 12px;
+  background: var(--super-primary-soft);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.super-nav-link.active .super-nav-icon-wrap,
+.super-nav-link:hover .super-nav-icon-wrap {
+  background: rgba(79, 70, 229, 0.2);
+}
+
 .super-logout {
   margin-top: auto;
   width: 100%;
   text-align: left;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid #fecaca;
   background: #fef2f2;
@@ -194,12 +216,12 @@
 .super-card {
   background: var(--super-card);
   border-radius: 18px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 0 6px 22px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--super-border);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
 .super-header {
-  padding: 18px 22px;
+  padding: 16px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -211,6 +233,15 @@
   flex-direction: column;
   gap: 4px;
 }
+.super-header strong {
+  font-size: 12px;
+  font-weight: 700;
+  color: #4338ca;
+  background: var(--super-primary-soft);
+  padding: 6px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
 
 .super-header h1,
 .super-header h2,
@@ -221,21 +252,21 @@
 }
 
 .super-header h1 {
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .super-header p {
   margin: 4px 0 0;
   color: var(--super-muted);
-  font-size: 13px;
+  font-size: 12.5px;
   line-height: 1.6;
 }
 
 .super-card p {
   margin: 0 0 12px;
   color: var(--super-muted);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.75;
 }
 
@@ -261,13 +292,13 @@
 /* ========== GRIDS ========== */
 .super-grid,
 .super-grid-2 {
-  margin-top: 20px;
+  margin-top: 16px;
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .super-grid {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
 .super-grid-2 {
@@ -275,26 +306,26 @@
 }
 
 .super-card {
-  padding: 22px;
+  padding: 20px;
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .super-card h2 {
-  font-size: 18px;
+  font-size: 16px;
   letter-spacing: -0.03em;
 }
 
 .super-card h3 {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--super-text);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .super-card strong {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 800;
   color: var(--super-text);
 }
@@ -313,29 +344,29 @@
 }
 
 .super-card ul li {
-  padding: 12px 14px;
+  padding: 10px 12px;
   background: #f8fbff;
   border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  border-radius: 12px;
 }
 
 .super-card label {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   color: var(--super-text);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .super-card input,
 .super-card select,
 .super-card textarea {
   width: 100%;
-  padding: 14px 16px;
-  border-radius: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
   border: 1px solid #d6dee8;
   background: #f8fbff;
   color: var(--super-text);
-  font-size: 14px;
+  font-size: 13px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   box-sizing: border-box;
 }
@@ -349,16 +380,18 @@
   background: #ffffff;
 }
 
+
 .super-card button {
   align-self: start;
   display: inline-flex;
   justify-content: center;
-  padding: 12px 18px;
-  border-radius: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
   border: none;
   background: linear-gradient(135deg, var(--super-primary), var(--super-primary-dark));
   color: #ffffff;
   font-weight: 700;
+  font-size: 13px;
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease;
 }
@@ -369,7 +402,7 @@
 
 .super-list {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .super-list button {
@@ -377,19 +410,19 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(30, 136, 229, 0.18);
-  background: #eff6ff;
-  color: #1d4ed8;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(79, 70, 229, 0.18);
+  background: #eef2ff;
+  color: #3730a3;
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
 }
 
 .super-list button:hover {
-  background: #dbeafe;
-  border-color: #93c5fd;
+  background: #e0e7ff;
+  border-color: #c7d2fe;
   transform: translateY(-1px);
 }
 
@@ -398,6 +431,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 14px;
   padding: 14px 16px;
+  font-size: 13px;
 }
 
 .super-list-item:hover {
@@ -418,10 +452,10 @@
 
 .super-table th,
 .super-table td {
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-bottom: 1px solid #e5e7eb;
   text-align: left;
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--super-text);
 }
 
@@ -430,18 +464,23 @@
   font-weight: 700;
 }
 
+.super-muted {
+  color: var(--super-muted);
+}
+
 .super-table tbody tr:hover {
   background: #f8fbff;
 }
 
 .super-card .super-card-section {
-  padding-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid #eef2ff;
 }
 
 @media (max-width: 1024px) {
   .super-layout-main {
     margin-left: 0;
+    padding: 18px 16px 26px;
   }
 }
 

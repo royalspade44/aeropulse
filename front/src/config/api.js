@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || "https://aeropulse-qgtu.onrender.com/api";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 const getToken = () => localStorage.getItem("accessToken");
 const getActiveBranch = () => localStorage.getItem("activeBranch");
@@ -8,16 +8,28 @@ const apiRequest = async (path, options = {}) => {
   const activeBranch = getActiveBranch();
   const method = String(options.method || "GET").toUpperCase();
   const shouldDisableCache = method === "GET";
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    ...(shouldDisableCache ? { cache: "no-store" } : {}),
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(activeBranch ? { "X-Branch": activeBranch } : {}),
-      ...(options.headers || {}),
-    },
-  });
+  const url = `${API_BASE_URL}${path}`;
+
+  if (!token && !path.startsWith("/auth/")) {
+    console.warn("Attempting API request without auth token", { url, path });
+  }
+
+  let response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      ...(shouldDisableCache ? { cache: "no-store" } : {}),
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(activeBranch ? { "X-Branch": activeBranch } : {}),
+        ...(options.headers || {}),
+      },
+    });
+  } catch (error) {
+    console.error("API request failed", { url, options, error });
+    throw error;
+  }
 
   let data = null;
   try {
@@ -27,6 +39,15 @@ const apiRequest = async (path, options = {}) => {
   }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("activeBranch");
+      localStorage.removeItem("activeAccountSession");
+      console.warn("Cleared stale auth state after 401.", { url, options });
+    }
+
     const message = data?.message || "Request failed";
     const err = new Error(message);
     err.status = response.status;
