@@ -301,9 +301,9 @@ const register = async (req, res) => {
     return res.status(409).json({ message: "Email or phone already registered" });
   }
 
-  // Allow bypass for admin registration with demo code
+  // Completely bypass email OTP for admin, technician, and superadmin registration
   let skipEmailOtp = false;
-  if (["admin", "superadmin", "technician"].includes(userRole) && req.body.otpCode && ["123456", "000000"].includes(req.body.otpCode)) {
+  if (["admin", "superadmin", "technician"].includes(userRole)) {
     skipEmailOtp = true;
   }
 
