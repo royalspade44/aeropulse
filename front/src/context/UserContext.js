@@ -280,8 +280,6 @@ export const UserProvider = ({ children }) => {
     loginPromptMessage,
     register,
     login,
-    loginAsAdmin,
-    loginAsSuperAdmin,
     logout,
     updateProfile,
     updatePreferences,
