@@ -457,7 +457,8 @@ const login = async (req, res) => {
     return res.status(401).json({ message: "Incorrect password. Please try again.", attempts: user.failedLoginAttempts });
   }
 
-  const isBranchScopedRole = ["admin", "technician", "superadmin"].includes(user.role);
+  // Superadmin doesn't require a branch - they have access to all branches
+  const isBranchScopedRole = ["admin", "technician"].includes(user.role);
   let selectedBranch = "";
   let effectiveBranch = "";
 

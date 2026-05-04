@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useUser } from '../../../context/UserContext';
 import { confirmDialog } from '../../../utils/dialog';
 import icons from '../../common/icons';
+import logo from '../../common/images/Cold Air Logo.jpg';
 import './styles.css';
 
 const navItems = [
@@ -41,7 +42,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
       <div className="admin-sidebar-brand-row">
         <div className="admin-sidebar-brand">
           <span className="brand-icon">
-            <img src={icons.globePointer} alt="" className="inline-icon inline-icon--md" />
+            <img src={logo} alt="AeroPulse" className="inline-icon inline-icon--md" style={{ borderRadius: '4px' }} />
           </span>
           <span>AeroPulse</span>
         </div>
