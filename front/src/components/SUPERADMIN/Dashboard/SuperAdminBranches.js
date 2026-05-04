@@ -4,7 +4,7 @@ import { apiRequest } from '../../../config/api';
 import '../superAdminShared.css';
 
 const SuperAdminBranches = () => {
-  const [branches, setBranches] = useState([]);
+  // Removed unused: branches, setBranches
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -33,11 +33,7 @@ const SuperAdminBranches = () => {
     return () => { active = false; };
   }, []);
 
-  const getAdminForBranch = (branchName) => {
-    return admins.find(admin => 
-      String(admin.assignedBranch || '') === String(branchName || '')
-    );
-  };
+  // Removed unused: getAdminForBranch
 
   const formatLastLogin = (date) => {
     if (!date) return 'Never';
