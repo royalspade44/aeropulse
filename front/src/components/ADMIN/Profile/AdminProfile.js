@@ -50,6 +50,7 @@ const AdminProfile = () => {
           <p><strong>Role:</strong> {user?.role || 'admin'}</p>
           <p><strong>Phone:</strong> {user?.phone || '-'}</p>
           <p><strong>Location:</strong> {adminLocation}</p>
+          <p><strong>Last Login:</strong> {user?.lastLogin ? new Date(user.lastLogin).toLocaleString() : '-'}</p>
           <button type="button" onClick={openEditModal}>Edit Profile</button>
         </div>
         <ChangePassword />

@@ -8,7 +8,7 @@ const SuperAdminAttendance = () => {
   const [error, setError] = useState('');
   const [rows, setRows] = useState([]);
   const [summary, setSummary] = useState(null);
-  const [filters, setFilters] = useState({ role: '', from: '', to: '' });
+  const [filters, setFilters] = useState({ role: 'admin', from: '', to: '' });
 
   const buildQuery = () => {
     const params = new URLSearchParams();

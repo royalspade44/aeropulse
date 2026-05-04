@@ -22,18 +22,27 @@ function SuperAdminDashboard() {
     admins: 0,
     technicians: 0,
     customers: 0,
-    recentlyActiveUsers: 0
+    recentlyActiveUsers: 0,
+    totalOrders: 0,
+    latestSalesBranch: '-'
   });
 
   useEffect(() => {
-    apiRequest('/dashboard/me')
-      .then((data) => {
+    Promise.all([
+      apiRequest('/dashboard/me'),
+      apiRequest('/orders')
+    ])
+      .then(([dashData, ordersData]) => {
+        const orders = Array.isArray(ordersData?.orders) ? ordersData.orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) : [];
+        const latestBranch = orders.length > 0 ? (orders[0]?.branch || orders[0]?.stockSourceBranch || '-') : '-';
         setStats({
-          totalUsers: data?.stats?.totalUsers || 0,
-          admins: data?.stats?.admins || 0,
-          technicians: data?.stats?.technicians || 0,
-          customers: data?.stats?.customers || 0,
-          recentlyActiveUsers: data?.stats?.recentlyActiveUsers || 0
+          totalUsers: dashData?.stats?.totalUsers || 0,
+          admins: dashData?.stats?.admins || 0,
+          technicians: dashData?.stats?.technicians || 0,
+          customers: dashData?.stats?.customers || 0,
+          recentlyActiveUsers: dashData?.stats?.recentlyActiveUsers || 0,
+          totalOrders: orders.length,
+          latestSalesBranch: latestBranch
         });
       })
       .catch((error) => {
@@ -68,20 +77,20 @@ function SuperAdminDashboard() {
     <SuperAdminLayout title="Super Admin Command Center" subtitle={`Welcome, ${user?.name || 'Boss'}`}>
       <div className="super-grid">
         <div className="super-card">
+          <h3>Customer Accounts</h3>
+          <strong>{stats.customers}</strong>
+        </div>
+        <div className="super-card">
+          <h3>Total Orders</h3>
+          <strong>{stats.totalOrders}</strong>
+        </div>
+        <div className="super-card">
+          <h3>Latest Sales Branch</h3>
+          <strong>{stats.latestSalesBranch}</strong>
+        </div>
+        <div className="super-card">
           <h3>Admins</h3>
           <strong>{stats.admins}</strong>
-        </div>
-        <div className="super-card">
-          <h3>Organization Users</h3>
-          <strong>{stats.totalUsers}</strong>
-        </div>
-        <div className="super-card">
-          <h3>Technicians</h3>
-          <strong>{stats.technicians}</strong>
-        </div>
-        <div className="super-card">
-          <h3>Recently Active</h3>
-          <strong>{stats.recentlyActiveUsers}</strong>
         </div>
       </div>
 

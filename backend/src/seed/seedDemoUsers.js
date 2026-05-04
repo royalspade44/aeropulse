@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const connectDb = require("../config/db");
 const User = require("../models/User");
+const Order = require("../models/Order");
 
 const users = [
   {

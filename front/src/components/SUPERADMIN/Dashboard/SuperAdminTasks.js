@@ -20,7 +20,11 @@ const SuperAdminTasks = () => {
       try {
         const result = await apiRequest('/tasks');
         if (!active) return;
-        setTasks(Array.isArray(result.tasks) ? result.tasks : []);
+        const filtered = Array.isArray(result.tasks) ? result.tasks.filter(t => {
+          const status = String(t.status || '').toLowerCase();
+          return (status === 'in-progress' || status === 'in_progress') && t.assignedTechnicianId;
+        }) : [];
+        setTasks(filtered);
       } catch (err) {
         if (!active) return;
         setTasks([]);
@@ -51,6 +55,7 @@ const SuperAdminTasks = () => {
           customer: task.customerName || task.customer || 'Customer',
           status: normalizeStatus(task.status || 'Processing'),
           agingHours: toHours(now - taskDate.getTime()),
+          branch: task.branch || '-'
         };
       });
   }, [tasks]);
@@ -68,7 +73,7 @@ const SuperAdminTasks = () => {
               <strong>{task.id}</strong>
               <p>Technician: {task.technician}</p>
               <p>Customer: {task.customer}</p>
-              <p>Status: {task.status}</p>
+              <p>Status: {task.status} · Branch: {task.branch}</p>
               <p>Aging: {task.agingHours} hours</p>
             </div>
           ))}
