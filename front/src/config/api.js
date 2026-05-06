@@ -1,4 +1,11 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL || "http://localhost:5000/api";
+
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production' && API_BASE_URL.includes('localhost')) {
+  console.warn(
+    'Frontend is running in production but API_BASE_URL is still pointing to localhost. ' +
+    'Set REACT_APP_API_URL in Vercel to your deployed Render backend URL.'
+  );
+}
 
 const getToken = () => localStorage.getItem("accessToken");
 const getActiveBranch = () => localStorage.getItem("activeBranch");
@@ -29,7 +36,7 @@ const apiRequest = async (path, options = {}) => {
   } catch (error) {
     console.error("API request failed", { url, options, error });
     const message = error?.message?.includes("Failed to fetch") || error?.message?.includes("NetworkError")
-      ? "Server unreachable. Check backend is running and CORS is configured correctly."
+      ? `Server unreachable at ${url}. Check backend is running and CORS is configured correctly.`
       : error?.message || "Network error occurred while sending the request.";
     const err = new Error(message);
     err.status = 0;

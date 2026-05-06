@@ -6,9 +6,9 @@ import DeliveryAddress from './DeliveryAddress';
 import PaymentMethod from './PaymentMethod';
 import OrderSummary from './OrderSummary';
 import AddAddressModal from './AddAddressModal';
-import { getStoredServiceAreaId } from '../../domain/purchase/serviceAreaStorage';
 import { DEFAULT_SERVICE_AREA_ID } from '../../domain/purchase/serviceAreas';
 import { computePurchaseTotals } from '../../domain/purchase/computePurchaseTotals';
+import { resolvePreferredBranch } from '../../domain/branches/branchRouting';
 import { buildCustomerOrder } from '../../domain/purchase/buildCustomerOrder';
 import { loadOrdersFromStorage, saveOrdersToStorage } from '../../domain/purchase/ordersStorage';
 import { PAYMENT_PROCESSING_GATEWAY } from '../../domain/purchase/orderStatuses';
@@ -66,7 +66,15 @@ function Checkout() {
   const [stockIssues, setStockIssues] = useState([]);
   const [stockCheckedAt, setStockCheckedAt] = useState('');
 
-  const serviceAreaId = getStoredServiceAreaId() || DEFAULT_SERVICE_AREA_ID;
+  const assignedBranch = useMemo(() => {
+    if (!selectedAddress) return '';
+    return resolvePreferredBranch(selectedAddress);
+  }, [selectedAddress]);
+
+  const serviceAreaId = useMemo(() => {
+    if (!assignedBranch) return DEFAULT_SERVICE_AREA_ID;
+    return assignedBranch.toLowerCase();
+  }, [assignedBranch]);
 
   const totals = useMemo(() => {
     const subtotal = getCartTotal();
@@ -376,6 +384,7 @@ function Checkout() {
           <PaymentMethod
             selectedMethod={selectedPayment}
             onSelectMethod={setSelectedPayment}
+            branchHint={assignedBranch ? `This order will be routed from the ${assignedBranch} branch based on the selected delivery address.` : 'The branch assignment will be determined once you choose a delivery address.'}
           />
         </div>
 

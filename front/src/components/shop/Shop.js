@@ -10,7 +10,6 @@ import CategoryFilter from './CategoryFilter';
 import ProductGrid from './ProductGrid';
 import CartSidebar from './CartSidebar';
 import ProductModal from './ProductModal';
-import ServiceAreaSelector from '../customer/ServiceAreaSelector';
 import Footer from '../home/Footer';
 
 // Products with imageUrl support only (no productUrl)
@@ -367,12 +366,7 @@ function Shop() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [serviceAreaLabel, setServiceAreaLabel] = useState('');
   const [backendProducts, setBackendProducts] = useState([]);
-
-  const onServiceAreaChange = useCallback((area) => {
-    setServiceAreaLabel(area?.label || '');
-  }, []);
 
   useEffect(() => {
     apiRequest('/products/public')
@@ -522,9 +516,6 @@ function Shop() {
             <button className="back-btn" onClick={handleBack}>←</button>
             <div>
               <h1 className="shop-title">Shop AC Units</h1>
-              {serviceAreaLabel && (
-                <p className="shop-service-area-pill">Delivering to: {serviceAreaLabel}</p>
-              )}
             </div>
           </div>
           <div className="shop-header-right">
@@ -550,7 +541,6 @@ function Shop() {
 
       <div className="shop-main">
         <div className="shop-sidebar">
-          <ServiceAreaSelector onAreaChange={onServiceAreaChange} />
           <CategoryFilter
             categories={categories}
             selectedCategory={selectedCategory}

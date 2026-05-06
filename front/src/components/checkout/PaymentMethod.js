@@ -1,6 +1,6 @@
 import icons from '../common/icons';
 
-function PaymentMethod({ selectedMethod, onSelectMethod }) {
+function PaymentMethod({ selectedMethod, onSelectMethod, branchHint }) {
   const paymentMethods = [
     { id: 'cod', name: 'Cash on Delivery', description: 'Processing until you pay on delivery', iconSrc: icons.cartShoppingFast },
     { id: 'gcash', name: 'GCash', description: 'Payment gateway — complete after order submit', iconSrc: icons.customize },
@@ -11,6 +11,11 @@ function PaymentMethod({ selectedMethod, onSelectMethod }) {
   return (
     <div className="checkout-section">
       <h2 style={{ marginBottom: '20px' }}>Payment Method</h2>
+      {branchHint ? (
+        <p className="payment-branch-hint" style={{ marginTop: '-8px', marginBottom: '16px', color: '#334155', fontSize: '14px' }}>
+          {branchHint}
+        </p>
+      ) : null}
       <div className="payment-methods">
         {paymentMethods.map((method) => (
           <div
