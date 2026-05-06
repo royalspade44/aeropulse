@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const Task = require("../models/Task");
+const User = require("../models/User");
+const { BRANCH_PRIORITY } = require("../domain/branchRouting");
 
 const branchScopeQuery = (req) => {
   if (req.authUser.role === "superadmin") return {};
@@ -23,6 +25,28 @@ const normalizeStatus = (value = "") => {
   return "pending";
 };
 
+const isBranchNearby = (taskBranch = "", techBranch = "") => {
+  const branch = String(taskBranch || "").trim();
+  const technicianBranch = String(techBranch || "").trim();
+  if (!branch || !technicianBranch) return false;
+  if (branch === technicianBranch) return true;
+  const order = BRANCH_PRIORITY[branch] || [];
+  const index = order.indexOf(technicianBranch);
+  return index >= 0 && index <= 2;
+};
+
+const canTechnicianAcceptTask = (task, technician) => {
+  if (!task || !technician) return false;
+  const assignedTechId = String(task.assignedTechnicianId || "");
+  const currentTechId = String(technician._id || "");
+  if (assignedTechId && assignedTechId !== currentTechId) return false;
+  const taskBranch = String(task.branch || "").trim();
+  if (!taskBranch) return true;
+  if (taskBranch === String(technician.assignedBranch || "").trim()) return true;
+  if (taskBranch === String(technician.activeBranch || "").trim()) return true;
+  return isBranchNearby(task.branch, technician.assignedBranch) || isBranchNearby(task.branch, technician.activeBranch);
+};
+
 const hydrateTaskResponse = (task) => {
   const payload = task.payload && Object.keys(task.payload).length ? task.payload : null;
   if (!payload) return task.toJSON();
@@ -40,10 +64,21 @@ const listTasks = async (req, res) => {
   try {
     const role = req.authUser.role;
     const technicianId = String(req.query?.technician_id || "").trim();
-    const query = { ...branchScopeQuery(req) };
+    const scopeQuery = branchScopeQuery(req);
+    let query = { ...scopeQuery };
 
     if (role === "technician") {
-      query.assignedTechnicianId = String(req.authUser._id || "");
+      query = {
+        $and: [
+          scopeQuery,
+          {
+            $or: [
+              { assignedTechnicianId: String(req.authUser._id || "") },
+              { assignedTechnicianId: "" },
+            ],
+          },
+        ],
+      };
     } else if (technicianId) {
       query.assignedTechnicianId = technicianId;
     }
@@ -162,6 +197,46 @@ const getTaskById = async (req, res) => {
   }
 };
 
+const acceptTask = async (req, res) => {
+  try {
+    if (req.authUser.role !== "technician") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const task = await findTaskForRequest(req.params.taskId, req);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    const technician = await User.findById(req.authUser._id).select("assignedBranch activeBranch name name_first name_last");
+    if (!canTechnicianAcceptTask(task, technician)) {
+      return res.status(403).json({ message: "You are not authorized to accept this task." });
+    }
+
+    const currentTechId = String(technician._id || "");
+    if (task.assignedTechnicianId && String(task.assignedTechnicianId) !== currentTechId) {
+      return res.status(403).json({ message: "Task already accepted by another technician." });
+    }
+
+    task.assignedTechnicianId = currentTechId;
+    task.assignedTechnicianName = technician.name || `${technician.name_first || ""} ${technician.name_last || ""}`.trim() || "Technician";
+    if (task.status === "pending") {
+      task.status = "in-progress";
+    }
+    task.payload = {
+      ...(task.payload || {}),
+      acceptedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await task.save();
+    return res.json({ task: hydrateTaskResponse(task) });
+  } catch (error) {
+    console.error("Failed to accept task:", error);
+    return res.status(500).json({ message: "Unable to accept task right now." });
+  }
+};
+
 const updateTaskStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -191,5 +266,6 @@ module.exports = {
   createTask,
   updateTask,
   getTaskById,
+  acceptTask,
   updateTaskStatus,
 };

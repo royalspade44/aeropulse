@@ -11,6 +11,7 @@ const PASSWORD_RESET_MINUTES = Math.max(15, Math.min(30, Number(env.passwordRese
 const OTP_TTL_MINUTES = Math.max(3, Math.min(15, Number(env.otpTtlMinutes || 5)));
 
 const normalizeEmail = (email = "") => String(email).trim().toLowerCase();
+const normalizeIdentifier = (value = "") => String(value).trim().toLowerCase();
 const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "");
 const canonicalizePhMobile = (phone = "") => {
   const digits = normalizePhone(phone);
@@ -29,6 +30,67 @@ const isStrongPassword = (value = "") => {
   if (!/(?=.*\d)/.test(password)) return false;
   if (!/(?=.*[@$!%*?&])/.test(password)) return false;
   return true;
+};
+
+const validateLocationCoordinates = (coordinates = {}) => {
+  const { latitude, longitude, accuracy } = coordinates;
+  const errors = {};
+
+  if (latitude !== undefined && (latitude < -90 || latitude > 90)) {
+    errors.latitude = "Latitude must be between -90 and 90";
+  }
+  if (longitude !== undefined && (longitude < -180 || longitude > 180)) {
+    errors.longitude = "Longitude must be between -180 and 180";
+  }
+  if (accuracy !== undefined && accuracy < 0) {
+    errors.accuracy = "Accuracy must be non-negative";
+  }
+
+  return Object.keys(errors).length > 0 ? errors : null;
+};
+
+const normalizeLocationData = (location = {}) => {
+  const normalized = {
+    coordinates: {},
+    address: {},
+    capturedAt: new Date(),
+    source: "manual",
+  };
+
+  // Normalize coordinates
+  if (location.coordinates) {
+    const { latitude, longitude, accuracy, timestamp } = location.coordinates;
+    if (typeof latitude === "number" && latitude >= -90 && latitude <= 90) {
+      normalized.coordinates.latitude = latitude;
+    }
+    if (typeof longitude === "number" && longitude >= -180 && longitude <= 180) {
+      normalized.coordinates.longitude = longitude;
+    }
+    if (typeof accuracy === "number" && accuracy >= 0) {
+      normalized.coordinates.accuracy = accuracy;
+    }
+    if (timestamp) {
+      normalized.coordinates.timestamp = new Date(timestamp);
+    }
+  }
+
+  // Normalize address
+  if (location.address) {
+    const { region, province, city, barangay, street, postalCode } = location.address;
+    if (region) normalized.address.region = String(region).trim();
+    if (province) normalized.address.province = String(province).trim();
+    if (city) normalized.address.city = String(city).trim();
+    if (barangay) normalized.address.barangay = String(barangay).trim();
+    if (street) normalized.address.street = String(street).trim();
+    if (postalCode) normalized.address.postalCode = String(postalCode).trim();
+  }
+
+  // Set source
+  if (location.source && ["gps", "manual", "ip"].includes(location.source)) {
+    normalized.source = location.source;
+  }
+
+  return normalized;
 };
 
 const generateOtpCode = () => String(Math.floor(100000 + Math.random() * 900000)).padStart(6, "0");
@@ -124,13 +186,13 @@ const normalizeBillingAddress = (payload = {}) => ({
 const escapeRegExp = (value = "") => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const findUserByIdentifier = async (identifier = "") => {
-  const normalizedIdentifier = normalizeEmail(identifier);
+  const normalizedIdentifier = normalizeIdentifier(identifier);
   if (!normalizedIdentifier) return null;
 
   const emailQuery = { email: normalizedIdentifier };
-  const aliasQuery = { alias: { $regex: new RegExp(`^${escapeRegExp(normalizedIdentifier)}$`, "i") } };
+  const usernameQuery = { username: normalizedIdentifier };
 
-  return User.findOne({ $or: [emailQuery, aliasQuery] });
+  return User.findOne({ $or: [emailQuery, usernameQuery] });
 };
 
 const formatBillingAddress = (billingAddress = {}) => ([
@@ -233,14 +295,18 @@ const register = async (req, res) => {
     name,
     name_first,
     name_last,
+    alias,
     phone,
     address = "",
     billingAddress,
     role, // Allow explicit role specification for mobile
     branch, // Branch selection for staff roles
+    location, // Location data: { coordinates, address, source }
   } = req.body;
 
   const normalizedEmail = normalizeEmail(email);
+  const errors = {};
+
   console.log("[Auth][Register] Request received", {
     email: normalizedEmail || "(missing)",
     hasPhone: Boolean(phone),
@@ -248,26 +314,70 @@ const register = async (req, res) => {
     requestedBranch: branch,
   });
 
-  if (!normalizedEmail || !password || !name_first || !name_last || !phone) {
-    console.warn("[Auth][Register] Missing required fields", { email: normalizedEmail || "(missing)" });
-    return res.status(400).json({ message: "Missing required fields" });
+  // Validate required fields
+  if (!normalizedEmail) {
+    errors.email = "Email is required";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    errors.email = "Email must be a valid email address";
   }
-  if (!isStrongPassword(password)) {
-    return res.status(400).json({
-      message: "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
-    });
+
+  if (!name_first || !String(name_first).trim()) {
+    errors.name_first = "First name is required";
+  } else if (String(name_first).length < 2) {
+    errors.name_first = "First name must be at least 2 characters";
+  } else if (!/^[a-zA-Z\s]+$/.test(String(name_first))) {
+    errors.name_first = "First name can only contain letters";
   }
-  if (!isValidPhMobile(phone)) {
-    console.warn("[Auth][Register] Invalid phone format", { email: normalizedEmail, phone });
-    return res.status(400).json({ message: "Invalid phone number format. Use 09XXXXXXXXX." });
+
+  if (!name_last || !String(name_last).trim()) {
+    errors.name_last = "Last name is required";
+  } else if (String(name_last).length < 2) {
+    errors.name_last = "Last name must be at least 2 characters";
+  } else if (!/^[a-zA-Z\s]+$/.test(String(name_last))) {
+    errors.name_last = "Last name can only contain letters";
+  }
+
+  if (!phone) {
+    errors.phone = "Phone number is required";
+  } else if (!isValidPhMobile(phone)) {
+    errors.phone = "Phone number must be a valid Philippine mobile number (09XXXXXXXXX or 639XXXXXXXXX)";
+  }
+
+  if (!password) {
+    errors.password = "Password is required";
+  } else if (!isStrongPassword(password)) {
+    errors.password = "Password must be at least 8 characters with uppercase, lowercase, number, and special character";
+  }
+
+  if (alias) {
+    const normalizedUsername = String(alias).trim().toLowerCase();
+    if (normalizedUsername.length < 2 || normalizedUsername.length > 30 || !/^[a-z0-9_.-]+$/.test(normalizedUsername)) {
+      errors.alias = "Alias must be 2-30 characters and contain only letters, numbers, dot, underscore, hyphen";
+    }
+  }
+
+  // Validate location if provided
+  if (location) {
+    const locationErrors = validateLocationCoordinates(location.coordinates || {});
+    if (locationErrors) {
+      Object.assign(errors, locationErrors);
+    }
+  }
+
+  // If validation errors, return them all at once
+  if (Object.keys(errors).length > 0) {
+    console.warn("[Auth][Register] Validation failed", { email: normalizedEmail, errors });
+    return res.status(400).json({ errors });
   }
 
   const normalizedPhone = canonicalizePhMobile(phone);
+  const normalizedUsername = typeof alias === "string" ? alias.trim().toLowerCase() : "";
   // Use explicit role if provided, otherwise detect from email
   const userRole = role && ["customer", "technician", "admin", "superadmin"].includes(role) ? role : detectRoleFromEmail(normalizedEmail);
   const normalizedBillingAddress = normalizeBillingAddress(billingAddress || {});
   const composedBillingAddress = formatBillingAddress(normalizedBillingAddress);
   const normalizedAddress = typeof address === "string" ? address.trim() : "";
+  const normalizedLocation = location ? normalizeLocationData(location) : null;
 
   // Branch handling based on role
   let assignedBranch = "";
@@ -295,39 +405,14 @@ const register = async (req, res) => {
     return res.status(400).json({ message: "Billing address is required for customer accounts." });
   }
 
-  const existing = await User.findOne({ $or: [{ email: normalizedEmail }, { phone: normalizedPhone }] });
+  const dupChecks = [{ email: normalizedEmail }, { phone: normalizedPhone }];
+  if (normalizedUsername) {
+    dupChecks.push({ username: normalizedUsername });
+  }
+  const existing = await User.findOne({ $or: dupChecks });
   if (existing) {
     console.warn("[Auth][Register] Duplicate account", { email: normalizedEmail, phone: normalizedPhone });
-    return res.status(409).json({ message: "Email or phone already registered" });
-  }
-
-  // Completely bypass email OTP for admin, technician, and superadmin registration
-  let skipEmailOtp = false;
-  if (["admin", "superadmin", "technician"].includes(userRole)) {
-    skipEmailOtp = true;
-  }
-
-  const emailOtpVerified = await OtpRequest.findOne({
-    action: "register_email",
-    channel: "email",
-    email: normalizedEmail,
-    verifiedAt: { $ne: null },
-  });
-
-  if (!emailOtpVerified && !skipEmailOtp) {
-    return res.status(400).json({ message: "Please verify your email before completing registration." });
-  }
-
-  const phoneOtpVerified = await OtpRequest.findOne({
-    action: "register_phone",
-    channel: "sms",
-    phone: normalizedPhone,
-    verifiedAt: { $ne: null },
-  });
-
-  // Bypass phone OTP for admin, technician, and superadmin registration (for demo)
-  if (!phoneOtpVerified && !skipEmailOtp) {
-    return res.status(400).json({ message: "Please verify your mobile number before completing registration." });
+    return res.status(409).json({ message: "Email, phone, or alias already registered" });
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -347,6 +432,7 @@ const register = async (req, res) => {
 
   const user = await User.create({
     email: normalizedEmail,
+    username: normalizedUsername || undefined,
     passwordHash,
     name: name || `${name_first} ${name_last}`.trim(),
     name_first,
@@ -358,6 +444,7 @@ const register = async (req, res) => {
     role: userRole,
     assignedBranch,
     activeBranch: assignedBranch, // Set active branch to assigned branch initially
+    location: normalizedLocation,
   });
 
   await OtpRequest.deleteMany({
@@ -379,10 +466,21 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   const { identifier, email, password, branch } = req.body;
   const loginValue = String(identifier || email || "").trim();
-  const normalizedLoginValue = normalizeEmail(loginValue);
+  const normalizedLoginValue = normalizeIdentifier(loginValue);
+  const errors = {};
 
-  if (!normalizedLoginValue || !password) {
-    return res.status(400).json({ message: "Email or alias and password are required" });
+  if (!loginValue) {
+    errors.email = "Email or alias is required";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginValue) && loginValue.length < 2) {
+    errors.email = "Email or alias must be valid";
+  }
+
+  if (!password) {
+    errors.password = "Password is required";
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({ errors });
   }
 
   const clientType = String(req.body?.clientType || "web").trim().toLowerCase();
@@ -399,7 +497,7 @@ const login = async (req, res) => {
       reason: "not_found",
       clientType,
     });
-    return res.status(401).json({ message: "Email or alias not found. Please register first." });
+    return res.status(401).json({ errors: { email: "Email or password is incorrect" } });
   }
   if (user.isDeleted || user.accountStatus === "deleted" || user.accountStatus === "disabled") {
     return res.status(403).json({ message: "Account is not active." });
@@ -461,7 +559,7 @@ const login = async (req, res) => {
       attempts: user.failedLoginAttempts,
       clientType,
     });
-    return res.status(401).json({ message: "Incorrect password. Please try again.", attempts: user.failedLoginAttempts });
+    return res.status(401).json({ errors: { password: "Email or password is incorrect" } });
   }
 
   // Superadmin doesn't require a branch - they have access to all branches

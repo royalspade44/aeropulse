@@ -38,7 +38,8 @@ function AddAddressModal({
   initialAddress = null,
   title = 'Add New Address',
   saveLabel = 'Save Address',
-  isSaving = false
+  isSaving = false,
+  backendErrors = {}
 }) {
   const [address, setAddress] = useState({
     type: initialAddress?.type || 'home',
@@ -53,6 +54,8 @@ function AddAddressModal({
     phone: initialAddress?.phone || '',
     isDefault: Boolean(initialAddress?.isDefault)
   });
+  
+  const [serverMessage, setServerMessage] = useState('');
 
   const regions = getRegions();
   const provinces = getProvincesByRegion(address.region);
@@ -88,9 +91,12 @@ function AddAddressModal({
     };
     const errors = validateAddress(normalized);
     if (errors.length > 0) {
-      alert(errors[0]);
+      setServerMessage(errors[0]);
       return;
     }
+    
+    // Clear messages before submission; onSave will handle backend errors
+    setServerMessage('');
     onSave(normalized);
   };
 
@@ -102,6 +108,11 @@ function AddAddressModal({
           <button className="close-modal" onClick={onClose}>×</button>
         </div>
         <div className="modal-body">
+          {serverMessage && (
+            <div className="form-error-message" style={{ marginBottom: '16px', color: '#d32f2f', fontSize: '14px' }}>
+              {serverMessage}
+            </div>
+          )}
           <div className="form-group">
             <label>Label</label>
             <input

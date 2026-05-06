@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import InputField from '../common/InputField';
 import icons from '../common/icons';
-import { canSendSmsOtp, recordSmsOtpAttempt } from '../../domain/register/smsOtpRateLimiter';
 import {
   getRegions,
   getProvincesByRegion,
@@ -27,26 +26,6 @@ function RegisterPhoneOtpStep({ formData, errors, onFieldChange, onBillingFieldC
     }
   };
 
-  const handleSmsCodeChange = (value) => {
-    const normalized = String(value).replace(/\D/g, '').slice(0, 6);
-    onFieldChange('smsCode', normalized);
-    if (localError) {
-      setLocalError('');
-    }
-  };
-
-  const sendSms = () => {
-    const gate = canSendSmsOtp();
-    if (!gate.allowed) {
-      const mins = Math.ceil((gate.retryAfterMs || 0) / 60000);
-      setLocalError(`Carrier limit: 2 SMS attempts per hour. Retry in about ${mins} min.`);
-      return;
-    }
-    recordSmsOtpAttempt();
-    setLocalError('');
-    alert('Demo: SMS sent. Use code 654321.');
-  };
-
   const handleCreate = () => {
     if (!isValidPhone(formData.phone)) {
       setLocalError('Enter a valid PH mobile number (09XXXXXXXXX or 639XXXXXXXXX).');
@@ -63,14 +42,8 @@ function RegisterPhoneOtpStep({ formData, errors, onFieldChange, onBillingFieldC
         return;
       }
     }
-    if (!/^\d{6}$/.test(formData.smsCode || '')) {
-      setLocalError('Code must be exactly 6 digits.');
-      return;
-    }
-
     console.log('[Register][Step4] Submitting final step', {
       hasPhone: Boolean(formData.phone),
-      smsCodeLength: String(formData.smsCode || '').length,
       detectedRole,
       isCustomer,
       hasBillingAddress: Boolean(formData.billingStreet && formData.billingCity),
@@ -88,7 +61,7 @@ function RegisterPhoneOtpStep({ formData, errors, onFieldChange, onBillingFieldC
   return (
     <form className="register-step" onSubmit={handleSubmit}>
       <h3 className="register-step-title">Mobile number</h3>
-      <p className="register-step-desc">PH mobile; carrier confirmation allows 2 SMS sends per hour (demo).</p>
+      <p className="register-step-desc">PH mobile number (verification disabled for this demo).</p>
 
       <InputField
         label="Phone number"
@@ -100,26 +73,10 @@ function RegisterPhoneOtpStep({ formData, errors, onFieldChange, onBillingFieldC
         required
       />
 
-      <button type="button" className="cancel-btn" style={{ marginBottom: 12 }} onClick={sendSms}>
-        Send SMS one-time code
-      </button>
-
-      <div className="input-group">
-        <label>SMS code</label>
-        <input
-          type="text"
-          inputMode="numeric"
-          placeholder="6-digit code"
-          value={formData.smsCode}
-          onChange={(e) => handleSmsCodeChange(e.target.value)}
-          maxLength={6}
-        />
-      </div>
-
-      {(localError || errors.phoneOtp) && (
+      {localError && (
         <div className="error-message">
           <img src={icons.diamondExclamation} alt="" className="inline-icon" />
-          <span>{localError || errors.phoneOtp}</span>
+          <span>{localError}</span>
         </div>
       )}
 

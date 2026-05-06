@@ -7,11 +7,12 @@ import RegisterLegalConsentsStep from './RegisterLegalConsentsStep';
 import RegisterEmailOtpStep from './RegisterEmailOtpStep';
 import RegisterProfilePasswordStep from './RegisterProfilePasswordStep';
 import RegisterPhoneOtpStep from './RegisterPhoneOtpStep';
+import RegisterLocationStep from './RegisterLocationStep';
 import { validateRegistrationProfile, validateProfileAndSecurityStep } from '../../domain/register/validateRegistrationProfile';
 import { setPostRegistrationCheckoutIntent } from '../../domain/checkout/postRegistrationIntent';
 import { detectRoleFromEmail, getRoleLabel } from '../../domain/register/detectRoleFromEmail';
 
-const STEPS = ['legal', 'email', 'profile', 'phone'];
+const STEPS = ['legal', 'email', 'profile', 'phone', 'location'];
 
 function Register() {
   const { register } = useUser();
@@ -28,9 +29,7 @@ function Register() {
     phone: '',
     password: '',
     confirmPassword: '',
-    emailOtp: '',
     totpCode: '',
-    smsCode: '',
     address: '',
     billingRegion: '',
     billingProvince: '',
@@ -41,7 +40,25 @@ function Register() {
     agreeTermsWarranty: false,
     agreeTermsService: false,
     agreeTermsApp: false,
-    agreePrivacyRa10173: false
+    agreePrivacyRa10173: false,
+    // Location data
+    location: {
+      coordinates: {
+        latitude: null,
+        longitude: null,
+        accuracy: null,
+        timestamp: null,
+      },
+      address: {
+        region: '',
+        province: '',
+        city: '',
+        barangay: '',
+        street: '',
+        postalCode: '',
+      },
+      source: 'manual',
+    },
   });
 
   const [errors, setErrors] = useState({});
@@ -183,15 +200,15 @@ function Register() {
         name: `${formData.firstName} ${formData.lastName}`,
         name_first: formData.firstName,
         name_last: formData.lastName,
+        alias: formData.alias,
         email: formData.email,
         phone: normalizedPhone,
         password: formData.password,
         address: detectedRole === 'customer' ? normalizedAddress : '',
         billingAddress: detectedRole === 'customer' ? billingAddress : null,
         branch: detectedRole !== 'customer' ? formData.branch : undefined,
-        emailOtp: formData.emailOtp,
         totpCode: formData.totpCode,
-        smsCode: formData.smsCode,
+        location: formData.location,
       };
 
       console.log('[Register] Sending registration request', {
@@ -200,6 +217,7 @@ function Register() {
         hasPhone: Boolean(payload.phone),
         hasAddress: Boolean(payload.address),
         hasStructuredBilling: Boolean(payload.billingAddress?.region),
+        hasLocation: Boolean(payload.location?.coordinates?.latitude || payload.location?.address?.region),
       });
 
       await register({
@@ -212,8 +230,17 @@ function Register() {
       navigate('/login');
     } catch (err) {
       console.error('[Register] Registration failed', err);
-      setErrors((prev) => ({ ...prev, email: err.message }));
-      alert(`Registration failed: ${err.message || 'Please try again.'}`);
+      
+      if (err?.fieldErrors && typeof err.fieldErrors === 'object') {
+        // Backend returned field-level validation errors
+        setErrors((prev) => ({ ...prev, ...err.fieldErrors }));
+        const firstError = Object.values(err.fieldErrors)[0];
+        alert(`Registration failed: ${firstError || err.message || 'Please try again.'}`);
+      } else {
+        // Generic error message
+        setErrors((prev) => ({ ...prev, email: err.message }));
+        alert(`Registration failed: ${err.message || 'Please try again.'}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -286,6 +313,15 @@ function Register() {
               onSubmit={handleFinalSubmit}
               onBack={goBack}
               loading={loading}
+            />
+          )}
+          {step === 'location' && (
+            <RegisterLocationStep
+              formData={formData}
+              errors={errors}
+              onFieldChange={handleFieldChange}
+              onNext={handleFinalSubmit}
+              onBack={goBack}
             />
           )}
 

@@ -1,5 +1,6 @@
 const Product = require("../models/Product");
 const { BRANCHES } = require("../domain/branchRouting");
+const { validateProductUniqueness } = require("../utils/productValidation");
 
 const SAMPLE_PRODUCTS = [
   { name: "American Home Inverter AC", sku: "AHAC-MINV1023EHW", brand: "American Home", category: "split", specs: "1.0HP", price: 18499, threshold: 3, stock: 16 },
@@ -225,8 +226,32 @@ const createProduct = async (req, res) => {
     price = 0,
     branchStock = {},
   } = req.body || {};
+
   if (!name || !sku) {
-    return res.status(400).json({ message: "Name and SKU are required" });
+    return res.status(400).json({ 
+      message: "Name and SKU are required",
+      fields: { name: "required", sku: "required" }
+    });
+  }
+
+  // Validate uniqueness before processing
+  const uniquenessCheck = await validateProductUniqueness({
+    name: name.trim(),
+    sku: String(sku).trim(),
+    specs: String(specs || '').trim()
+  });
+
+  if (uniquenessCheck.isDuplicate) {
+    const errorMessage = uniquenessCheck.duplicateType === 'sku'
+      ? "A product with this SKU already exists"
+      : "A product with this name and specs combination already exists";
+    
+    return res.status(409).json({ 
+      message: errorMessage,
+      field: uniquenessCheck.duplicateType === 'sku' ? 'sku' : 'name',
+      duplicateType: uniquenessCheck.duplicateType,
+      existingProduct: uniquenessCheck.existingProduct
+    });
   }
 
   const normalizedBranchStock = BRANCHES.reduce((acc, branch) => {
@@ -245,11 +270,11 @@ const createProduct = async (req, res) => {
 
   try {
     const product = await Product.create({
-      name,
-      sku,
-      brand,
+      name: name.trim(),
+      sku: String(sku).trim(),
+      brand: String(brand).trim(),
       category,
-      specs,
+      specs: String(specs || '').trim(),
       features: Array.isArray(features) ? features.filter(Boolean) : [],
       stock: totalStock || Number(stock) || 0,
       branchStock: normalizedBranchStock,
@@ -258,9 +283,31 @@ const createProduct = async (req, res) => {
     });
     return res.status(201).json({ product: product.toJSON() });
   } catch (e) {
+    // Handle database-level unique constraint violations
     if (e?.code === 11000) {
-      return res.status(409).json({ message: "SKU already exists" });
+      const field = Object.keys(e.keyPattern || {})[0] || 'unknown';
+      const isDuplicateSku = field === 'sku';
+      
+      return res.status(409).json({ 
+        message: isDuplicateSku 
+          ? "A product with this SKU already exists" 
+          : "A product with this name and specs combination already exists",
+        field: isDuplicateSku ? 'sku' : 'name',
+        code: 'E_DUPLICATE_PRODUCT'
+      });
     }
+    
+    // Handle validation errors
+    if (e.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: "Product validation failed",
+        errors: Object.entries(e.errors).reduce((acc, [key, val]) => {
+          acc[key] = val.message;
+          return acc;
+        }, {})
+      });
+    }
+    
     throw e;
   }
 };
@@ -276,8 +323,8 @@ const restockProduct = async (req, res) => {
     return res.status(404).json({ message: "Product not found" });
   }
 
-  const qty = Number(quantity) || 0;
-  if (qty < 0) {
+  const qty = Number(quantity);
+  if (!Number.isFinite(qty) || qty <= 0) {
     return res.status(400).json({ message: "quantity must be a positive number" });
   }
 
@@ -323,23 +370,16 @@ const updateBranchStock = async (req, res) => {
   }
 
   const qty = Number(quantity);
-  if (!Number.isFinite(qty) || qty < 0) {
-    return res.status(400).json({ message: "quantity must be a non-negative number" });
+  if (!Number.isFinite(qty) || qty <= 0) {
+    return res.status(400).json({ message: "quantity must be a positive number" });
+  }
+
+  if (action !== "add") {
+    return res.status(400).json({ message: "Only stock additions are allowed. Use action=add." });
   }
 
   const current = Number(product.branchStock?.get(scopedBranch) || 0);
-  let next = current;
-
-  if (action === "add") {
-    next = current + qty;
-  } else if (action === "remove") {
-    next = Math.max(0, current - qty);
-  } else if (action === "set") {
-    next = qty;
-  } else {
-    return res.status(400).json({ message: "action must be one of: add, remove, set" });
-  }
-
+  const next = current + qty;
   product.branchStock.set(scopedBranch, next);
   const summedStock = BRANCHES.reduce((sum, name) => sum + Number(product.branchStock?.get(name) || 0), 0);
   product.stock = summedStock;
@@ -359,6 +399,36 @@ const updateProduct = async (req, res) => {
 
   const { name, brand, category, specs, features, threshold, price } = req.body || {};
 
+  // If updating name or specs, validate uniqueness
+  if (name !== undefined || specs !== undefined) {
+    const newName = name !== undefined ? String(name).trim() : product.name;
+    const newSpecs = specs !== undefined ? String(specs).trim() : product.specs;
+    
+    // Only check if values are actually changing
+    if (newName.toLowerCase() !== String(product.name).trim().toLowerCase() ||
+        newSpecs.toLowerCase() !== String(product.specs).trim().toLowerCase()) {
+      
+      const uniquenessCheck = await validateProductUniqueness({
+        name: newName,
+        sku: product.sku,
+        specs: newSpecs
+      }, productId);
+
+      if (uniquenessCheck.isDuplicate) {
+        const errorMessage = uniquenessCheck.duplicateType === 'sku'
+          ? "A product with this SKU already exists"
+          : "A product with this name and specs combination already exists";
+        
+        return res.status(409).json({
+          message: errorMessage,
+          field: uniquenessCheck.duplicateType === 'sku' ? 'sku' : 'name',
+          duplicateType: uniquenessCheck.duplicateType,
+          existingProduct: uniquenessCheck.existingProduct
+        });
+      }
+    }
+  }
+
   if (name !== undefined) product.name = String(name).trim();
   if (brand !== undefined) product.brand = String(brand).trim();
   if (category !== undefined) product.category = String(category).trim();
@@ -367,8 +437,37 @@ const updateProduct = async (req, res) => {
   if (threshold !== undefined) product.threshold = Math.max(0, Number(threshold) || 0);
   if (price !== undefined) product.price = Math.max(0, Number(price) || 0);
 
-  await product.save();
-  return res.json({ product: toRoleAwareProduct(product, req) });
+  try {
+    await product.save();
+    return res.json({ product: toRoleAwareProduct(product, req) });
+  } catch (e) {
+    // Handle database-level unique constraint violations
+    if (e?.code === 11000) {
+      const field = Object.keys(e.keyPattern || {})[0] || 'unknown';
+      const isDuplicateSku = field === 'sku';
+      
+      return res.status(409).json({
+        message: isDuplicateSku 
+          ? "A product with this SKU already exists" 
+          : "A product with this name and specs combination already exists",
+        field: isDuplicateSku ? 'sku' : 'name',
+        code: 'E_DUPLICATE_PRODUCT'
+      });
+    }
+    
+    // Handle validation errors
+    if (e.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: "Product validation failed",
+        errors: Object.entries(e.errors).reduce((acc, [key, val]) => {
+          acc[key] = val.message;
+          return acc;
+        }, {})
+      });
+    }
+    
+    throw e;
+  }
 };
 
 const deleteProduct = async (req, res) => {

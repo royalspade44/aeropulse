@@ -17,7 +17,7 @@ import { apiRequest } from '../../config/api';
 function Home() {
   const navigate = useNavigate();
   const { cart, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
-  const { logout } = useUser();
+  const { logout, isAuthenticated } = useUser();
   
   // State Management
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,6 +39,11 @@ function Home() {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setNotifications([]);
+      return;
+    }
+
     apiRequest('/notifications/me')
       .then((response) => {
         const normalized = (response.notifications || []).map((item) => ({
@@ -51,7 +56,7 @@ function Home() {
       .catch(() => {
         setNotifications([]);
       });
-  }, []);
+  }, [isAuthenticated]);
 
   // Brand Data - Matches the structure in BrandsSection.js
   const brands = [

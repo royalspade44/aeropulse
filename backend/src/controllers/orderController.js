@@ -1,5 +1,6 @@
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const Task = require("../models/Task");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
 const mongoose = require("mongoose");
@@ -81,6 +82,84 @@ const createOrderNotification = async ({ customerId, title, message }) => {
   } catch (error) {
     console.error("Failed to create order notification:", error);
   }
+};
+
+const notifyBranchTechnicians = async (branch, orderCode) => {
+  if (!branch || !orderCode) return;
+  try {
+    const technicians = await User.find({
+      role: "technician",
+      $or: [
+        { assignedBranch: branch },
+        { activeBranch: branch },
+        { assignedBranch: "" },
+        { activeBranch: "" },
+      ],
+    }).select("_id notifications");
+
+    const validNotifications = technicians
+      .filter((tech) => {
+        const notifications = tech?.notifications?.toObject?.() || tech?.notifications || {};
+        return notifications.inApp !== false && notifications.push !== false;
+      })
+      .map((tech) => ({
+        user: tech._id,
+        type: "system",
+        title: "New technician task available",
+        message: `A new task for order ${orderCode} is available in your task board.`,
+        unread: true,
+        status: "unread",
+      }));
+
+    if (validNotifications.length > 0) {
+      await Notification.insertMany(validNotifications);
+    }
+  } catch (error) {
+    console.error("Failed to notify technicians:", error);
+  }
+};
+
+const createTaskForOrder = async (order) => {
+  if (!order) return null;
+  const existingTask = await Task.findOne({ "payload.orderId": order.id });
+  if (existingTask) return existingTask;
+
+  const branch = order.stockSourceBranch || "";
+  const addressText = [order.address.street, order.address.city, order.address.postalCode]
+    .filter(Boolean)
+    .join(", ");
+
+  const task = await Task.create({
+    taskCode: `TSK-${Date.now()}`,
+    title: `Fulfill ${order.orderCode}`,
+    customer: order.customerName,
+    address: addressText || order.address.name || "Customer address",
+    customerId: String(order.customer || ""),
+    customerEmail: "",
+    customerPhone: String(order.address.phone || ""),
+    unitId: "",
+    unitName: `Order ${order.orderCode}`,
+    unitType: "order",
+    issueType: "Order Fulfillment",
+    description: `Deliver and install items for order ${order.orderCode}.`,
+    status: "pending",
+    priority: "medium",
+    scheduledDate: order.estimatedDelivery || new Date().toISOString().split("T")[0],
+    timeSlot: "TBD",
+    assignedRole: "technician",
+    branch,
+    payload: {
+      orderId: order.id,
+      orderCode: order.orderCode,
+      items: order.items,
+      customerAddress: order.address,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  });
+
+  await notifyBranchTechnicians(branch, order.orderCode);
+  return task;
 };
 
 const createOrder = async (req, res) => {
@@ -175,9 +254,12 @@ const createOrder = async (req, res) => {
             );
           }
 
-          const branchStock = Number(product.branchStock?.get(finalBranch) || 0);
-          product.branchStock.set(finalBranch, Math.max(0, branchStock - quantityNeeded));
-          product.stock = Math.max(0, Number(product.stock || 0) - quantityNeeded);
+          const currentBranchStock = Number(product.branchStock?.get(finalBranch) || 0);
+          const remainingBranchStock = hasBranchSnapshot
+            ? Math.max(0, currentBranchStock - quantityNeeded)
+            : Math.max(0, Number(product.stock || 0) - quantityNeeded);
+          product.branchStock.set(finalBranch, remainingBranchStock);
+          product.stock = Array.from(product.branchStock.values()).reduce((sum, val) => sum + Number(val || 0), 0);
           mutableProducts.push(product);
 
           resolvedItems.push({
@@ -241,6 +323,11 @@ const createOrder = async (req, res) => {
     for (let attempt = 0; attempt < 3; attempt += 1) {
       try {
         const order = await attemptCreateOrder();
+        await createOrderNotification({
+          customerId: user._id,
+          title: "Order received",
+          message: `Your order ${order.orderCode} has been received and is now pending approval. You can track its status in My Orders.`,
+        });
         return res.status(201).json({
           order: {
             ...order.toJSON(),
@@ -286,6 +373,8 @@ const approveOrder = async (req, res) => {
   if (estimatedArrival) order.estimatedArrival = estimatedArrival;
   if (installationDate) order.installationDate = installationDate;
   await order.save();
+
+  await createTaskForOrder(order);
 
   await createOrderNotification({
     customerId: order.customer,
@@ -341,9 +430,6 @@ const listOrdersForAdmin = async (req, res) => {
   }
 
   const query = {};
-  if (req.authUser.role !== "superadmin" && req.activeBranch) {
-    query.stockSourceBranch = req.activeBranch;
-  }
   const orders = await Order.find(query).sort({ createdAt: -1 });
   return res.json({
     orders: orders.map((order) => ({
@@ -387,6 +473,7 @@ const processOrder = async (req, res) => {
   await order.save();
 
   if (action === "approve") {
+    await createTaskForOrder(order);
     await createOrderNotification({
       customerId: order.customer,
       title: "COD approved",
@@ -403,6 +490,12 @@ const processOrder = async (req, res) => {
       customerId: order.customer,
       title: "Order completed",
       message: `Your order ${order.orderCode} has been completed. Thank you for choosing AeroPulse.`,
+    });
+  } else if (action === "cancel") {
+    await createOrderNotification({
+      customerId: order.customer,
+      title: "Order cancelled",
+      message: `Your order ${order.orderCode} has been cancelled. Please contact support if you need assistance.`,
     });
   }
 

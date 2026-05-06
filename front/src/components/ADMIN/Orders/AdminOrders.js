@@ -34,10 +34,7 @@ const AdminOrders = () => {
     loadOrders();
   }, []);
 
-  const pendingOrders = useMemo(
-    () => orders.filter((order) => !['complete', 'cancelled'].includes(order.workflowStatus)),
-    [orders]
-  );
+  const pendingOrders = useMemo(() => orders, [orders]);
 
   const handleProcess = async (order) => {
     const config = statusActionMap[order.workflowStatus];
@@ -66,7 +63,7 @@ const AdminOrders = () => {
       <div className="admin-orders-page">
         {loading ? <p>Loading orders...</p> : null}
         {error ? <p className="admin-orders-error">{error}</p> : null}
-        {!loading && pendingOrders.length === 0 ? <p>No pending customer orders.</p> : null}
+        {!loading && pendingOrders.length === 0 ? <p>No customer orders.</p> : null}
         <div className="admin-orders-list">
           {pendingOrders.map((order) => {
             const actionConfig = statusActionMap[order.workflowStatus];

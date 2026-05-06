@@ -57,6 +57,7 @@ const getBranchSearchOrder = (preferredBranch) => {
 
 module.exports = {
   BRANCHES,
+  BRANCH_PRIORITY,
   resolvePreferredBranch,
   getBranchSearchOrder,
 };

@@ -81,16 +81,8 @@ export function validateRegistrationProfile(formData, detectedRole = 'customer')
     errors.agreePrivacyRa10173 = 'You must acknowledge the Data Privacy Act (RA 10173) disclosure';
   }
 
-  if (!/^\d{6}$/.test(String(formData.emailOtp || '').trim())) {
-    errors.emailOtp = 'Email one-time code must be exactly 6 digits';
-  }
-
   if (!/^\d{6}$/.test(String(formData.totpCode || '').trim())) {
     errors.totpCode = 'Authenticator code must be exactly 6 digits';
-  }
-
-  if (!/^\d{6}$/.test(String(formData.smsCode || '').trim())) {
-    errors.phoneOtp = 'SMS code must be exactly 6 digits';
   }
 
   if (detectedRole === 'customer') {

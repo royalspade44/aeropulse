@@ -70,20 +70,34 @@ const sanitizeAddressPayload = (payload = {}) => {
   };
 };
 const validateAddress = (address = {}) => {
-  if (!address.name) return "Recipient name is required.";
-  if (!address.region) return "Region is required.";
-  if (!address.province) return "Province is required.";
-  if (!address.barangay) return "Barangay is required.";
-  if (!address.street) return "Street address is required.";
-  if (!address.city) return "City is required.";
-  if (!address.phone) return "Phone number is required.";
-  if (!/^09\d{9}$/.test(address.phone)) {
-    return "Phone number must be in 09XXXXXXXXX format.";
+  const errors = {};
+  if (!address.name || !String(address.name).trim()) {
+    errors.name = "Recipient name is required";
+  }
+  if (!address.region || !String(address.region).trim()) {
+    errors.region = "Region is required";
+  }
+  if (!address.province || !String(address.province).trim()) {
+    errors.province = "Province is required";
+  }
+  if (!address.barangay || !String(address.barangay).trim()) {
+    errors.barangay = "Barangay is required";
+  }
+  if (!address.street || !String(address.street).trim()) {
+    errors.street = "Street address is required";
+  }
+  if (!address.city || !String(address.city).trim()) {
+    errors.city = "City is required";
+  }
+  if (!address.phone || !String(address.phone).trim()) {
+    errors.phone = "Phone number is required";
+  } else if (!/^09\d{9}$/.test(address.phone)) {
+    errors.phone = "Phone number must be in format 09XXXXXXXXX";
   }
   if (address.postalCode && !/^\d{4}$/.test(address.postalCode)) {
-    return "Postal code must be 4 digits.";
+    errors.postalCode = "Postal code must be exactly 4 digits";
   }
-  return "";
+  return Object.keys(errors).length > 0 ? errors : null;
 };
 const normalizeDefaultAddress = (addresses = []) => {
   if (addresses.length === 0) return;
@@ -316,9 +330,9 @@ const listAddresses = async (req, res) => {
 
 const addAddress = async (req, res) => {
   const normalizedAddress = sanitizeAddressPayload(req.body || {});
-  const validationError = validateAddress(normalizedAddress);
-  if (validationError) {
-    return res.status(400).json({ message: validationError });
+  const validationErrors = validateAddress(normalizedAddress);
+  if (validationErrors) {
+    return res.status(400).json({ errors: validationErrors });
   }
 
   const user = req.authUser;
@@ -339,13 +353,13 @@ const updateAddress = async (req, res) => {
   const nextAddresses = Array.isArray(user.addresses) ? [...user.addresses] : [];
   const index = nextAddresses.findIndex((item) => String(item._id) === addressId);
   if (index < 0) {
-    return res.status(404).json({ message: "Address not found." });
+    return res.status(404).json({ message: "Address not found" });
   }
 
   const normalizedAddress = sanitizeAddressPayload(req.body || {});
-  const validationError = validateAddress(normalizedAddress);
-  if (validationError) {
-    return res.status(400).json({ message: validationError });
+  const validationErrors = validateAddress(normalizedAddress);
+  if (validationErrors) {
+    return res.status(400).json({ errors: validationErrors });
   }
 
   nextAddresses[index] = {
@@ -709,12 +723,70 @@ const shouldCreateInAppNotification = (user, type = "system") => {
   return true;
 };
 
+const updateLocation = async (req, res) => {
+  const location = req.body?.location;
+  if (!location || typeof location !== 'object') {
+    return res.status(400).json({ message: 'Location data is required' });
+  }
+
+  // Validate coordinates if provided
+  if (location.coordinates) {
+    const { latitude, longitude, accuracy } = location.coordinates;
+    if (latitude !== null && (latitude < -90 || latitude > 90)) {
+      return res.status(400).json({ message: 'Invalid latitude. Must be between -90 and 90 degrees.' });
+    }
+    if (longitude !== null && (longitude < -180 || longitude > 180)) {
+      return res.status(400).json({ message: 'Invalid longitude. Must be between -180 and 180 degrees.' });
+    }
+    if (accuracy !== null && accuracy < 0) {
+      return res.status(400).json({ message: 'Invalid accuracy. Must be non-negative.' });
+    }
+  }
+
+  // Normalize location data
+  const normalizedLocation = {
+    coordinates: location.coordinates ? {
+      latitude: location.coordinates.latitude,
+      longitude: location.coordinates.longitude,
+      accuracy: location.coordinates.accuracy,
+      timestamp: location.coordinates.timestamp || new Date().toISOString(),
+    } : undefined,
+    address: location.address ? {
+      region: sanitizeText(location.address.region, 120),
+      province: sanitizeText(location.address.province, 120),
+      city: sanitizeText(location.address.city, 120),
+      barangay: sanitizeText(location.address.barangay, 120),
+      street: sanitizeText(location.address.street, 180),
+      postalCode: sanitizeText(location.address.postalCode, 10),
+    } : undefined,
+    source: ['gps', 'manual', 'ip'].includes(location.source) ? location.source : 'manual',
+    capturedAt: new Date(),
+  };
+
+  // Remove undefined fields
+  if (!normalizedLocation.coordinates) {
+    delete normalizedLocation.coordinates;
+  }
+  if (!normalizedLocation.address) {
+    delete normalizedLocation.address;
+  }
+
+  req.authUser.location = normalizedLocation;
+  await req.authUser.save();
+
+  return res.json({ 
+    message: 'Location updated successfully',
+    location: req.authUser.location 
+  });
+};
+
 module.exports = {
   listUsers,
   getProfile,
   getProfileById,
   updateProfile,
   updateProfileById,
+  updateLocation,
   listAddresses,
   addAddress,
   updateAddress,

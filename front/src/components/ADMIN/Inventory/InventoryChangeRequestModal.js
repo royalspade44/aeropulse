@@ -78,9 +78,10 @@ const InventoryChangeRequestModal = ({ isOpen, product, currentStock, onClose, o
                 min="0"
                 value={requestedStock}
                 onChange={(e) => setRequestedStock(e.target.value)}
-                placeholder="Enter new stock quantity"
+                placeholder="Enter new stock quantity (must exceed current stock)"
                 className="form-input"
               />
+              <small>Requested stock must be greater than the current branch stock.</small>
             </div>
 
             <div className="form-group">

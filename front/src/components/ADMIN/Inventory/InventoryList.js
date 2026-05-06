@@ -11,7 +11,7 @@ const InventoryList = ({ products, loading, onRefresh, branch, onRequestChange, 
   const [editingId, setEditingId] = React.useState('');
   const [editForm, setEditForm] = React.useState({ name: '', brand: '', category: '', specs: '', price: '', threshold: '' });
 
-  const getRowState = (productId) => rowState[productId] || { action: 'add', quantity: '' };
+  const getRowState = (productId) => rowState[productId] || { quantity: '' };
   const setRowValue = (productId, next) => {
     setRowState((prev) => ({
       ...prev,
@@ -27,15 +27,16 @@ const InventoryList = ({ products, loading, onRefresh, branch, onRequestChange, 
   };
 
   const updateStock = async (productId) => {
-    const { action, quantity } = getRowState(productId);
-    if (!quantity) return;
+    const { quantity } = getRowState(productId);
+    const qty = Number(quantity);
+    if (!qty || qty <= 0) return;
     try {
       setPendingId(productId);
       await apiRequest(`/products/${productId}/stock`, {
         method: 'PATCH',
         body: JSON.stringify({
-          action,
-          quantity: Number(quantity) || 0,
+          action: 'add',
+          quantity: qty,
         }),
       });
       appendAuditLog({
@@ -124,7 +125,7 @@ const InventoryList = ({ products, loading, onRefresh, branch, onRequestChange, 
             <th>SKU</th>
             <th>Stock</th>
             <th>Price</th>
-            <th>Stock Actions</th>
+            <th>Add Stock</th>
             <th>Item Actions</th>
             {onRequestChange && <th>Manager Actions</th>}
           </tr>
@@ -167,21 +168,16 @@ const InventoryList = ({ products, loading, onRefresh, branch, onRequestChange, 
               </td>
               <td style={{ minWidth: 210 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <select value={getRowState(product.id).action} onChange={(event) => setRowValue(product.id, { action: event.target.value })}>
-                    <option value="add">Add</option>
-                    <option value="remove">Remove</option>
-                    <option value="set">Set</option>
-                  </select>
                   <input
                     type="number"
-                    min="0"
+                    min="1"
                     value={getRowState(product.id).quantity}
                     onChange={(event) => setRowValue(product.id, { quantity: event.target.value })}
                     placeholder="Qty"
                     style={{ width: 70 }}
                   />
                   <button type="button" onClick={() => updateStock(product.id)} disabled={pendingId === product.id}>
-                    {pendingId === product.id ? 'Saving...' : 'Apply'}
+                    {pendingId === product.id ? 'Adding...' : 'Add'}
                   </button>
                 </div>
               </td>

@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema(
       sparse: true,
       lowercase: true,
       trim: true,
-      minlength: 3,
+      minlength: 2,
       maxlength: 30,
       match: /^[a-z0-9_.-]+$/,
     },
@@ -115,6 +115,24 @@ const userSchema = new mongoose.Schema(
       enum: ["active", "disabled", "deleted"],
       default: "active",
       index: true,
+    },
+    location: {
+      coordinates: {
+        latitude: { type: Number, min: -90, max: 90 },
+        longitude: { type: Number, min: -180, max: 180 },
+        accuracy: { type: Number, min: 0 }, // meters
+        timestamp: { type: Date },
+      },
+      address: {
+        region: { type: String, default: "", trim: true },
+        province: { type: String, default: "", trim: true },
+        city: { type: String, default: "", trim: true },
+        barangay: { type: String, default: "", trim: true },
+        street: { type: String, default: "", trim: true },
+        postalCode: { type: String, default: "", trim: true },
+      },
+      capturedAt: { type: Date },
+      source: { type: String, enum: ["gps", "manual", "ip"], default: "manual" },
     },
     isDeleted: { type: Boolean, default: false, index: true },
     deletedAt: { type: Date, default: null },

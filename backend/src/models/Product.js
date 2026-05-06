@@ -37,5 +37,32 @@ productSchema.set("toJSON", {
   },
 });
 
+// Database-level unique indexes with case-insensitive collation
+// This ensures no duplicates can be created at the database level
+productSchema.index(
+  { sku: 1 },
+  { 
+    unique: true,
+    collation: { locale: 'en', strength: 2 },
+    name: 'idx_sku_unique_case_insensitive'
+  }
+);
+
+// Compound index for unique product variants (name + specs combination)
+productSchema.index(
+  { name: 1, specs: 1 },
+  {
+    unique: true,
+    collation: { locale: 'en', strength: 2 },
+    name: 'idx_name_specs_unique_case_insensitive'
+  }
+);
+
+// Regular indexes for common queries
+productSchema.index({ category: 1, isActive: 1 });
+productSchema.index({ brand: 1 });
+productSchema.index({ createdAt: -1 });
+productSchema.index({ stock: 1 });
+
 module.exports = mongoose.model("Product", productSchema);
 

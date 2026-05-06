@@ -6,6 +6,7 @@ const {
   getProfileById,
   updateProfile,
   updateProfileById,
+  updateLocation,
   listAddresses,
   addAddress,
   updateAddress,
@@ -29,6 +30,7 @@ router.use(requireAuth);
 router.get("/profile", getProfile);
 router.patch("/profile", updateProfile);
 router.put("/profile/update", updateProfile);
+router.patch("/location", updateLocation);
 
 router.patch("/settings", updateSettings);
 router.put("/settings/update", updateSettings);

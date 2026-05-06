@@ -19,8 +19,24 @@ function LoginForm({
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
+  const validateBeforeSubmit = () => {
+    const newErrors = {};
+    if (!email) {
+      newErrors.email = 'Email is required';
+    }
+    if (!password) {
+      newErrors.password = 'Password is required';
+    }
+    return newErrors;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const validationErrors = validateBeforeSubmit();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...validationErrors }));
+      return;
+    }
     onSubmit();
   };
 

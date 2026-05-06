@@ -190,7 +190,13 @@ function Checkout() {
       }
       closeAddressModal();
     } catch (error) {
-      alert(error?.message || 'Unable to save address right now.');
+      if (error?.fieldErrors) {
+        // Backend validation error with field-level details
+        console.error('Address validation errors:', error.fieldErrors);
+        // Re-open modal so user can see errors (modal will display them)
+      } else {
+        alert(error?.message || 'Unable to save address right now.');
+      }
     } finally {
       setAddressBusy(false);
     }

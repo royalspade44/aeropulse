@@ -4,6 +4,7 @@ import { useCart } from '../../context/CartContext';
 import { useUser } from '../../context/UserContext';
 import { apiRequest } from '../../config/api';
 import icons from '../common/icons';
+import { deduplicateProducts, mergeProductLists } from '../../utils/productDeduplication';
 import './Shop.css';
 import CategoryFilter from './CategoryFilter';
 import ProductGrid from './ProductGrid';
@@ -15,89 +16,80 @@ import Footer from '../home/Footer';
 // Products with imageUrl support only (no productUrl)
 const fallbackProducts = [
   // ===== AMERICAN HOME INVERTER (Split Type) =====
-  { 
-    id: 1, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
-    price: 18499, oldPrice: 20999, specs: '1.0HP', model: 'AHAC-MINV1023EHW', 
-    energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-    description: 'Energy efficient inverter AC with rapid cooling technology', 
+  {
+    id: 1, name: 'American Home Inverter AC 1.0HP', brand: 'American Home', category: 'split',
+    price: 18499, oldPrice: 20999, specs: '1.0HP', model: 'AHAC-MINV1023EHW',
+    energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+    description: 'Energy efficient inverter AC with rapid cooling technology',
     discount: 12, inStock: true,
-    imageUrl: 'https://ansons.ph/wp-content/uploads/2024/12/29_AHAC-MINV1023EHW.jpg' // Add your image URL here
+    imageUrl: 'https://ansons.ph/wp-content/uploads/2024/12/29_AHAC-MINV1023EHW.jpg'
   },
-    // ===== AMERICAN HOME INVERTER (Split Type) =====
-    { 
-      id: 1, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
-      price: 18499, oldPrice: 20999, specs: '1.0HP', model: 'AHAC-MINV1023EHW', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'Energy efficient inverter AC with rapid cooling technology', 
-      discount: 12, inStock: true,
-      imageUrl: 'https://ansons.ph/wp-content/uploads/2024/12/29_AHAC-MINV1023EHW.jpg' // Add your image URL here
-    },
-    { 
-      id: 2, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
-      price: 21999, oldPrice: 24999, specs: '1.5HP', model: 'AHAC-MINV1523EHW', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'Energy efficient inverter AC with rapid cooling technology', 
-      discount: 12, inStock: true,
-      imageUrl: 'https://lh6.googleusercontent.com/proxy/U2nLoCzYuJbL4ZscaAExVPmrZwi0ypWILcqmVQei7rwDfT_htCNq9uzBvaDRmiOsSuT0Ccf7vT9PN8CkHJzbv-qBFSMutZVuhJ16'
-    },
-    { 
-      id: 3, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
-      price: 28499, oldPrice: 32999, specs: '2.0HP', model: 'AHAC-MINV2023EHW', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'Energy efficient inverter AC with rapid cooling technology', 
-      discount: 13, inStock: true,
-      imageUrl: 'https://ansons.ph/wp-content/uploads/2024/12/29_AHAC-MINV1023EHW.jpg'
-    },
-    { 
-      id: 4, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
-      price: 31499, oldPrice: 36999, specs: '2.5HP', model: 'AHAC-MINV2523EHW', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'Energy efficient inverter AC with rapid cooling technology', 
-      discount: 14, inStock: true,
-      imageUrl: 'https://www.ldraenterprises.com/wp-content/uploads/2025/08/Untitled-1-300x300.jpg'
-    },
-    { 
-      id: 5, name: 'American Home Inverter AC', brand: 'American Home', category: 'split',
-      price: 43999, oldPrice: 49999, specs: '3.0HP', model: 'AHAC-MINV3023EHW', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'Energy efficient inverter AC with rapid cooling technology', 
-      discount: 12, inStock: true,
-      imageUrl: 'https://www.ldraenterprises.com/wp-content/uploads/2025/08/Untitled-1-300x300.jpg'
-    },
+  {
+    id: 2, name: 'American Home Inverter AC 1.5HP', brand: 'American Home', category: 'split',
+    price: 21999, oldPrice: 24999, specs: '1.5HP', model: 'AHAC-MINV1523EHW',
+    energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+    description: 'Energy efficient inverter AC with rapid cooling technology',
+    discount: 12, inStock: true,
+    imageUrl: 'https://lh6.googleusercontent.com/proxy/U2nLoCzYuJbL4ZscaAExVPmrZwi0ypWILcqmVQei7rwDfT_htCNq9uzBvaDRmiOsSuT0Ccf7vT9PN8CkHJzbv-qBFSMutZVuhJ16'
+  },
+  {
+    id: 3, name: 'American Home Inverter AC 2.0HP', brand: 'American Home', category: 'split',
+    price: 28499, oldPrice: 32999, specs: '2.0HP', model: 'AHAC-MINV2023EHW',
+    energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+    description: 'Energy efficient inverter AC with rapid cooling technology',
+    discount: 13, inStock: true,
+    imageUrl: 'https://ansons.ph/wp-content/uploads/2024/12/29_AHAC-MINV1023EHW.jpg'
+  },
+  {
+    id: 4, name: 'American Home Inverter AC 2.5HP', brand: 'American Home', category: 'split',
+    price: 31499, oldPrice: 36999, specs: '2.5HP', model: 'AHAC-MINV2523EHW',
+    energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+    description: 'Energy efficient inverter AC with rapid cooling technology',
+    discount: 14, inStock: true,
+    imageUrl: 'https://www.ldraenterprises.com/wp-content/uploads/2025/08/Untitled-1-300x300.jpg'
+  },
+  {
+    id: 5, name: 'American Home Inverter AC 3.0HP', brand: 'American Home', category: 'split',
+    price: 43999, oldPrice: 49999, specs: '3.0HP', model: 'AHAC-MINV3023EHW',
+    energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+    description: 'Energy efficient inverter AC with rapid cooling technology',
+    discount: 12, inStock: true,
+    imageUrl: 'https://www.ldraenterprises.com/wp-content/uploads/2025/08/Untitled-1-300x300.jpg'
+  },
 
-    // ===== TCL FULL DC INVERTER (Split Type) =====
-    { 
-      id: 6, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split',
-      price: 21500, specs: '1.0HP', model: 'TAC-10CSD/KEI-S/2', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'Full DC inverter with T-AI technology and WiFi control. Features: Golden titanium fin, Fast cooling, Filter Cleaning Reminder, 42db Low Noise Operation', 
-      inStock: true, featured: true,
-      imageUrl: 'https://d1rlzxa98cyc61.cloudfront.net/catalog/product/1/9/196330_4.jpg?auto=webp&format=pjpg&width=640'
-    },
-    { 
-      id: 7, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split',
-      price: 22500, specs: '1.5HP', model: 'TAC-13CSD/KEI-S/2', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'Full DC inverter with T-AI technology and WiFi control', 
-      inStock: true,
-      imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZhqB0c7O2-OQ-9vMRvxdt3vfJW9PbXcE9fw&s'
-    },
-    { 
-      id: 8, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split',
-      price: 28700, specs: '2.0HP', model: 'TAC-19CSD/KEI-S/2', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'Full DC inverter with T-AI technology and WiFi control', 
-      inStock: true,
-      imageUrl: 'https://ansons.ph/wp-content/uploads/2025/04/02_TAC-CSD_KEI2.jpg'
-    },
-    { 
-      id: 9, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split',
-      price: 33600, specs: '2.5HP', model: 'TAC-25CSD/KEI-S/2', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'Full DC inverter with T-AI technology and WiFi control', 
-      inStock: true,
-      imageUrl: 'https://boomupp.com/wp-content/uploads/2025/03/TCL-KEi-S222.png'
-    },
+  // ===== TCL FULL DC INVERTER (Split Type) =====
+  {
+    id: 6, name: 'TCL Full DC Inverter AC 1.0HP', brand: 'TCL', category: 'split',
+    price: 21500, specs: '1.0HP', model: 'TAC-10CSD/KEI-S/2',
+    energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+    description: 'Full DC inverter with T-AI technology and WiFi control. Features: Golden titanium fin, Fast cooling, Filter Cleaning Reminder, 42db Low Noise Operation',
+    inStock: true, featured: true,
+    imageUrl: 'https://d1rlzxa98cyc61.cloudfront.net/catalog/product/1/9/196330_4.jpg?auto=webp&format=pjpg&width=640'
+  },
+  {
+    id: 7, name: 'TCL Full DC Inverter AC 1.5HP', brand: 'TCL', category: 'split',
+    price: 22500, specs: '1.5HP', model: 'TAC-13CSD/KEI-S/2',
+    energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+    description: 'Full DC inverter with T-AI technology and WiFi control',
+    inStock: true,
+    imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZhqB0c7O2-OQ-9vMRvxdt3vfJW9PbXcE9fw&s'
+  },
+  {
+    id: 8, name: 'TCL Full DC Inverter AC 2.0HP', brand: 'TCL', category: 'split',
+    price: 28700, specs: '2.0HP', model: 'TAC-19CSD/KEI-S/2',
+    energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+    description: 'Full DC inverter with T-AI technology and WiFi control',
+    inStock: true,
+    imageUrl: 'https://ansons.ph/wp-content/uploads/2025/04/02_TAC-CSD_KEI2.jpg'
+  },
+  {
+    id: 9, name: 'TCL Full DC Inverter AC 2.5HP', brand: 'TCL', category: 'split',
+    price: 33600, specs: '2.5HP', model: 'TAC-25CSD/KEI-S/2',
+    energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+    description: 'Full DC inverter with T-AI technology and WiFi control',
+    inStock: true,
+    imageUrl: 'https://boomupp.com/wp-content/uploads/2025/03/TCL-KEi-S222.png'
+  },
     { 
       id: 10, name: 'TCL Full DC Inverter AC', brand: 'TCL', category: 'split',
       price: 48999, specs: '3.0HP', model: 'TAC-30CSD/KEI-S/2', 
@@ -108,43 +100,43 @@ const fallbackProducts = [
     },
 
     // ===== MIDEA CELEST PRO (Split Type) =====
-    { 
-      id: 11, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split',
-      price: 22999, oldPrice: 26999, specs: '1.0HP', model: 'MSCE-10CRFN8', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'New model with advanced cooling technology', 
+    {
+      id: 11, name: 'Midea Celest Pro AC 1.0HP', brand: 'Midea', category: 'split',
+      price: 22999, oldPrice: 26999, specs: '1.0HP', model: 'MSCE-10CRFN8',
+      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+      description: 'New model with advanced cooling technology',
       discount: 14, inStock: true,
       imageUrl: 'https://www.remalsales.com/assets/images/aircon%202024/msce_crfn8.png'
     },
-    { 
-      id: 12, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split',
-      price: 23999, oldPrice: 27999, specs: '1.5HP', model: 'MSCE-13CRFN8', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'New model with advanced cooling technology', 
+    {
+      id: 12, name: 'Midea Celest Pro AC 1.5HP', brand: 'Midea', category: 'split',
+      price: 23999, oldPrice: 27999, specs: '1.5HP', model: 'MSCE-13CRFN8',
+      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+      description: 'New model with advanced cooling technology',
       discount: 14, inStock: true,
       imageUrl: 'https://www.remalsales.com/assets/images/aircon%202024/msce_crfn8.png'
     },
-    { 
-      id: 13, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split',
-      price: 30499, oldPrice: 35999, specs: '2.0HP', model: 'MSCE-19CRFN8', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'New model with advanced cooling technology', 
+    {
+      id: 13, name: 'Midea Celest Pro AC 2.0HP', brand: 'Midea', category: 'split',
+      price: 30499, oldPrice: 35999, specs: '2.0HP', model: 'MSCE-19CRFN8',
+      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+      description: 'New model with advanced cooling technology',
       discount: 15, inStock: true,
       imageUrl: 'https://www.remalsales.com/assets/images/aircon%202024/msce_crfn8.png'
     },
-    { 
-      id: 14, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split',
-      price: 35499, oldPrice: 41999, specs: '2.5HP', model: 'MSCE-22CRFN8', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'New model with advanced cooling technology', 
+    {
+      id: 14, name: 'Midea Celest Pro AC 2.5HP', brand: 'Midea', category: 'split',
+      price: 35499, oldPrice: 41999, specs: '2.5HP', model: 'MSCE-22CRFN8',
+      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+      description: 'New model with advanced cooling technology',
       discount: 15, inStock: true,
       imageUrl: 'https://www.remalsales.com/assets/images/aircon%202024/msce_crfn8.png'
     },
-    { 
-      id: 15, name: 'Midea Celest Pro AC', brand: 'Midea', category: 'split',
-      price: 51499, oldPrice: 59999, specs: '3.0HP', model: 'MSCE-25CRFN8', 
-      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor', 
-      description: 'New model with advanced cooling technology', 
+    {
+      id: 15, name: 'Midea Celest Pro AC 3.0HP', brand: 'Midea', category: 'split',
+      price: 51499, oldPrice: 59999, specs: '3.0HP', model: 'MSCE-25CRFN8',
+      energyRating: '5 Stars', warranty: '1 year parts & labor, 5 years compressor',
+      description: 'New model with advanced cooling technology',
       discount: 14, inStock: true,
       imageUrl: 'https://www.remalsales.com/assets/images/aircon%202024/msce_crfn8.png'
     },
@@ -408,24 +400,20 @@ function Shop() {
   }, []);
 
   const products = useMemo(() => {
-    // Combine backend products with fallback products, prioritizing backend data
-    const combined = [...fallbackProducts];
-    
-    // If we have backend products, merge them (backend takes precedence for matching IDs)
-    if (backendProducts.length > 0) {
-      backendProducts.forEach(backendProduct => {
-        const existingIndex = combined.findIndex(p => p.id === backendProduct.id);
-        if (existingIndex >= 0) {
-          // Update existing product with backend data
-          combined[existingIndex] = { ...combined[existingIndex], ...backendProduct };
-        } else {
-          // Add new backend product
-          combined.push(backendProduct);
-        }
-      });
-    }
-    
-    return combined;
+    // Merge backend and fallback products using dedicated utility
+    // This ensures consistent deduplication logic across the app
+    const merged = mergeProductLists(fallbackProducts, backendProducts, {
+      preferBackend: true,
+      verbose: false
+    });
+
+    // Apply comprehensive deduplication
+    // Removes duplicates based on SKU/model and name+specs combination
+    const deduplicated = deduplicateProducts(merged, {
+      verbose: process.env.NODE_ENV !== 'production'
+    });
+
+    return deduplicated;
   }, [backendProducts]);
 
   const categories = useMemo(() => {

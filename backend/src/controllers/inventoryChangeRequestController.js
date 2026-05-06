@@ -12,7 +12,7 @@ const createChangeRequest = async (req, res) => {
     return res.status(403).json({ message: "Only managers can request inventory changes" });
   }
 
-  const { productId, currentStock, requestedStock, reason } = req.body;
+  const { productId, requestedStock, reason } = req.body;
   const branch = req.activeBranch;
 
   if (!productId || requestedStock === undefined || !reason?.trim()) {
@@ -24,13 +24,19 @@ const createChangeRequest = async (req, res) => {
     return res.status(404).json({ message: "Product not found" });
   }
 
+  const currentStockValue = Number(product.branchStock.get(branch) || 0);
+  const requestedQuantity = Number(requestedStock);
+  if (!Number.isFinite(requestedQuantity) || requestedQuantity <= currentStockValue) {
+    return res.status(400).json({ message: "Requested stock must be greater than the current branch stock." });
+  }
+
   try {
     const request = await InventoryChangeRequest.create({
       product: productId,
       branch,
       requestedBy: req.authUser._id,
-      currentStock: Number(currentStock) || 0,
-      requestedStock: Number(requestedStock),
+      currentStock: currentStockValue,
+      requestedStock: requestedQuantity,
       reason: reason.trim(),
     });
 
@@ -41,7 +47,7 @@ const createChangeRequest = async (req, res) => {
       branch,
       entityType: "inventory_change_request",
       entityId: request._id,
-      description: `Manager requested inventory change for ${product.name} from ${currentStock} to ${requestedStock}`,
+      description: `Manager requested inventory increase for ${product.name} from ${currentStockValue} to ${requestedQuantity}`,
       ipAddress: req.ip,
     });
 
@@ -52,7 +58,7 @@ const createChangeRequest = async (req, res) => {
         user: owner._id,
         type: "system",
         title: "Pending Inventory Change Request",
-        message: `Manager ${req.authUser.name} requested to change ${product.name} inventory from ${currentStock} to ${requestedStock} at ${branch}`,
+        message: `Manager ${req.authUser.name} requested to increase ${product.name} inventory from ${currentStockValue} to ${requestedQuantity} at ${branch}`,
       })
     );
     await Promise.all(notificationPromises);
@@ -120,6 +126,10 @@ const approveRequest = async (req, res) => {
   try {
     const product = await Product.findById(request.product);
     const oldStock = Number(product.branchStock.get(request.branch) || 0);
+
+    if (request.requestedStock <= oldStock) {
+      return res.status(400).json({ message: "Approved inventory changes must increase branch stock." });
+    }
 
     // Update inventory
     product.branchStock.set(request.branch, request.requestedStock);

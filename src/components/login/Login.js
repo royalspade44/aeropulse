@@ -149,9 +149,17 @@ function Login() {
             return prev - 1;
           });
         }, 1000);
+      } else if (err?.status === 400 && err?.fieldErrors) {
+        // Parse backend field errors
+        setErrors((prev) => ({ ...prev, ...err.fieldErrors }));
+        setAuthMessage(Object.values(err.fieldErrors)[0] || 'Please check your inputs');
+      } else if (err?.status === 401) {
+        // Generic authentication error
+        setErrors((prev) => ({ ...prev, password: 'Invalid credentials' }));
+        setAuthMessage('Email or password is incorrect');
       } else {
         setErrors((prev) => ({ ...prev, password: err.message || 'Invalid credentials' }));
-        alert(err.message || 'Invalid email or password!');
+        setAuthMessage(err.message || 'Invalid email or password');
       }
       setLoading(false);
     }

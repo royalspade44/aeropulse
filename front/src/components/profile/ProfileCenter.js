@@ -493,6 +493,70 @@ function ProfileCenter() {
             </div>
           </div>
 
+          {/* Location Information Section */}
+          <div className="card profile-location-card">
+            <div className="section-head">
+              <div className="profile-kicker">Location details</div>
+              <h2 className="section-title">Saved location</h2>
+            </div>
+
+            {user?.location ? (
+              <div className="profile-location-content">
+                {user.location.coordinates?.latitude && user.location.coordinates?.longitude && (
+                  <div className="location-coordinates">
+                    <div className="coordinate-item">
+                      <img src={icons.marker} alt="" className="location-icon" />
+                      <div>
+                        <strong>GPS Coordinates:</strong>
+                        <div>{user.location.coordinates.latitude.toFixed(6)}, {user.location.coordinates.longitude.toFixed(6)}</div>
+                        {user.location.coordinates.accuracy && (
+                          <div className="accuracy">±{Math.round(user.location.coordinates.accuracy)}m accuracy</div>
+                        )}
+                        {user.location.coordinates.timestamp && (
+                          <div className="timestamp">Captured: {new Date(user.location.coordinates.timestamp).toLocaleString()}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {user.location.address && (user.location.address.region || user.location.address.province || user.location.address.city) && (
+                  <div className="location-address">
+                    <div className="address-item">
+                      <img src={icons.houseChimney} alt="" className="location-icon" />
+                      <div>
+                        <strong>Address:</strong>
+                        <div>
+                          {[
+                            user.location.address.street,
+                            user.location.address.barangay,
+                            user.location.address.city,
+                            user.location.address.province,
+                            user.location.address.region,
+                          ].filter(Boolean).join(', ')}
+                          {user.location.address.postalCode && `, ${user.location.address.postalCode}`}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="location-meta">
+                  <div className="source-info">
+                    Source: {user.location.source === 'gps' ? 'GPS Capture' : user.location.source === 'manual' ? 'Manual Entry' : 'IP Geolocation'}
+                  </div>
+                  {user.location.capturedAt && (
+                    <div className="captured-at">
+                      Saved: {new Date(user.location.capturedAt).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="profile-location-empty">No location information saved. Location will be captured during registration or can be updated later.</p>
+            )}
+          </div>
+
           <div ref={addressSectionRef} className={`card profile-address-card ${addressHighlight ? 'address-highlight' : ''}`}>
             <div className="section-head section-head--spaced">
               <div>

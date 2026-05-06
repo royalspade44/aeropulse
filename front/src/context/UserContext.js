@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useState, useContext, useEffect, useCallback } from "react";
 import { apiRequest } from "../config/api";
 import { ACTIVE_BRANCH_KEY } from "../domain/branches/branches";
 
@@ -58,6 +58,14 @@ export const UserProvider = ({ children }) => {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginPromptMessage, setLoginPromptMessage] = useState('Please log in to access this feature.');
 
+  const forceLogout = useCallback(() => {
+    clearSession();
+    setUser(null);
+    setUserRole(null);
+    setCurrentSession(null);
+    setIsAuthenticated(false);
+  }, []);
+
   const currentLanguage = user?.preferences?.language || "English";
   const currentTheme = user?.preferences?.theme || (user?.preferences?.darkMode ? "dark" : "light");
 
@@ -102,6 +110,14 @@ export const UserProvider = ({ children }) => {
     };
     bootstrap();
   }, []);
+
+  useEffect(() => {
+    const handler = () => {
+      forceLogout();
+    };
+    window.addEventListener("auth:logout", handler);
+    return () => window.removeEventListener("auth:logout", handler);
+  }, [forceLogout]);
 
   useEffect(() => {
     const onStorage = (event) => {
@@ -164,11 +180,7 @@ export const UserProvider = ({ children }) => {
     if (!active?.accountId || active.accountId === accountId) {
       localStorage.removeItem(ACTIVE_ACCOUNT_SESSION_KEY);
     }
-    clearSession();
-    setUser(null);
-    setUserRole(null);
-    setCurrentSession(null);
-    setIsAuthenticated(false);
+    forceLogout();
   };
 
   const updateProfile = async (updatedData) => {

@@ -46,12 +46,19 @@ const apiRequest = async (path, options = {}) => {
       localStorage.removeItem("activeBranch");
       localStorage.removeItem("activeAccountSession");
       console.warn("Cleared stale auth state after 401.", { url, options });
+
+      try {
+        window.dispatchEvent(new CustomEvent("auth:logout", { detail: { reason: "401", url } }));
+      } catch (_error) {
+        // ignore
+      }
     }
 
-    const message = data?.message || "Request failed";
+    const message = data?.message || data?.errors?.toString?.() || "Request failed";
     const err = new Error(message);
     err.status = response.status;
     err.data = data;
+    err.fieldErrors = data?.errors && typeof data.errors === 'object' ? data.errors : null;
     throw err;
   }
 
