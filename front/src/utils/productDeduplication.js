@@ -180,9 +180,11 @@ export const mergeProductLists = (fallbackProducts, backendProducts, options = {
   return merged;
 };
 
-export default {
+const productDeduplicationUtils = {
   getProductVariantKey,
   deduplicateProducts,
   validateProductList,
   mergeProductLists
 };
+
+export default productDeduplicationUtils;
