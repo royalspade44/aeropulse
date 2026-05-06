@@ -42,7 +42,7 @@ const InventoryList = ({ products, loading, onRefresh, branch, onRequestChange, 
       appendAuditLog({
         user: user?.email || user?.name || 'admin',
         action: 'update_inventory_stock',
-        details: `Product ${productId} stock action=${action} qty=${quantity}`,
+        details: `Product ${productId} stock action=add qty=${qty}`,
       });
       setRowValue(productId, { quantity: '' });
       onRefresh?.();
