@@ -341,6 +341,17 @@ body {
   margin-bottom: 8px;
 }
 
+.register-error-banner {
+  margin: 10px 0 18px;
+  padding: 15px 16px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 14px;
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
 .form-header h2 {
   font-family: 'Outfit', sans-serif;
   font-size: 26px;

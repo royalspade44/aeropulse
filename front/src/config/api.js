@@ -28,7 +28,13 @@ const apiRequest = async (path, options = {}) => {
     });
   } catch (error) {
     console.error("API request failed", { url, options, error });
-    throw error;
+    const message = error?.message?.includes("Failed to fetch") || error?.message?.includes("NetworkError")
+      ? "Server unreachable. Check backend is running and CORS is configured correctly."
+      : error?.message || "Network error occurred while sending the request.";
+    const err = new Error(message);
+    err.status = 0;
+    err.data = null;
+    throw err;
   }
 
   let data = null;
@@ -54,7 +60,7 @@ const apiRequest = async (path, options = {}) => {
       }
     }
 
-    const message = data?.message || data?.errors?.toString?.() || "Request failed";
+    const message = data?.message || (data?.errors && typeof data.errors === 'object' ? Object.values(data.errors).join(' ') : "Request failed");
     const err = new Error(message);
     err.status = response.status;
     err.data = data;

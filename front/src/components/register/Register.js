@@ -63,6 +63,7 @@ function Register() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [submissionError, setSubmissionError] = useState('');
 
   const detectedRole = useMemo(() => detectRoleFromEmail(formData.email), [formData.email]);
   const detectedRoleLabel = useMemo(() => getRoleLabel(detectedRole), [detectedRole]);
@@ -168,12 +169,14 @@ function Register() {
   };
 
   const handleFinalSubmit = async () => {
+    setSubmissionError('');
     const { errors: vErrors, valid } = validateRegistrationProfile(formData, detectedRole);
     if (!valid) {
       console.warn('[Register] Validation failed before submit', vErrors);
       setErrors(vErrors);
       const firstError = Object.values(vErrors)[0];
       if (firstError) {
+        setSubmissionError(firstError);
         alert(firstError);
       }
       return;
@@ -230,16 +233,19 @@ function Register() {
       navigate('/login');
     } catch (err) {
       console.error('[Register] Registration failed', err);
-      
+      const normalizedMessage = err.message === 'Failed to fetch' || err.message?.includes('Server unreachable')
+        ? 'Server unreachable. Please make sure the backend is running and CORS is enabled.'
+        : err.message || 'Unable to register. Please try again.';
+
       if (err?.fieldErrors && typeof err.fieldErrors === 'object') {
-        // Backend returned field-level validation errors
         setErrors((prev) => ({ ...prev, ...err.fieldErrors }));
         const firstError = Object.values(err.fieldErrors)[0];
-        alert(`Registration failed: ${firstError || err.message || 'Please try again.'}`);
+        setSubmissionError(firstError || normalizedMessage);
+        alert(`Registration failed: ${firstError || normalizedMessage}`);
       } else {
-        // Generic error message
-        setErrors((prev) => ({ ...prev, email: err.message }));
-        alert(`Registration failed: ${err.message || 'Please try again.'}`);
+        setSubmissionError(normalizedMessage);
+        setErrors((prev) => ({ ...prev, email: normalizedMessage }));
+        alert(`Registration failed: ${normalizedMessage}`);
       }
     } finally {
       setLoading(false);
@@ -315,6 +321,12 @@ function Register() {
               loading={loading}
             />
           )}
+          {submissionError && (
+            <div className="register-error-banner" role="alert">
+              {submissionError}
+            </div>
+          )}
+
           {step === 'location' && (
             <RegisterLocationStep
               formData={formData}
@@ -322,6 +334,7 @@ function Register() {
               onFieldChange={handleFieldChange}
               onNext={handleFinalSubmit}
               onBack={goBack}
+              loading={loading}
             />
           )}
 

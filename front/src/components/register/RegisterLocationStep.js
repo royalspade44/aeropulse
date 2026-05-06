@@ -3,7 +3,7 @@ import InputField from '../common/InputField';
 import icons from '../common/icons';
 import { getRegions, getProvincesByRegion, getCitiesByProvince, getBarangaysByCity } from '../../domain/location/addressSelectors';
 
-function RegisterLocationStep({ formData, errors, onFieldChange, onNext, onBack }) {
+function RegisterLocationStep({ formData, errors, onFieldChange, onNext, onBack, loading = false }) {
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [locationSuccess, setLocationSuccess] = useState('');
@@ -132,6 +132,9 @@ function RegisterLocationStep({ formData, errors, onFieldChange, onNext, onBack 
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (loading) {
+      return;
+    }
     handleNext();
   };
 
@@ -326,11 +329,11 @@ function RegisterLocationStep({ formData, errors, onFieldChange, onNext, onBack 
 
       {/* Navigation */}
       <div className="register-step-navigation">
-        <button type="button" className="back-btn" onClick={onBack}>
+        <button type="button" className="back-btn" onClick={onBack} disabled={loading}>
           Back
         </button>
-        <button type="submit" className="next-btn">
-          Complete Registration
+        <button type="submit" className="next-btn" disabled={loading}>
+          {loading ? 'Registering…' : 'Complete Registration'}
         </button>
       </div>
     </form>

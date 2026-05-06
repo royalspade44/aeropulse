@@ -411,8 +411,18 @@ const register = async (req, res) => {
   }
   const existing = await User.findOne({ $or: dupChecks });
   if (existing) {
-    console.warn("[Auth][Register] Duplicate account", { email: normalizedEmail, phone: normalizedPhone });
-    return res.status(409).json({ message: "Email, phone, or alias already registered" });
+    const duplicateErrors = {};
+    if (existing.email === normalizedEmail) {
+      duplicateErrors.email = "Email already exists";
+    }
+    if (existing.phone === normalizedPhone) {
+      duplicateErrors.phone = "Phone number already exists";
+    }
+    if (normalizedUsername && existing.username === normalizedUsername) {
+      duplicateErrors.alias = "Alias already exists";
+    }
+    console.warn("[Auth][Register] Duplicate account", { email: normalizedEmail, phone: normalizedPhone, duplicateErrors });
+    return res.status(409).json({ message: "Duplicate registration details found", errors: duplicateErrors });
   }
 
   const passwordHash = await bcrypt.hash(password, 10);

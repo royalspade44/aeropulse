@@ -41,8 +41,8 @@ export function validateRegistrationProfile(formData, detectedRole = 'customer')
     errors.phone = 'Phone number is required';
   } else {
     const cleanPhone = formData.phone.replace(/\D/g, '');
-    if (!/^[0-9]{10,11}$/.test(cleanPhone)) {
-      errors.phone = 'Please enter a valid phone number (10-11 digits)';
+    if (!/^[0-9]{11,12}$/.test(cleanPhone)) {
+      errors.phone = 'Please enter a valid phone number (11-12 digits)';
     } else if (!cleanPhone.startsWith('09') && !cleanPhone.startsWith('639')) {
       errors.phone = 'Please enter a valid Philippine mobile number (starts with 09 or 639)';
     }
@@ -58,8 +58,6 @@ export function validateRegistrationProfile(formData, detectedRole = 'customer')
     errors.password = 'Password must contain at least one uppercase letter';
   } else if (!/(?=.*\d)/.test(formData.password)) {
     errors.password = 'Password must contain at least one number';
-  } else if (!/(?=.*[@$!%*?&])/.test(formData.password)) {
-    errors.password = 'Password must contain at least one special character (@$!%*?&)';
   }
 
   if (!formData.confirmPassword) {
@@ -148,8 +146,6 @@ export function validateProfileAndSecurityStep(formData) {
     errors.password = 'Password must contain at least one uppercase letter';
   } else if (!/(?=.*\d)/.test(formData.password)) {
     errors.password = 'Password must contain at least one number';
-  } else if (!/(?=.*[@$!%*?&])/.test(formData.password)) {
-    errors.password = 'Password must contain at least one special character (@$!%*?&)';
   }
 
   if (!formData.confirmPassword) {
