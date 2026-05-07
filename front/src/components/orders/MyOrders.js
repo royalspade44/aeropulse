@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { apiRequest } from '../../config/api';
@@ -13,6 +13,12 @@ function MyOrders() {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showTrackModal, setShowTrackModal] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const filteredOrders = useMemo(() => {
+    if (statusFilter === 'all') return orders;
+    return orders.filter((order) => order.status === statusFilter);
+  }, [orders, statusFilter]);
 
   useEffect(() => {
     let mounted = true;
@@ -93,6 +99,19 @@ function MyOrders() {
         </div>
       </div>
 
+      <div className="orders-filter-bar">
+        {['all', 'to_pay', 'to_deliver', 'to_install', 'complete'].map((status) => (
+          <button
+            key={status}
+            type="button"
+            className={`orders-filter-btn ${statusFilter === status ? 'active' : ''}`}
+            onClick={() => setStatusFilter(status)}
+          >
+            {status === 'all' ? 'All' : status.replace('_', ' ').replace(/\b\w/g, (ch) => ch.toUpperCase())}
+          </button>
+        ))}
+      </div>
+
       <div className="orders-main">
         {orders.length === 0 ? (
           <div className="empty-orders">
@@ -102,8 +121,13 @@ function MyOrders() {
               Shop Now →
             </button>
           </div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="empty-orders">
+            <h3>No Orders Match</h3>
+            <p>No orders match the selected status. Try a different filter.</p>
+          </div>
         ) : (
-          orders.map(order => (
+          filteredOrders.map(order => (
             <OrderCard
               key={order.id}
               order={order}

@@ -290,7 +290,8 @@ const createOrder = async (req, res) => {
               estimatedArrival: eta.toISOString(),
               installationDate: installDate.toISOString(),
               assignedTechnician,
-              stockSourceBranch: preferredBranch,
+              customerBranch: preferredBranch,
+              stockSourceBranch: finalBranch,
               receipt: {
                 receiptNumber,
                 issuedAt: new Date().toISOString(),
@@ -359,10 +360,15 @@ const approveOrder = async (req, res) => {
   const { assignedTechnician, estimatedArrival, installationDate } = req.body || {};
 
   const baseQuery = { $or: [{ _id: orderId }, { orderCode: orderId }] };
+  const query = { ...baseQuery };
   if (req.authUser.role !== "superadmin" && req.activeBranch) {
-    baseQuery.stockSourceBranch = req.activeBranch;
+    query.$and = [
+      baseQuery,
+      { $or: [{ customerBranch: req.activeBranch }, { stockSourceBranch: req.activeBranch }] },
+    ];
+    delete query.$or;
   }
-  const order = await Order.findOne(baseQuery);
+  const order = await Order.findOne(query);
   if (!order) {
     return res.status(404).json({ message: "Order not found" });
   }
@@ -430,6 +436,13 @@ const listOrdersForAdmin = async (req, res) => {
   }
 
   const query = {};
+  if (req.authUser.role !== "superadmin" && req.activeBranch) {
+    query.$or = [
+      { customerBranch: req.activeBranch },
+      { stockSourceBranch: req.activeBranch },
+    ];
+  }
+
   const orders = await Order.find(query).sort({ createdAt: -1 });
   return res.json({
     orders: orders.map((order) => ({
@@ -445,9 +458,14 @@ const processOrder = async (req, res) => {
   }
   const { orderId } = req.params;
   const { action = "approve" } = req.body || {};
-  const query = { $or: [{ _id: orderId }, { orderCode: orderId }] };
+  const baseQuery = { $or: [{ _id: orderId }, { orderCode: orderId }] };
+  const query = { ...baseQuery };
   if (req.authUser.role !== "superadmin" && req.activeBranch) {
-    query.stockSourceBranch = req.activeBranch;
+    query.$and = [
+      baseQuery,
+      { $or: [{ customerBranch: req.activeBranch }, { stockSourceBranch: req.activeBranch }] },
+    ];
+    delete query.$or;
   }
   const order = await Order.findOne(query);
   if (!order) {

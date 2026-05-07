@@ -12,6 +12,7 @@ const CITY_TO_BRANCH = {
   plaridel: "Bulacan",
   malolos: "Bulacan",
   cavite: "Cavite",
+  bacoor: "Cavite",
   dasmarinas: "Cavite",
   dasmariñas: "Cavite",
   laguna: "Laguna",
@@ -39,7 +40,8 @@ const normalize = (value = "") => String(value).trim().toLowerCase();
 const resolvePreferredBranch = (address = {}) => {
   const cityKey = normalize(address.city);
   const streetKey = normalize(address.street);
-  const cityBranch = CITY_TO_BRANCH[cityKey];
+  const cityBranch = CITY_TO_BRANCH[cityKey] ||
+    Object.keys(CITY_TO_BRANCH).find((key) => cityKey.includes(key));
   if (cityBranch) return cityBranch;
 
   const streetMatch = Object.keys(CITY_TO_BRANCH).find((key) => streetKey.includes(key));

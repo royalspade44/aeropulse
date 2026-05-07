@@ -27,6 +27,7 @@ const orderSchema = new mongoose.Schema(
     estimatedArrival: { type: String, default: "" },
     installationDate: { type: String, default: "" },
     assignedTechnician: { type: String, default: "" },
+    customerBranch: { type: String, default: "" },
     stockSourceBranch: { type: String, default: "" },
     receipt: {
       receiptNumber: { type: String, default: "" },

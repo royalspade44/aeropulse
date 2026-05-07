@@ -47,7 +47,10 @@ const calculateSalesAnalytics = async (branch = "") => {
   };
   
   if (branch) {
-    orderQuery.stockSourceBranch = branch;
+    orderQuery.$or = [
+      { customerBranch: branch },
+      { stockSourceBranch: branch },
+    ];
   }
 
   const orders = await Order.find(orderQuery);
@@ -85,7 +88,10 @@ const getTopSellingProducts = async (branch = "", limit = 5) => {
   };
   
   if (branch) {
-    orderQuery.stockSourceBranch = branch;
+    orderQuery.$or = [
+      { customerBranch: branch },
+      { stockSourceBranch: branch },
+    ];
   }
 
   const orders = await Order.find(orderQuery);
@@ -183,7 +189,10 @@ const getTechnicianKPIs = async (activeBranch = "") => {
 const getAdminDashboard = async (activeBranch = "") => {
   const orderQuery = { status: { $ne: "cancelled" } };
   if (activeBranch) {
-    orderQuery.stockSourceBranch = activeBranch;
+    orderQuery.$or = [
+      { customerBranch: activeBranch },
+      { stockSourceBranch: activeBranch },
+    ];
   }
   const taskQuery = { status: { $in: ["pending", "in-progress"] } };
   const techQuery = { role: "technician" };

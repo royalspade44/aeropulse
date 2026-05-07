@@ -74,7 +74,7 @@ const AdminOrders = () => {
                   <span className={`admin-order-status status-${order.workflowStatus}`}>{order.workflowLabel}</span>
                 </div>
                 <p className="admin-order-meta">
-                  Customer: {order.customerName || 'N/A'} | Branch: {order.stockSourceBranch || 'N/A'}
+                  Customer: {order.customerName || 'N/A'} | Branch: {order.customerBranch || order.stockSourceBranch || 'N/A'}
                 </p>
                 <p className="admin-order-meta">
                   Amount: PHP {Number(order.totalAmount || 0).toLocaleString()} | Payment: {order.paymentMethod || 'N/A'}
