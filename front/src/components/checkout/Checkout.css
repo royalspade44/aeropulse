@@ -430,7 +430,91 @@
   }
 }
 
+/* Branch Assignment Card */
+.checkout-branch-assignment {
+  width: 100%;
+}
+
+.branch-assignment-card {
+  background: linear-gradient(135deg, #1E88E5 0%, #1565c0 100%);
+  border-radius: 15px;
+  padding: 20px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.branch-assignment-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.branch-assignment-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  opacity: 0.9;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.branch-assignment-main {
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 1;
+}
+
+.branch-name {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.branch-location {
+  font-size: 14px;
+  opacity: 0.95;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.branch-location::before {
+  content: '📍';
+  font-size: 16px;
+}
+
+.branch-assignment-note {
+  font-size: 13px;
+  line-height: 1.4;
+  opacity: 0.9;
+  position: relative;
+  z-index: 1;
+}
+
 @media (max-width: 768px) {
+  .branch-assignment-card {
+    padding: 16px;
+  }
+
+  .branch-name {
+    font-size: 24px;
+  }
+
+  .branch-assignment-label {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
   .checkout-main {
     grid-template-columns: 1fr;
     padding: 20px;

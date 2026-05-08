@@ -81,7 +81,7 @@ function SideMenu({ isOpen, onClose, activePage, onLogout }) {
     }
     setShowLogoutModal(false);
     onClose();
-    navigate('/login', { replace: true });
+    navigate('/home', { replace: true });
   };
 
   const handleCancelLogout = () => {

@@ -18,7 +18,7 @@ const TechSidebar = ({ isOpen, onClose }) => {
     const confirmed = await confirmDialog('Are you sure you want to log out?', 'Logout');
     if (!confirmed) return;
     logout();
-    navigate('/login');
+    navigate('/home');
   };
 
   return (

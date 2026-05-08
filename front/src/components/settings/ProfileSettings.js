@@ -1,30 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { apiRequest } from '../../config/api';
 import AddAddressModal from '../checkout/AddAddressModal';
 import icons from '../common/icons';
 
-const normalizePhone = (value = '') => String(value).replace(/\D/g, '').slice(0, 11);
-const isValidPhone = (value = '') => /^09\d{9}$/.test(String(value || '').trim());
-
-function ProfileSettings({ user, onUpdateProfile }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    username: '',
-    email: '',
-    role: '',
-    phone: '',
-    avatarUrl: '',
-  });
-  const [isSaving, setIsSaving] = useState(false);
-
+function MyAddressesSettings({ user }) {
   const [addresses, setAddresses] = useState([]);
   const [addressLoading, setAddressLoading] = useState(false);
   const [addressSaving, setAddressSaving] = useState(false);
   const [addressModalOpen, setAddressModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
-
-  const fileInputRef = useRef(null);
 
   const loadAddresses = async () => {
     setAddressLoading(true);
@@ -39,79 +23,8 @@ function ProfileSettings({ user, onUpdateProfile }) {
   };
 
   useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name || user.fullName || '',
-        username: user.username || '',
-        email: user.email || '',
-        role: user.role || '',
-        phone: user.phone || '',
-        avatarUrl: user.avatarUrl || '',
-      });
-    }
-  }, [user]);
-
-  useEffect(() => {
     loadAddresses();
   }, []);
-
-  const handleInputChange = (field, value) => {
-    if (field === 'phone') {
-      setFormData((prev) => ({ ...prev, phone: normalizePhone(value) }));
-      return;
-    }
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = async () => {
-    if (!formData.name.trim()) {
-      alert('Full name is required.');
-      return;
-    }
-    if (!formData.phone.trim() || !isValidPhone(formData.phone)) {
-      alert('Phone must be in 09XXXXXXXXX format.');
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      await onUpdateProfile({
-        name: formData.name.trim(),
-        username: formData.username.trim(),
-        phone: formData.phone.trim(),
-        avatarUrl: formData.avatarUrl,
-      });
-      setIsEditing(false);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleFilePick = () => {
-    if (!isEditing) return;
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please choose an image file.');
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Profile picture must be 2MB or less.');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setFormData((prev) => ({ ...prev, avatarUrl: String(reader.result || '') }));
-    };
-    reader.readAsDataURL(file);
-    event.target.value = '';
-  };
 
   const handleSaveAddress = async (payload) => {
     setAddressSaving(true);
@@ -163,100 +76,26 @@ function ProfileSettings({ user, onUpdateProfile }) {
     }
   };
 
+  const sortedAddresses = [...addresses].sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0));
+
   return (
     <div className="settings-section">
       <div className="section-title">
         <span className="section-icon">
-          <img src={icons.memberList} alt="" className="inline-icon inline-icon--md" />
+          <img src={icons.marker} alt="" className="inline-icon inline-icon--md" />
         </span>
-        <h2>Profile</h2>
+        <div>
+          <h2>My Addresses</h2>
+          <p className="setting-description">Add, edit, and manage multiple delivery addresses for checkout.</p>
+        </div>
       </div>
 
       <div className="settings-list">
         <div className="setting-item setting-item--column">
-          <div className="settings-avatar-row">
-            <button type="button" className="settings-avatar-button" onClick={handleFilePick}>
-              {formData.avatarUrl ? (
-                <img src={formData.avatarUrl} alt="Profile" className="settings-avatar-image" />
-              ) : (
-                <span>{(formData.name || 'U').charAt(0).toUpperCase()}</span>
-              )}
-            </button>
-            <div>
-              <div className="setting-label">Profile Picture</div>
-              <div className="setting-description">Upload JPG, PNG, or WebP. Max 2MB.</div>
-            </div>
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-          />
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Full Name</div>
-          </div>
-          <input
-            type="text"
-            className="setting-input"
-            value={formData.name}
-            disabled={!isEditing}
-            onChange={(event) => handleInputChange('name', event.target.value)}
-          />
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Username (Optional)</div>
-          </div>
-          <input
-            type="text"
-            className="setting-input"
-            value={formData.username}
-            disabled={!isEditing}
-            onChange={(event) => handleInputChange('username', event.target.value)}
-            placeholder="username"
-          />
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Email Address</div>
-            <div className="setting-description">Email updates require a separate verification flow.</div>
-          </div>
-          <input type="email" className="setting-input" value={formData.email} disabled />
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Role</div>
-          </div>
-          <input type="text" className="setting-input" value={(formData.role || '').toUpperCase()} disabled />
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Contact Number</div>
-          </div>
-          <input
-            type="tel"
-            className="setting-input"
-            value={formData.phone}
-            disabled={!isEditing}
-            onChange={(event) => handleInputChange('phone', event.target.value)}
-            placeholder="09XXXXXXXXX"
-          />
-        </div>
-
-        <div className="setting-item setting-item--column">
           <div className="settings-row-between">
             <div>
-              <div className="setting-label">Addresses</div>
-              <div className="setting-description">Manage your saved delivery addresses.</div>
+              <div className="setting-label">Saved Addresses</div>
+              <div className="setting-description">Manage delivery locations tied to your account.</div>
             </div>
             <button
               type="button"
@@ -271,12 +110,14 @@ function ProfileSettings({ user, onUpdateProfile }) {
           </div>
 
           {addressLoading ? <div className="setting-description">Loading addresses...</div> : null}
-          {!addressLoading && !addresses.length ? <div className="setting-description">No saved addresses yet.</div> : null}
+          {!addressLoading && !sortedAddresses.length ? <div className="setting-description">No saved addresses yet.</div> : null}
 
           <div className="settings-address-list">
-            {addresses.map((address) => {
+            {sortedAddresses.map((address) => {
               const id = address.id || address._id;
-              const line = [address.street, address.barangay, address.city, address.province, address.region].filter(Boolean).join(', ');
+              const line = [address.street, address.barangay, address.city, address.province, address.region]
+                .filter(Boolean)
+                .join(', ');
               return (
                 <div className="settings-address-item" key={id}>
                   <div>
@@ -321,43 +162,9 @@ function ProfileSettings({ user, onUpdateProfile }) {
             })}
           </div>
         </div>
-
-        {!isEditing ? (
-          <div className="setting-item">
-            <button type="button" onClick={() => setIsEditing(true)} className="edit-btn save-btn">
-              <img src={icons.customize} alt="" className="inline-icon" /> Edit Profile
-            </button>
-          </div>
-        ) : (
-          <div className="setting-item">
-            <div className="edit-buttons">
-              <button type="button" onClick={handleSave} className="edit-btn save-btn" disabled={isSaving}>
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsEditing(false);
-                  setFormData({
-                    name: user?.name || user?.fullName || '',
-                    username: user?.username || '',
-                    email: user?.email || '',
-                    role: user?.role || '',
-                    phone: user?.phone || '',
-                    avatarUrl: user?.avatarUrl || '',
-                  });
-                }}
-                className="edit-btn cancel-btn"
-                disabled={isSaving}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
-      {addressModalOpen ? (
+      {addressModalOpen && (
         <AddAddressModal
           onClose={() => {
             setAddressModalOpen(false);
@@ -369,9 +176,9 @@ function ProfileSettings({ user, onUpdateProfile }) {
           saveLabel={editingAddress ? 'Save Address' : 'Add Address'}
           isSaving={addressSaving}
         />
-      ) : null}
+      )}
     </div>
   );
 }
 
-export default ProfileSettings;
+export default MyAddressesSettings;

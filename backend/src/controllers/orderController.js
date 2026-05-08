@@ -28,7 +28,10 @@ const normalizeAddress = (address = {}) => ({
   name: String(address.name || "").trim(),
   phone: String(address.phone || "").trim(),
   street: String(address.street || "").trim(),
+  barangay: String(address.barangay || "").trim(),
   city: String(address.city || "").trim(),
+  province: String(address.province || "").trim(),
+  region: String(address.region || "").trim(),
   postalCode: String(address.postalCode || "").trim(),
   isDefault: Boolean(address.isDefault),
 });
@@ -227,6 +230,7 @@ const createOrder = async (req, res) => {
       await session.withTransaction(async () => {
         const mutableProducts = [];
         const resolvedItems = [];
+        let lastSourceBranch = null;
 
         for (const item of items) {
           const quantityNeeded = Number(item.quantity) || 0;
@@ -254,6 +258,8 @@ const createOrder = async (req, res) => {
             );
           }
 
+          lastSourceBranch = finalBranch;
+
           const currentBranchStock = Number(product.branchStock?.get(finalBranch) || 0);
           const remainingBranchStock = hasBranchSnapshot
             ? Math.max(0, currentBranchStock - quantityNeeded)
@@ -276,6 +282,8 @@ const createOrder = async (req, res) => {
 
         const itemsSummary = resolvedItems.map((item) => `${item.name} x${item.quantity}`).join(", ");
 
+        const stockSourceBranch = lastSourceBranch || preferredBranch;
+
         createdOrder = await Order.create(
           [
             {
@@ -291,7 +299,7 @@ const createOrder = async (req, res) => {
               installationDate: installDate.toISOString(),
               assignedTechnician,
               customerBranch: preferredBranch,
-              stockSourceBranch: finalBranch,
+              stockSourceBranch,
               receipt: {
                 receiptNumber,
                 issuedAt: new Date().toISOString(),

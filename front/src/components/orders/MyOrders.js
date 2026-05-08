@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { apiRequest } from '../../config/api';
 import './MyOrders.css';
@@ -7,8 +7,11 @@ import OrderCard from './OrderCard';
 import TrackOrderModal from './TrackOrderModal';
 import Footer from '../home/Footer';
 
+const VALID_ORDER_STATUSES = ['all', 'to_pay', 'to_deliver', 'to_install', 'complete'];
+
 function MyOrders() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToCart } = useCart();
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -19,6 +22,12 @@ function MyOrders() {
     if (statusFilter === 'all') return orders;
     return orders.filter((order) => order.status === statusFilter);
   }, [orders, statusFilter]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const status = params.get('status') || 'all';
+    setStatusFilter(VALID_ORDER_STATUSES.includes(status) ? status : 'all');
+  }, [location.search]);
 
   useEffect(() => {
     let mounted = true;

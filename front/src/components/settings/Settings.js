@@ -6,12 +6,14 @@ import AccountSettings from './AccountSettings';
 import NotificationSettings from './NotificationSettings';
 import PrivacySettings from './PrivacySettings';
 import PreferencesSettings from './PreferencesSettings';
+import MyAddressesSettings from './ProfileSettings';
 import icons from '../common/icons';
 import Footer from '../home/Footer';
 import { translateText } from '../../utils/customerI18n';
 
 const SETTINGS_TABS = [
   { id: 'preferences', title: 'Preferences', icon: icons.customize },
+  { id: 'addresses', title: 'My Addresses', icon: icons.marker },
   { id: 'privacy', title: 'Privacy', icon: icons.shieldKeyhole },
   { id: 'notifications', title: 'Notifications', icon: icons.visit },
   { id: 'security', title: 'Security', icon: icons.lock },
@@ -112,7 +114,7 @@ function Settings() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login', { replace: true });
+    navigate('/home', { replace: true });
   };
 
   return (
@@ -182,6 +184,10 @@ function Settings() {
               onUpdateNotifications={handleUpdateNotifications}
               onUpdateSettings={handleBulkUpdateSettings}
             />
+          ) : null}
+
+          {activeTab === 'addresses' ? (
+            <MyAddressesSettings user={formattedUser} />
           ) : null}
 
           {activeTab === 'security' ? (

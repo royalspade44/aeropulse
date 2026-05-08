@@ -140,7 +140,7 @@ function Home() {
     keysToRemove.forEach(key => localStorage.removeItem(key));
     logout();
     clearCart();
-    navigate('/login');
+    navigate('/home');
   };
 
   const handleBookNow = () => {

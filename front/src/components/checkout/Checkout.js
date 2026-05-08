@@ -381,6 +381,22 @@ function Checkout() {
             onSetDefaultAddress={handleSetDefaultAddress}
             isBusy={addressBusy}
           />
+
+          {assignedBranch && (
+            <div className="checkout-branch-assignment">
+              <div className="branch-assignment-card">
+                <div className="branch-assignment-label">ORDER FULFILLMENT BRANCH</div>
+                <div className="branch-assignment-main">
+                  <div className="branch-name">{assignedBranch}</div>
+                  <div className="branch-location">{selectedAddress?.city || 'City not specified'}</div>
+                </div>
+                <div className="branch-assignment-note">
+                  This order will be fulfilled from the {assignedBranch} branch based on your delivery address.
+                </div>
+              </div>
+            </div>
+          )}
+
           <PaymentMethod
             selectedMethod={selectedPayment}
             onSelectMethod={setSelectedPayment}

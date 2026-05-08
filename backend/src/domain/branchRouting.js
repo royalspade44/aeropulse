@@ -26,6 +26,15 @@ const CITY_TO_BRANCH = {
   "san fernando": "Ilocos",
 };
 
+const PROVINCE_TO_BRANCH = {
+  bulacan: "Bulacan",
+  cavite: "Cavite",
+  laguna: "Laguna",
+  bataan: "Bataan",
+  pangasinan: "Pangasinan",
+  ilocos: "Ilocos",
+};
+
 const BRANCH_PRIORITY = {
   Bulacan: ["Bulacan", "Bataan", "Cavite", "Laguna", "Pangasinan", "Ilocos"],
   Cavite: ["Cavite", "Laguna", "Bulacan", "Bataan", "Pangasinan", "Ilocos"],
@@ -37,15 +46,32 @@ const BRANCH_PRIORITY = {
 
 const normalize = (value = "") => String(value).trim().toLowerCase();
 
-const resolvePreferredBranch = (address = {}) => {
-  const cityKey = normalize(address.city);
-  const streetKey = normalize(address.street);
-  const cityBranch = CITY_TO_BRANCH[cityKey] ||
-    Object.keys(CITY_TO_BRANCH).find((key) => cityKey.includes(key));
-  if (cityBranch) return cityBranch;
+const getAddressLookupKeys = (address = {}) => [
+  normalize(address.city),
+  normalize(address.province),
+  normalize(address.region),
+  normalize(address.barangay),
+  normalize(address.street),
+].filter(Boolean);
 
-  const streetMatch = Object.keys(CITY_TO_BRANCH).find((key) => streetKey.includes(key));
-  if (streetMatch) return CITY_TO_BRANCH[streetMatch];
+const resolvePreferredBranch = (address = {}) => {
+  const lookupKeys = getAddressLookupKeys(address);
+
+  for (const key of lookupKeys) {
+    const exactCityBranch = CITY_TO_BRANCH[key];
+    if (exactCityBranch) return exactCityBranch;
+
+    const exactProvinceBranch = PROVINCE_TO_BRANCH[key];
+    if (exactProvinceBranch) return exactProvinceBranch;
+  }
+
+  for (const key of lookupKeys) {
+    const fuzzyCityBranch = Object.keys(CITY_TO_BRANCH).find((cityKey) => key.includes(cityKey));
+    if (fuzzyCityBranch) return CITY_TO_BRANCH[fuzzyCityBranch];
+
+    const fuzzyProvinceBranch = Object.keys(PROVINCE_TO_BRANCH).find((provinceKey) => key.includes(provinceKey));
+    if (fuzzyProvinceBranch) return PROVINCE_TO_BRANCH[fuzzyProvinceBranch];
+  }
 
   return "Bulacan";
 };
