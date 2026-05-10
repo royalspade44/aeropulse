@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import icons from '../common/icons';
 import { useUser } from '../../context/UserContext';
@@ -48,13 +48,6 @@ const getOrderCategory = (order) => {
 };
 
 const getCategoryCount = (orders, category) => orders.filter((order) => getOrderCategory(order) === category).length;
-
-const formatDate = (value) => {
-  if (!value) return 'Recently';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Recently';
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-};
 
 function ProfileCenter() {
   const navigate = useNavigate();
