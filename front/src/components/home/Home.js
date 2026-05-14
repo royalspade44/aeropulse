@@ -147,6 +147,10 @@ function Home() {
     navigate('/services');
   };
 
+  const handleViewProducts = () => {
+    navigate('/shop');
+  };
+
   const handleCheckout = () => {
     navigate('/checkout');
     setShowCart(false);
@@ -247,7 +251,7 @@ function Home() {
       {/* Main Content */}
       <main className="main-content">
         {/* Hero Section */}
-        <HeroSection onBookNow={handleBookNow} />
+        <HeroSection onBookNow={handleBookNow} onShop={handleViewProducts} />
         
         {/* Brands Section - Pass the brands data */}
         <BrandsSection brands={brands} />

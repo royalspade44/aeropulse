@@ -11,6 +11,7 @@ function RegisterBrandSection() {
 
   return (
     <div className="register-brand">
+      <div className="register-brand-dots" aria-hidden="true" />
       <div className="brand-content">
         <div className="brand-logo">
           <img src={coldAirLogo} alt="Cold Air logo" />

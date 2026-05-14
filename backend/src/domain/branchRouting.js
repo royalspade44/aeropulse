@@ -54,25 +54,29 @@ const getAddressLookupKeys = (address = {}) => [
   normalize(address.street),
 ].filter(Boolean);
 
+// Custom mapping for delivery branch assignment
 const resolvePreferredBranch = (address = {}) => {
-  const lookupKeys = getAddressLookupKeys(address);
+  const keys = getAddressLookupKeys(address);
+  // Bulacan → Manila, Quezon City
+  if (keys.some((k) => ["manila", "quezon city"].includes(k))) return "Bulacan";
+  // Laguna → Laguna, Cavite, Batangas
+  if (keys.some((k) => ["laguna", "cavite", "batangas"].includes(k))) return "Laguna";
+  // Pangasinan → Pangasinan, Tarlac
+  if (keys.some((k) => ["pangasinan", "tarlac"].includes(k))) return "Pangasinan";
 
-  for (const key of lookupKeys) {
+  // Fallback to original logic
+  for (const key of keys) {
     const exactCityBranch = CITY_TO_BRANCH[key];
     if (exactCityBranch) return exactCityBranch;
-
     const exactProvinceBranch = PROVINCE_TO_BRANCH[key];
     if (exactProvinceBranch) return exactProvinceBranch;
   }
-
-  for (const key of lookupKeys) {
+  for (const key of keys) {
     const fuzzyCityBranch = Object.keys(CITY_TO_BRANCH).find((cityKey) => key.includes(cityKey));
     if (fuzzyCityBranch) return CITY_TO_BRANCH[fuzzyCityBranch];
-
     const fuzzyProvinceBranch = Object.keys(PROVINCE_TO_BRANCH).find((provinceKey) => key.includes(provinceKey));
     if (fuzzyProvinceBranch) return PROVINCE_TO_BRANCH[fuzzyProvinceBranch];
   }
-
   return "Bulacan";
 };
 

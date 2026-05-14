@@ -24,9 +24,13 @@ const {
   deleteUserById,
 } = require("../controllers/userController");
 
+const { createStaff } = require("../controllers/staffController");
 const router = express.Router();
 
 router.use(requireAuth);
+
+// Super Admin: create staff (admin/technician)
+router.post("/staff", allowRoles("superadmin"), createStaff);
 router.get("/profile", getProfile);
 router.patch("/profile", updateProfile);
 router.put("/profile/update", updateProfile);

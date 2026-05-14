@@ -20,7 +20,6 @@ function Register() {
   const location = useLocation();
 
   const [stepIndex, setStepIndex] = useState(0);
-  const [totpSecret, setTotpSecret] = useState('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -29,7 +28,6 @@ function Register() {
     phone: '',
     password: '',
     confirmPassword: '',
-    totpCode: '',
     address: '',
     billingRegion: '',
     billingProvince: '',
@@ -161,7 +159,7 @@ function Register() {
     try {
       const key = 'aeropulse_user_security';
       const map = JSON.parse(localStorage.getItem(key) || '{}');
-      map[email] = { alias: formData.alias, totpSecret, updatedAt: new Date().toISOString() };
+      map[email] = { alias: formData.alias, updatedAt: new Date().toISOString() };
       localStorage.setItem(key, JSON.stringify(map));
     } catch {
       /* ignore */
@@ -210,7 +208,6 @@ function Register() {
         address: detectedRole === 'customer' ? normalizedAddress : '',
         billingAddress: detectedRole === 'customer' ? billingAddress : null,
         branch: detectedRole !== 'customer' ? formData.branch : undefined,
-        totpCode: formData.totpCode,
         location: formData.location,
       };
 
@@ -305,8 +302,6 @@ function Register() {
               detectedRoleLabel={detectedRoleLabel}
               onNext={handleProfileNext}
               onBack={goBack}
-              totpSecret={totpSecret}
-              onTotpSecret={setTotpSecret}
             />
           )}
           {step === 'phone' && (

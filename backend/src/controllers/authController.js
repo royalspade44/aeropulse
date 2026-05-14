@@ -519,8 +519,15 @@ const login = async (req, res) => {
     });
   }
 
+
   if (!user.role) {
     user.role = detectRoleFromEmail(normalizedLoginValue);
+  }
+  if (user.isFirstLogin && ["admin", "technician"].includes(user.role)) {
+    return res.status(403).json({
+      message: "You must change your password before first login.",
+      requirePasswordChange: true,
+    });
   }
   if (user.role === "technician" && clientType !== "mobile") {
     return res.status(403).json({ message: "Technician accounts cannot access the web platform. Please use the mobile app." });

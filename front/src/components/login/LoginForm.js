@@ -36,7 +36,7 @@ function LoginForm({
 
       <div className="input-group">
         <label>Password <span className="required-star">*</span></label>
-        <div style={{ position: 'relative' }}>
+        <div className="password-wrapper">
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="Enter your password"
@@ -47,18 +47,8 @@ function LoginForm({
           />
           <button
             type="button"
+            className="toggle-password"
             onClick={() => setShowPassword(!showPassword)}
-            style={{
-              position: 'absolute',
-              right: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              background: 'none',
-              border: 'none',
-              color: '#1E88E5',
-              cursor: 'pointer',
-              fontSize: '12px'
-            }}
           >
             {showPassword ? 'Hide' : 'Show'}
           </button>

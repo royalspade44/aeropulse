@@ -2,22 +2,11 @@ import { useState, useEffect } from 'react';
 import InputField from '../common/InputField';
 import icons from '../common/icons';
 import { defaultAliasFromEmail } from '../../domain/register/defaultAliasFromEmail';
-import { generateTotpSecretStub } from '../../domain/register/generateTotpSecretStub';
-import { verifyTotpCodeStub } from '../../domain/register/verifyTotpCodeStub';
 import { BRANCHES } from '../../domain/branches/branches';
 
-function RegisterProfilePasswordStep({ formData, errors, onFieldChange, detectedRole, detectedRoleLabel, onNext, onBack, totpSecret, onTotpSecret }) {
+function RegisterProfilePasswordStep({ formData, errors, onFieldChange, detectedRole, detectedRoleLabel, onNext, onBack }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [totpError, setTotpError] = useState('');
-
-  const handleTotpChange = (value) => {
-    const normalized = String(value).replace(/\D/g, '').slice(0, 6);
-    onFieldChange('totpCode', normalized);
-    if (totpError) {
-      setTotpError('');
-    }
-  };
 
   useEffect(() => {
     if (!formData.alias && formData.email) {
@@ -25,22 +14,7 @@ function RegisterProfilePasswordStep({ formData, errors, onFieldChange, detected
     }
   }, [formData.email, formData.alias, onFieldChange]);
 
-  useEffect(() => {
-    if (!totpSecret) {
-      onTotpSecret(generateTotpSecretStub());
-    }
-  }, [totpSecret, onTotpSecret]);
-
   const handleNext = () => {
-    if (!/^\d{6}$/.test(formData.totpCode || '')) {
-      setTotpError('Code must be exactly 6 digits.');
-      return;
-    }
-    if (!verifyTotpCodeStub(formData.totpCode)) {
-      setTotpError('Enter the 6-digit code from your authenticator app. Demo: use 000000 after saving the secret.');
-      return;
-    }
-    setTotpError('');
     onNext();
   };
 
@@ -52,7 +26,7 @@ function RegisterProfilePasswordStep({ formData, errors, onFieldChange, detected
   return (
     <form className="register-step" onSubmit={handleSubmit}>
       <h3 className="register-step-title">Profile &amp; security</h3>
-      <p className="register-step-desc">Alias, password, and rolling passcode (TOTP).</p>
+      <p className="register-step-desc">Set your alias and a strong password.</p>
 
       <div className="form-row">
         <InputField
@@ -136,6 +110,9 @@ function RegisterProfilePasswordStep({ formData, errors, onFieldChange, detected
             <span>{errors.password}</span>
           </div>
         )}
+        <div className="password-hint">
+          Password must be at least 8 characters, including uppercase, lowercase, number, and special character (@$!%*?&)
+        </div>
       </div>
 
       <div className="input-group">
@@ -156,29 +133,6 @@ function RegisterProfilePasswordStep({ formData, errors, onFieldChange, detected
           <div className="error-message">
             <img src={icons.diamondExclamation} alt="" className="inline-icon" />
             <span>{errors.confirmPassword}</span>
-          </div>
-        )}
-      </div>
-
-      <div className="register-totp-box">
-        <p><strong>Set up rolling passcode (TOTP)</strong></p>
-        <p className="register-step-desc">Add this secret to Google Authenticator or similar, then enter a 6-digit code.</p>
-        <code className="register-totp-secret">{totpSecret || '…'}</code>
-        <div className="input-group" style={{ marginTop: 12 }}>
-          <label>Authenticator code</label>
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder="6 digits (demo: 000000)"
-            value={formData.totpCode}
-            onChange={(e) => handleTotpChange(e.target.value)}
-            maxLength={6}
-          />
-        </div>
-        {totpError && (
-          <div className="error-message">
-            <img src={icons.diamondExclamation} alt="" className="inline-icon" />
-            <span>{totpError}</span>
           </div>
         )}
       </div>

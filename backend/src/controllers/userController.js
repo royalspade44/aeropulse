@@ -449,29 +449,42 @@ const updateNotifications = async (req, res) => {
 
 const changePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body || {};
-  if (!currentPassword || !newPassword) {
-    return res.status(400).json({ message: "Current password and new password are required" });
+  if (!newPassword) {
+    return res.status(400).json({ message: "New password is required" });
   }
 
+  // First login: allow password change without current password
+  if (req.authUser.isFirstLogin && ["admin", "technician"].includes(req.authUser.role)) {
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({
+        message: "New password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+      });
+    }
+    req.authUser.passwordHash = await bcrypt.hash(String(newPassword), 10);
+    req.authUser.isFirstLogin = false;
+    await req.authUser.save();
+    return res.json({ message: "Password changed successfully. You may now log in." });
+  }
+
+  // Normal password change
+  if (!currentPassword) {
+    return res.status(400).json({ message: "Current password and new password are required" });
+  }
   if (!req.authUser.passwordHash) {
     return res.status(400).json({ message: "This account uses OAuth. Set a local password from account recovery flow." });
   }
-
   const valid = await bcrypt.compare(String(currentPassword), req.authUser.passwordHash);
   if (!valid) {
     return res.status(400).json({ message: "Current password is incorrect" });
   }
-
   if (!isStrongPassword(newPassword)) {
     return res.status(400).json({
       message: "New password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
     });
   }
-
   if (String(currentPassword) === String(newPassword)) {
     return res.status(400).json({ message: "New password must be different from current password" });
   }
-
   req.authUser.passwordHash = await bcrypt.hash(String(newPassword), 10);
   await req.authUser.save();
   return res.json({ message: "Password changed successfully" });

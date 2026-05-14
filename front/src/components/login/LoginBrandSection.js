@@ -11,6 +11,7 @@ function LoginBrandSection() {
 
   return (
     <div className="login-brand">
+      <div className="login-brand-dots" aria-hidden="true" />
       <div className="brand-content">
         <div className="brand-logo">
           <img src={coldAirLogo} alt="Cold Air logo" />

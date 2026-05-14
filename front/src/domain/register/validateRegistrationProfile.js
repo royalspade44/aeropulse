@@ -58,6 +58,8 @@ export function validateRegistrationProfile(formData, detectedRole = 'customer')
     errors.password = 'Password must contain at least one uppercase letter';
   } else if (!/(?=.*\d)/.test(formData.password)) {
     errors.password = 'Password must contain at least one number';
+  } else if (!/(?=.*[@$!%*?&])/.test(formData.password)) {
+    errors.password = 'Password must contain at least one special character (@$!%*?&)';
   }
 
   if (!formData.confirmPassword) {
@@ -77,10 +79,6 @@ export function validateRegistrationProfile(formData, detectedRole = 'customer')
   }
   if (!formData.agreePrivacyRa10173) {
     errors.agreePrivacyRa10173 = 'You must acknowledge the Data Privacy Act (RA 10173) disclosure';
-  }
-
-  if (!/^\d{6}$/.test(String(formData.totpCode || '').trim())) {
-    errors.totpCode = 'Authenticator code must be exactly 6 digits';
   }
 
   if (detectedRole === 'customer') {
@@ -146,6 +144,8 @@ export function validateProfileAndSecurityStep(formData) {
     errors.password = 'Password must contain at least one uppercase letter';
   } else if (!/(?=.*\d)/.test(formData.password)) {
     errors.password = 'Password must contain at least one number';
+  } else if (!/(?=.*[@$!%*?&])/.test(formData.password)) {
+    errors.password = 'Password must contain at least one special character (@$!%*?&)';
   }
 
   if (!formData.confirmPassword) {

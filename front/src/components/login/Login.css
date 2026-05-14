@@ -72,12 +72,16 @@ body {
 /* ─── Grid ─── */
 .login-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   width: 100%;
-  max-width: 480px;
+  max-width: 1040px;
   animation: gridIn 0.4s ease-out;
   position: relative;
   z-index: 1;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(13, 17, 23, 0.14), 0 0 1px rgba(13, 17, 23, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.12);
 }
 
 @keyframes gridIn {
@@ -88,12 +92,21 @@ body {
 /* ─── Brand Panel ─── */
 .login-brand {
   background: var(--ink);
-  display: none;
+  display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 64px 52px;
   position: relative;
   overflow: hidden;
+  min-height: 640px;
+}
+
+.login-brand-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 26px 26px;
+  pointer-events: none;
 }
 
 .login-brand::before {
@@ -212,11 +225,11 @@ body {
   padding: 48px 44px;
   overflow-y: auto;
   position: relative;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(13, 17, 23, 0.12), 0 0 1px rgba(13, 17, 23, 0.06);
+  border-radius: 0;
+  box-shadow: none;
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(37, 99, 235, 0.1);
-  max-height: 95vh;
+  border: none;
+  max-height: 92vh;
 }
 
 .login-form-section::before {
@@ -845,6 +858,10 @@ body {
   .login-grid {
     grid-template-columns: 1fr;
     max-width: 480px;
+    border-radius: 20px;
+    overflow: visible;
+    box-shadow: none;
+    border: none;
   }
 
   .login-brand {
@@ -854,6 +871,10 @@ body {
   .login-form-section {
     padding: 44px 40px;
     justify-content: center;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(13, 17, 23, 0.12), 0 0 1px rgba(13, 17, 23, 0.06);
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    max-height: 95vh;
   }
 }
 

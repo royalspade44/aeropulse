@@ -400,29 +400,53 @@ body {
   min-height: 580px;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .hero-section::before {
   content: '';
   position: absolute;
-  top: -300px; right: -150px;
-  width: 700px; height: 700px;
-  background: radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%);
+  inset: -35%;
   pointer-events: none;
-  border-radius: 50%;
-  filter: blur(40px);
+  background:
+    radial-gradient(60% 60% at 15% 20%, rgba(37, 99, 235, 0.55) 0%, transparent 55%),
+    radial-gradient(55% 55% at 80% 15%, rgba(59, 130, 246, 0.40) 0%, transparent 60%),
+    radial-gradient(55% 55% at 70% 80%, rgba(37, 99, 235, 0.35) 0%, transparent 60%),
+    radial-gradient(50% 50% at 25% 85%, rgba(29, 78, 216, 0.40) 0%, transparent 62%);
+  filter: blur(46px) saturate(1.25);
+  transform: translate3d(0, 0, 0);
+  opacity: 0.9;
+  animation: heroMeshShift 14s ease-in-out infinite;
 }
 
 .hero-section::after {
   content: '';
   position: absolute;
-  bottom: -200px; left: -120px;
-  width: 550px; height: 550px;
-  background: radial-gradient(circle, rgba(37,99,235,0.22) 0%, transparent 70%);
+  inset: 0;
   pointer-events: none;
-  border-radius: 50%;
-  animation: breathe 14s ease-in-out infinite;
-  filter: blur(50px);
+  background:
+    radial-gradient(50% 40% at 50% 0%, rgba(255, 255, 255, 0.06) 0%, transparent 70%),
+    radial-gradient(40% 55% at 100% 50%, rgba(255, 255, 255, 0.04) 0%, transparent 70%),
+    radial-gradient(55% 40% at 0% 70%, rgba(255, 255, 255, 0.04) 0%, transparent 75%);
+  opacity: 0.9;
+}
+
+@keyframes heroMeshShift {
+  0% {
+    transform: translate3d(-1.5%, -1.5%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2.5%, -1%, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(-1%, 2%, 0) scale(1.02);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-section::before {
+    animation: none;
+  }
 }
 
 @keyframes breathe {
@@ -433,8 +457,18 @@ body {
 .hero-content {
   position: relative;
   z-index: 1;
-  max-width: 720px;
+  max-width: 780px;
+  text-align: center;
   animation: fadeInUp 0.8s ease-out;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1240px;
+  display: flex;
+  justify-content: center;
 }
 
 @keyframes fadeInUp {
@@ -458,7 +492,7 @@ body {
   border-radius: var(--radius-pill);
   font-size: 12.5px;
   font-weight: 600;
-  margin-bottom: 36px;
+  margin-bottom: 28px;
   letter-spacing: 1.2px;
   text-transform: uppercase;
   color: rgba(255,255,255,0.95);
@@ -493,12 +527,21 @@ body {
 
 .hero-subtitle {
   font-size: 19px;
-  margin-bottom: 44px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 34px;
   color: rgba(255,255,255,0.72);
   max-width: 580px;
   line-height: 1.75;
   font-weight: 400;
   animation: slideInDown 0.8s ease-out 0.3s backwards;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .hero-btn {
@@ -520,6 +563,24 @@ body {
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(37,99,235,0.35);
   animation: slideInDown 0.8s ease-out 0.4s backwards;
+}
+
+.hero-btn.hero-btn--secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  box-shadow: none;
+}
+
+.hero-btn.hero-btn--secondary::before,
+.hero-btn.hero-btn--secondary::after {
+  display: none;
+}
+
+.hero-btn.hero-btn--secondary:hover {
+  transform: translateY(-4px) scale(1.02);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
 }
 
 .hero-btn::before {

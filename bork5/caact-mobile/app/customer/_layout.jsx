@@ -38,11 +38,13 @@ export default function CustomerLayout() {
         <Stack.Screen name="scan-qr" />
         <Stack.Screen name="units/[id]" />
         <Stack.Screen name="orders" />
+        <Stack.Screen name="shop" />
         <Stack.Screen name="requests/index" />
         <Stack.Screen name="requests/[id]/index" />
         <Stack.Screen name="requests/[id]/unit/log/consume-qr" />
         <Stack.Screen name="services" />
         <Stack.Screen name="contact" />
+        <Stack.Screen name="faq" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="oobe/index" />
         <Stack.Screen name="oobe/reset" />
