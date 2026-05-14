@@ -22,7 +22,6 @@ import AdminMaintenance from './components/ADMIN/Maintenance/AdminMaintenance';
 import AdminTechnician from './components/ADMIN/Technicians/AdminTechnician';
 import AdminReoder from './components/ADMIN/Reorder/AdminReoder';
 import AdminProfile from './components/ADMIN/Profile/AdminProfile';
-import AdminAttendance from './components/ADMIN/Attendance/AdminAttendance';
 import AdminUnlockUsers from './components/ADMIN/Users/AdminUnlockUsers';
 import AdminStoreOperations from './components/ADMIN/Store/AdminStoreOperations';
 import AdminOrders from './components/ADMIN/Orders/AdminOrders';
@@ -31,7 +30,6 @@ import AdminSettings from './components/ADMIN/Settings/AdminSettings';
 import AdminAuditLogs from './components/ADMIN/AuditLogs/AdminAuditLogs';
 import SuperAdminDashboard from './components/SUPERADMIN/Dashboard/SuperAdminDashboard';
 import SuperAdminBranches from './components/SUPERADMIN/Dashboard/SuperAdminBranches';
-import SuperAdminAttendance from './components/SUPERADMIN/Dashboard/SuperAdminAttendance';
 import SuperAdminSales from './components/SUPERADMIN/Dashboard/SuperAdminSales';
 import SuperAdminInventory from './components/SUPERADMIN/Dashboard/SuperAdminInventory';
 import SuperAdminTasks from './components/SUPERADMIN/Dashboard/SuperAdminTasks';
@@ -315,14 +313,6 @@ function AppContent() {
         }
       />
       <Route
-        path="/admin/attendance"
-        element={
-          <RoleRoute allowedRoles={['admin']}>
-            <AdminAttendance />
-          </RoleRoute>
-        }
-      />
-      <Route
         path="/admin/unlock-users"
         element={
           <RoleRoute allowedRoles={['admin']}>
@@ -361,14 +351,6 @@ function AppContent() {
         element={
           <RoleRoute allowedRoles={['superadmin']}>
             <SuperAdminBranches />
-          </RoleRoute>
-        }
-      />
-      <Route
-        path="/superadmin/attendance"
-        element={
-          <RoleRoute allowedRoles={['superadmin']}>
-            <SuperAdminAttendance />
           </RoleRoute>
         }
       />

@@ -1,39 +1,40 @@
 import { useEffect, useMemo, useState } from 'react';
 import AdminLayout from '../Common/AdminLayout';
-import { loadAuditLogs } from '../../../utils/auditLogs';
+import { apiRequest } from '../../../config/api';
 import '../adminShared.css';
-
-const withinRange = (iso, from, to) => {
-  const t = new Date(iso).getTime();
-  if (Number.isNaN(t)) return false;
-  const fromT = from ? new Date(from).getTime() : null;
-  const toT = to ? new Date(to).getTime() : null;
-  if (fromT && t < fromT) return false;
-  if (toT && t > toT + 24 * 60 * 60 * 1000 - 1) return false;
-  return true;
-};
 
 function AdminAuditLogs() {
   const [filters, setFilters] = useState({ user: '', from: '', to: '' });
-  const [logs, setLogs] = useState(() => loadAuditLogs());
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const loadLogs = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const params = new URLSearchParams();
+      if (filters.from) params.append('from', filters.from);
+      if (filters.to) params.append('to', filters.to);
+      if (filters.user) params.append('user', filters.user);
+      const response = await apiRequest(`/reports/audit-logs?${params.toString()}`);
+      setLogs(response.logs || []);
+    } catch (err) {
+      setError(err.message || 'Failed to load audit logs');
+      setLogs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const onStorage = (event) => {
-      if (!event.key) return;
-      if (!String(event.key).startsWith('aeropulse_admin_audit_logs')) return;
-      setLogs(loadAuditLogs());
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
+    loadLogs();
+  }, [filters]);
 
   const filtered = useMemo(() => {
-    return logs.filter((l) => {
-      if (filters.user && !String(l.user || '').toLowerCase().includes(filters.user.toLowerCase())) return false;
-      if ((filters.from || filters.to) && !withinRange(l.timestamp, filters.from, filters.to)) return false;
-      return true;
-    });
-  }, [logs, filters.from, filters.to, filters.user]);
+    // Since filtering is done server-side, just return logs
+    return logs;
+  }, [logs]);
 
   return (
     <AdminLayout title="Audit Logs" subtitle="Track important admin actions (inventory, orders, settings, unlocks)">
@@ -55,8 +56,8 @@ function AdminAuditLogs() {
             </label>
           </div>
           <div className="admin-card-actions">
-            <button type="button" onClick={() => setLogs(loadAuditLogs())}>
-              Refresh
+            <button type="button" onClick={loadLogs} disabled={loading}>
+              {loading ? 'Loading...' : 'Refresh'}
             </button>
           </div>
         </div>
@@ -78,7 +79,10 @@ function AdminAuditLogs() {
 
       <div className="admin-card admin-card--spacious admin-card--spaced">
         <h3>Entries</h3>
-        {filtered.length === 0 ? (
+        {error && <div className="admin-error">{error}</div>}
+        {loading ? (
+          <div className="admin-empty-state">Loading audit logs...</div>
+        ) : filtered.length === 0 ? (
           <div className="admin-empty-state">No logs match the selected filters.</div>
         ) : (
           <div className="admin-table-wrap">
@@ -88,7 +92,8 @@ function AdminAuditLogs() {
                   <th>Timestamp</th>
                   <th>User</th>
                   <th>Action</th>
-                  <th>Details</th>
+                  <th>Description</th>
+                  <th>Branch</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,10 +101,11 @@ function AdminAuditLogs() {
                   <tr key={row.id}>
                     <td>{new Date(row.timestamp).toLocaleString()}</td>
                     <td>{row.user}</td>
-                    <td>{row.action}</td>
-                    <td className="admin-table-cell-truncate" title={row.details}>
-                      {row.details}
+                    <td>{row.action.replace(/_/g, ' ')}</td>
+                    <td className="admin-table-cell-truncate" title={row.description}>
+                      {row.description}
                     </td>
+                    <td>{row.branch || '—'}</td>
                   </tr>
                 ))}
               </tbody>

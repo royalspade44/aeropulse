@@ -12,11 +12,11 @@ const createChangeRequest = async (req, res) => {
     return res.status(403).json({ message: "Only managers can request inventory changes" });
   }
 
-  const { productId, requestedStock, reason } = req.body;
+  const { productId, requestedStock, addQuantity, reason } = req.body;
   const branch = req.activeBranch;
 
-  if (!productId || requestedStock === undefined || !reason?.trim()) {
-    return res.status(400).json({ message: "Product, requested stock, and reason are required" });
+  if (!productId || (requestedStock === undefined && addQuantity === undefined) || !reason?.trim()) {
+    return res.status(400).json({ message: "Product, quantity, and reason are required" });
   }
 
   const product = await Product.findById(productId);
@@ -25,7 +25,17 @@ const createChangeRequest = async (req, res) => {
   }
 
   const currentStockValue = Number(product.branchStock.get(branch) || 0);
-  const requestedQuantity = Number(requestedStock);
+  let requestedQuantity = 0;
+  if (addQuantity !== undefined) {
+    const qty = Number(addQuantity);
+    if (!Number.isFinite(qty) || qty <= 0) {
+      return res.status(400).json({ message: "Quantity must be a valid positive number" });
+    }
+    requestedQuantity = currentStockValue + qty;
+  } else {
+    requestedQuantity = Number(requestedStock);
+  }
+
   if (!Number.isFinite(requestedQuantity) || requestedQuantity <= currentStockValue) {
     return res.status(400).json({ message: "Requested stock must be greater than the current branch stock." });
   }

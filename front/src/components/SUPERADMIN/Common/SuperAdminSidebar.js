@@ -7,7 +7,6 @@ import icons from '../../common/icons';
 const links = [
   { to: '/superadmin/dashboard', label: 'Command Center', icon: icons.shieldKeyhole },
   { to: '/superadmin/branches', label: 'Branch Locations', icon: icons.marker },
-  { to: '/superadmin/attendance', label: 'Attendance', icon: icons.clipboardList },
   { to: '/superadmin/sales', label: 'Processing Sales', icon: icons.cartShoppingFast },
   { to: '/superadmin/inventory', label: 'Inventory Checker', icon: icons.boxOpen },
   { to: '/superadmin/tasks', label: 'Processing Tech Tasks', icon: icons.tools },

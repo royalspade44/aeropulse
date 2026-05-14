@@ -99,7 +99,6 @@ function SuperAdminDashboard() {
           <h2>Boss Controls</h2>
           <div className="super-list">
             <button type="button" onClick={() => navigate('/superadmin/branches')}><img src={icons.marker} alt="" className="inline-icon" /> Branch Location Handling</button>
-            <button type="button" onClick={() => navigate('/superadmin/attendance')}><img src={icons.clipboardList} alt="" className="inline-icon" /> Attendance (Admins and Techs)</button>
             <button type="button" onClick={() => navigate('/superadmin/sales')}><img src={icons.cartShoppingFast} alt="" className="inline-icon" /> Processing Sales</button>
             <button type="button" onClick={() => navigate('/superadmin/inventory')}><img src={icons.boxOpen} alt="" className="inline-icon" /> Inventory Checker</button>
             <button type="button" onClick={() => navigate('/superadmin/tasks')}><img src={icons.tools} alt="" className="inline-icon" /> Processing Tech Tasks</button>

@@ -10,12 +10,6 @@ const isOlderThanHours = (isoDate, hours) => {
   return Date.now() - date.getTime() > hours * 60 * 60 * 1000;
 };
 
-const startOfTodayISO = () => {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString().split('T')[0];
-};
-
 function AdminNotificationsBell() {
   const navigate = useNavigate();
   const panelRef = useRef(null);
@@ -29,11 +23,9 @@ function AdminNotificationsBell() {
   const refresh = useCallback(async () => {
     setBusy(true);
     try {
-      const [lowStockResult, ordersResult, attendanceResult] = await Promise.all([
+      const [lowStockResult, ordersResult] = await Promise.all([
         apiRequest('/products/low-stock').catch(() => ({ products: [] })),
         apiRequest('/orders').catch(() => ({ orders: [] })),
-        apiRequest(`/attendance/history?from=${encodeURIComponent(startOfTodayISO())}&to=${encodeURIComponent(startOfTodayISO())}&role=technician&limit=500`)
-          .catch(() => ({ attendance: [] })),
       ]);
 
       const lowStockCount = (lowStockResult.products || []).filter((p) => Number(p.stock || 0) < 5).length;
@@ -43,9 +35,6 @@ function AdminNotificationsBell() {
         if (workflow === 'complete' || workflow === 'cancelled') return false;
         return isOlderThanHours(o.createdAt, 24);
       });
-
-      const attendanceRows = Array.isArray(attendanceResult.attendance) ? attendanceResult.attendance : [];
-      const lateOrAbsent = attendanceRows.filter((row) => ['late', 'absent'].includes(String(row.status || '').toLowerCase()));
 
       const next = [];
       if (lowStockCount > 0) {
@@ -66,16 +55,6 @@ function AdminNotificationsBell() {
           to: '/admin/orders',
         });
       }
-      if (lateOrAbsent.length > 0) {
-        next.push({
-          id: 'tech-attendance',
-          createdAt: new Date().toISOString(),
-          title: 'Technician attendance',
-          message: `${lateOrAbsent.length} late/absent attendance record(s) today.`,
-          to: '/admin/attendance',
-        });
-      }
-
       setItems(next);
     } finally {
       setBusy(false);

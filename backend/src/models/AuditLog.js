@@ -18,6 +18,8 @@ const auditLogSchema = new mongoose.Schema(
         "product_updated",
         "product_deleted",
         "low_stock_alert",
+        "user_registered",
+        "user_login",
       ],
       index: true,
     },

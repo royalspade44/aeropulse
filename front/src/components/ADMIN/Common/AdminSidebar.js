@@ -11,7 +11,6 @@ const navItems = [
   { to: '/admin/inventory', label: 'Inventory', icon: icons.boxOpen },
   { to: '/admin/maintenance', label: 'Maintenance', icon: icons.tools },
   { to: '/admin/technicians', label: 'Technicians', icon: icons.memberList },
-  { to: '/admin/attendance', label: 'Attendance', icon: icons.visit },
   { to: '/admin/orders', label: 'Orders', icon: icons.clipboardList },
   { to: '/admin/store', label: 'Store', icon: icons.houseChimney },
   { to: '/admin/reorder', label: 'Reorder', icon: icons.cartShoppingFast },

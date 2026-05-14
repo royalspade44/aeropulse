@@ -1,14 +1,14 @@
-import { useState, useEffect, useContext } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
+import { useState, useEffect } from "react";
+import { View, Text, ScrollView, Image, Alert } from "react-native";
 import CustomerScreen from "../../components/customer/CustomerScreen";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import { COLORS, SPACING, FONT } from "../../constants/theme";
 import * as api from "../../services/api";
-import { UserContext } from "../../context/UserContext";
+import { useUserContext } from "../../context/UserContext";
 
 export default function CustomerShopScreen() {
-  const { token, current } = useContext(UserContext) || {};
+  const { token, current } = useUserContext();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);

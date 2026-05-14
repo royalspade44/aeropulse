@@ -9,7 +9,6 @@ const env = require("./config/env");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
-const attendanceRoutes = require("./routes/attendanceRoutes");
 const productRoutes = require("./routes/productRoutes");
 const reorderRoutes = require("./routes/reorderRoutes");
 const serviceRequestRoutes = require("./routes/serviceRequestRoutes");
@@ -36,7 +35,6 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/attendance", attendanceRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/reorders", reorderRoutes);
 app.use("/api/service-requests", serviceRequestRoutes);

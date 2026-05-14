@@ -1,4 +1,5 @@
 const Order = require("../models/Order");
+const AuditLog = require("../models/AuditLog");
 
 const parseDate = (value) => {
   if (!value) return null;
@@ -109,5 +110,66 @@ const getSalesReport = async (req, res) => {
   }
 };
 
-module.exports = { getSalesReport };
+const getAuditLogs = async (req, res) => {
+  try {
+    const from = parseDate(req.query.from) || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const to = parseDate(req.query.to) || new Date();
+    const userFilter = String(req.query.user || "").trim();
+    const actionFilter = String(req.query.action || "").trim();
+    const limit = Math.min(1000, Math.max(1, Number(req.query.limit) || 100));
+    const skip = Math.max(0, Number(req.query.skip) || 0);
+
+    const match = {
+      createdAt: { $gte: from, $lte: to },
+    };
+
+    if (userFilter) {
+      match.user = userFilter;
+    }
+
+    if (actionFilter) {
+      match.action = actionFilter;
+    }
+
+    const activeBranch = req.authUser?.role === "superadmin" ? "" : String(req.activeBranch || "");
+    if (activeBranch) {
+      match.branch = activeBranch;
+    }
+
+    const logs = await AuditLog.find(match)
+      .populate("user", "name email")
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip(skip)
+      .lean();
+
+    const total = await AuditLog.countDocuments(match);
+
+    return res.json({
+      logs: logs.map(log => ({
+        id: log._id.toString(),
+        action: log.action,
+        user: log.user ? `${log.user.name} (${log.user.email})` : "Unknown",
+        branch: log.branch,
+        entityType: log.entityType,
+        entityId: log.entityId,
+        changeDetails: log.changeDetails,
+        description: log.description,
+        ipAddress: log.ipAddress,
+        timestamp: log.createdAt.toISOString(),
+      })),
+      total,
+      from: from.toISOString(),
+      to: to.toISOString(),
+      branch: activeBranch || "all",
+      limit,
+      skip,
+    });
+  } catch (error) {
+    console.error("Failed to load audit logs:", error);
+    return res.status(500).json({ message: "Unable to load audit logs right now." });
+  }
+};
+
+module.exports = { getSalesReport, getAuditLogs };
 

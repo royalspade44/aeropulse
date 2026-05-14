@@ -19,11 +19,22 @@ async function request(method, path, { token, body } = {}) {
   const headers = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  } catch (error) {
+    return {
+      status: 0,
+      ok: false,
+      data: {
+        error: error?.message || "Network error occurred while sending the request.",
+      },
+    };
+  }
 
   let data;
   try {
@@ -35,10 +46,10 @@ async function request(method, path, { token, body } = {}) {
   return { status: res.status, ok: res.ok, data };
 }
 
-const get = (path, token) => request("GET", path, { token });
-const post = (path, body, token) => request("POST", path, { token, body });
-const patch = (path, body, token) => request("PATCH", path, { token, body });
-const del = (path, token) => request("DELETE", path, { token });
+export const get = (path, token) => request("GET", path, { token });
+export const post = (path, body, token) => request("POST", path, { token, body });
+export const patch = (path, body, token) => request("PATCH", path, { token, body });
+export const del = (path, token) => request("DELETE", path, { token });
 const TOKEN_KEY = "auth_token";
 
 export async function getStoredToken() {

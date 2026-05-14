@@ -37,10 +37,12 @@ function Home() {
   
   // Notifications Data
   const [notifications, setNotifications] = useState([]);
+  const [previousNotificationIds, setPreviousNotificationIds] = useState(new Set());
 
   useEffect(() => {
     if (!isAuthenticated) {
       setNotifications([]);
+      setPreviousNotificationIds(new Set());
       return;
     }
 
@@ -51,12 +53,29 @@ function Home() {
           unread: Boolean(item.unread),
           time: new Date(item.createdAt).toLocaleString()
         }));
+        const currentIds = new Set(normalized.map(n => n.id));
+        const newNotifications = normalized.filter(n => !previousNotificationIds.has(n.id));
+        
+        if (newNotifications.length > 0) {
+          // Show toast for new notifications
+          newNotifications.forEach(notif => {
+            if (notif.unread) {
+              // Simple alert for now, could be replaced with toast library
+              console.log('New notification:', notif.title);
+              // For demo, show alert
+              alert(`New notification: ${notif.title}`);
+            }
+          });
+        }
+        
         setNotifications(normalized);
+        setPreviousNotificationIds(currentIds);
       })
       .catch(() => {
         setNotifications([]);
+        setPreviousNotificationIds(new Set());
       });
-  }, [isAuthenticated]);
+  }, [isAuthenticated, previousNotificationIds]);
 
   // Brand Data - Matches the structure in BrandsSection.js
   const brands = [

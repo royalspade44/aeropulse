@@ -3,7 +3,7 @@ import { apiRequest } from '../../../config/api';
 import './InventoryChangeRequestModal.css';
 
 const InventoryChangeRequestModal = ({ isOpen, product, currentStock, onClose, onSuccess }) => {
-  const [requestedStock, setRequestedStock] = useState('');
+  const [addQuantity, setAddQuantity] = useState('');
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -14,14 +14,14 @@ const InventoryChangeRequestModal = ({ isOpen, product, currentStock, onClose, o
     e.preventDefault();
     setError('');
 
-    if (!requestedStock || !reason.trim()) {
-      setError('Both requested stock and reason are required');
+    if (!addQuantity || !reason.trim()) {
+      setError('Both quantity and reason are required');
       return;
     }
 
-    const newStock = Number(requestedStock);
-    if (isNaN(newStock) || newStock < 0) {
-      setError('Requested stock must be a valid positive number');
+    const qty = Number(addQuantity);
+    if (!Number.isFinite(qty) || qty <= 0) {
+      setError('Quantity must be a valid positive number');
       return;
     }
 
@@ -32,13 +32,13 @@ const InventoryChangeRequestModal = ({ isOpen, product, currentStock, onClose, o
         body: JSON.stringify({
           productId: product._id || product.id,
           currentStock: Number(currentStock),
-          requestedStock: newStock,
+          addQuantity: qty,
           reason: reason.trim(),
         }),
       });
 
       alert('Request submitted successfully');
-      setRequestedStock('');
+      setAddQuantity('');
       setReason('');
       onClose();
       onSuccess?.();
@@ -53,7 +53,7 @@ const InventoryChangeRequestModal = ({ isOpen, product, currentStock, onClose, o
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Request Inventory Change</h2>
+          <h2>Request Stock Addition</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
@@ -71,17 +71,17 @@ const InventoryChangeRequestModal = ({ isOpen, product, currentStock, onClose, o
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="requestedStock">Requested New Stock *</label>
+              <label htmlFor="addQuantity">Add Stock Quantity *</label>
               <input
-                id="requestedStock"
+                id="addQuantity"
                 type="number"
-                min="0"
-                value={requestedStock}
-                onChange={(e) => setRequestedStock(e.target.value)}
-                placeholder="Enter new stock quantity (must exceed current stock)"
+                min="1"
+                value={addQuantity}
+                onChange={(e) => setAddQuantity(e.target.value)}
+                placeholder="Enter quantity to add"
                 className="form-input"
               />
-              <small>Requested stock must be greater than the current branch stock.</small>
+              <small>Stock requests are add-only and will increase current branch stock.</small>
             </div>
 
             <div className="form-group">

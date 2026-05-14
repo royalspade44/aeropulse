@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../models/User");
 const OtpRequest = require("../models/OtpRequest");
+const AuditLog = require("../models/AuditLog");
 const { signAccessToken } = require("../utils/token");
 const env = require("../config/env");
 const { BRANCHES, resolvePreferredBranch } = require("../domain/branchRouting");
@@ -470,6 +471,18 @@ const register = async (req, res) => {
     assignedBranch,
     hasAddress: Boolean(user.address),
   });
+
+  // Create audit log for user registration
+  await AuditLog.create({
+    action: "user_registered",
+    user: user.id,
+    branch: assignedBranch,
+    entityType: "user",
+    entityId: user.id,
+    description: `New ${userRole} account registered: ${user.email}`,
+    ipAddress: req.ip || req.connection.remoteAddress,
+  });
+
   return res.status(201).json({ token, user: user.toJSON() });
 };
 
@@ -591,33 +604,7 @@ const login = async (req, res) => {
       : (BRANCHES.includes(user.activeBranch) ? user.activeBranch : user.assignedBranch);
   }
 
-  // Auto-log attendance for admin and technician users
   if (["admin", "technician"].includes(user.role)) {
-    try {
-      const Attendance = require("../models/Attendance");
-      const today = new Date();
-      const y = today.getFullYear();
-      const m = String(today.getMonth() + 1).padStart(2, "0");
-      const d = String(today.getDate()).padStart(2, "0");
-      const day = `${y}-${m}-${d}`;
-      const status = "present";
-      const branchToUse = effectiveBranch || user.activeBranch || user.assignedBranch || "";
-      await Attendance.findOneAndUpdate(
-        { user: user._id, day },
-        {
-          $set: {
-            role: user.role,
-            status,
-            branch: branchToUse,
-            notes: "",
-          },
-        },
-        { new: true, upsert: true }
-      );
-    } catch (err) {
-      console.error("[Auth][Login] Failed to auto-log attendance", err);
-    }
-
     if (!effectiveBranch || !BRANCHES.includes(effectiveBranch)) {
       return res.status(400).json({ message: "A valid branch is required for this account." });
     }
@@ -641,6 +628,17 @@ const login = async (req, res) => {
     role: user.role,
     clientType,
     branch: effectiveBranch,
+  });
+
+  // Create audit log for successful login
+  await AuditLog.create({
+    action: "user_login",
+    user: user.id,
+    branch: effectiveBranch || "",
+    entityType: "user",
+    entityId: user.id,
+    description: `${user.role} login from ${clientType}`,
+    ipAddress: req.ip || req.connection.remoteAddress,
   });
 
   return res.json({

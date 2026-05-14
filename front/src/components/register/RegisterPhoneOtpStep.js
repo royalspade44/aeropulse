@@ -181,6 +181,17 @@ function RegisterPhoneOtpStep({ formData, errors, onFieldChange, onBillingFieldC
             error={errors.billingStreet}
             required
           />
+
+          <div className="register-delivery-checkbox">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={formData.useAsDelivery || false}
+                onChange={(e) => onFieldChange('useAsDelivery', e.target.checked)}
+              />
+              <span>Use as delivery location</span>
+            </label>
+          </div>
         </section>
       )}
 

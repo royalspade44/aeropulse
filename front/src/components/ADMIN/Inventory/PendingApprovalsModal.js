@@ -113,8 +113,8 @@ const PendingApprovalsModal = ({ isOpen, onClose, onRefresh }) => {
                       <span className="detail-value">{request.currentStock}</span>
                     </div>
                     <div className="detail-row">
-                      <span className="detail-label">Requested Stock:</span>
-                      <span className="detail-value highlight">{request.requestedStock}</span>
+                      <span className="detail-label">Requested Addition:</span>
+                      <span className="detail-value highlight">+{Math.max(0, Number(request.requestedStock) - Number(request.currentStock))}</span>
                     </div>
                     <div className="detail-row">
                       <span className="detail-label">Reason:</span>
