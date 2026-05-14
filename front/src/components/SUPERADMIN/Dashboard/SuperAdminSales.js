@@ -105,6 +105,10 @@ const SuperAdminSales = () => {
           <strong>{totalCompleted}</strong>
         </div>
         <div className="super-card">
+          <h3>Cancelled</h3>
+          <strong>{totalCancelled}</strong>
+        </div>
+        <div className="super-card">
           <h3>Branches</h3>
           <strong>{BRANCHES.length}</strong>
         </div>
