@@ -262,6 +262,11 @@
   color: white;
 }
 
+.report-btn {
+  background: #ef4444;
+  color: white;
+}
+
 .history-btn {
   background: #f5f5f5;
   color: #666;

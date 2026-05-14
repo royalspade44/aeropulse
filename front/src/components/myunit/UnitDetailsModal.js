@@ -1,6 +1,6 @@
 import icons from '../common/icons';
 
-function UnitDetailsModal({ unit, onClose, onEdit, onDelete }) {
+function UnitDetailsModal({ unit, onClose, onEdit, onDelete, onReport }) {
   const getStatusClass = () => {
     switch(unit.status) {
       case 'Good': return 'status-good';
@@ -78,6 +78,11 @@ function UnitDetailsModal({ unit, onClose, onEdit, onDelete }) {
         </div>
         <div className="modal-footer">
           <button className="cancel-btn" onClick={onClose}>Close</button>
+          {onReport ? (
+            <button className="confirm-btn" onClick={() => onReport(unit)}>
+              Report Issue
+            </button>
+          ) : null}
         </div>
       </div>
     </div>

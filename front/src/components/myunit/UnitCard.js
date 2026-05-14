@@ -1,7 +1,7 @@
 import icons from '../common/icons';
 import UnitKebabMenu from './UnitKebabMenu';
 
-function UnitCard({ unit, onClick, onScheduleService, onViewHistory, onWarrantyStatus, onRegisterQr }) {
+function UnitCard({ unit, onClick, onScheduleService, onViewHistory, onWarrantyStatus, onRegisterQr, onReportIssue }) {
   const getStatusClass = () => {
     switch(unit.status) {
       case 'Good': return 'status-good';
@@ -68,6 +68,15 @@ function UnitCard({ unit, onClick, onScheduleService, onViewHistory, onWarrantyS
           }}
         >
           Service History
+        </button>
+        <button
+          className="unit-btn report-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            onReportIssue?.(unit);
+          }}
+        >
+          Report Issue
         </button>
       </div>
     </div>
