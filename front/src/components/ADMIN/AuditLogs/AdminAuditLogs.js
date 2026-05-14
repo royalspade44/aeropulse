@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import AdminLayout from '../Common/AdminLayout';
 import { apiRequest } from '../../../config/api';
 import '../adminShared.css';
@@ -9,7 +9,7 @@ function AdminAuditLogs() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -25,11 +25,11 @@ function AdminAuditLogs() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
     loadLogs();
-  }, [filters]);
+  }, [loadLogs]);
 
   const filtered = useMemo(() => {
     // Since filtering is done server-side, just return logs
