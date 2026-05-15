@@ -36,7 +36,7 @@ const auditLogSchema = new mongoose.Schema(
     },
     entityType: {
       type: String,
-      enum: ["product", "inventory_change_request", "restock_order"],
+      enum: ["product", "inventory_change_request", "restock_order", "user"],
       required: true,
     },
     entityId: {

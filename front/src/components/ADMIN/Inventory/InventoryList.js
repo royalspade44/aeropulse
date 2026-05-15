@@ -8,8 +8,6 @@ const InventoryList = ({ products, loading, onRefresh, branch, onRequestChange, 
   const { user } = useUser();
   const [pendingId, setPendingId] = React.useState('');
   const [rowState, setRowState] = React.useState({});
-  const [editingId, setEditingId] = React.useState('');
-  const [editForm, setEditForm] = React.useState({ name: '', brand: '', category: '', specs: '', price: '', threshold: '' });
 
   const getRowState = (productId) => rowState[productId] || { quantity: '' };
   const setRowValue = (productId, next) => {
@@ -53,61 +51,7 @@ const InventoryList = ({ products, loading, onRefresh, branch, onRequestChange, 
     }
   };
 
-  const startEdit = (product) => {
-    setEditingId(product.id);
-    setEditForm({
-      name: product.name || '',
-      brand: product.brand || '',
-      category: product.category || 'split',
-      specs: product.specs || '',
-      price: String(product.price ?? ''),
-      threshold: String(product.threshold ?? ''),
-    });
-  };
 
-  const saveEdit = async (productId) => {
-    try {
-      setPendingId(productId);
-      await apiRequest(`/products/${productId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          ...editForm,
-          price: Number(editForm.price) || 0,
-          threshold: Number(editForm.threshold) || 0,
-        }),
-      });
-      appendAuditLog({
-        user: user?.email || user?.name || 'admin',
-        action: 'edit_inventory_item',
-        details: `Edited product ${productId} (name=${editForm.name}, brand=${editForm.brand}, category=${editForm.category})`,
-      });
-      setEditingId('');
-      onRefresh?.();
-    } catch (error) {
-      alert(error.message || 'Unable to update product');
-    } finally {
-      setPendingId('');
-    }
-  };
-
-  const removeProduct = async (productId) => {
-    const proceed = window.confirm('Remove this item from inventory?');
-    if (!proceed) return;
-    try {
-      setPendingId(productId);
-      await apiRequest(`/products/${productId}`, { method: 'DELETE' });
-      appendAuditLog({
-        user: user?.email || user?.name || 'admin',
-        action: 'delete_inventory_item',
-        details: `Deleted product ${productId}`,
-      });
-      onRefresh?.();
-    } catch (error) {
-      alert(error.message || 'Unable to delete product');
-    } finally {
-      setPendingId('');
-    }
-  };
 
   return (
     <div className="admin-card">
@@ -126,46 +70,21 @@ const InventoryList = ({ products, loading, onRefresh, branch, onRequestChange, 
             <th>Stock</th>
             <th>Price</th>
             <th>Add Stock</th>
-            <th>Item Actions</th>
             {onRequestChange && <th>Manager Actions</th>}
           </tr>
         </thead>
         <tbody>
           {products.map((product) => (
             <tr key={product.id}>
-              <td>
-                {editingId === product.id ? (
-                  <input value={editForm.name} onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))} />
-                ) : product.name}
-              </td>
-              <td>
-                {editingId === product.id ? (
-                  <input value={editForm.brand} onChange={(e) => setEditForm((prev) => ({ ...prev, brand: e.target.value }))} />
-                ) : (product.brand || '-')}
-              </td>
-              <td>
-                {editingId === product.id ? (
-                  <select value={editForm.category} onChange={(e) => setEditForm((prev) => ({ ...prev, category: e.target.value }))}>
-                    <option value="split">Split</option>
-                    <option value="window">Window</option>
-                    <option value="floor">Floor Mounted</option>
-                  </select>
-                ) : (product.category || '-')}
-              </td>
-              <td>
-                {editingId === product.id ? (
-                  <input value={editForm.specs} onChange={(e) => setEditForm((prev) => ({ ...prev, specs: e.target.value }))} placeholder="e.g. 1.5HP" />
-                ) : (product.specs || '-')}
-              </td>
+              <td>{product.name}</td>
+              <td>{product.brand || '-'}</td>
+              <td>{product.category || '-'}</td>
+              <td>{product.specs || '-'}</td>
               <td>{product.sku}</td>
               <td className="stock-cell">
                 <span className="stock-badge">{getStockDisplay(product)}</span>
               </td>
-              <td>
-                {editingId === product.id ? (
-                  <input type="number" min="0" value={editForm.price} onChange={(e) => setEditForm((prev) => ({ ...prev, price: e.target.value }))} style={{ width: 90 }} />
-                ) : `PHP ${product.price}`}
-              </td>
+              <td>PHP {product.price}</td>
               <td style={{ minWidth: 210 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <input
@@ -181,29 +100,7 @@ const InventoryList = ({ products, loading, onRefresh, branch, onRequestChange, 
                   </button>
                 </div>
               </td>
-              <td style={{ minWidth: 220 }}>
-                {editingId === product.id ? (
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <input
-                      value={editForm.threshold}
-                      type="number"
-                      min="0"
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, threshold: e.target.value }))}
-                      placeholder="Threshold"
-                      style={{ width: 90 }}
-                    />
-                    <button type="button" onClick={() => saveEdit(product.id)} disabled={pendingId === product.id}>
-                      {pendingId === product.id ? 'Saving...' : 'Save'}
-                    </button>
-                    <button type="button" onClick={() => setEditingId('')}>Cancel</button>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <button type="button" onClick={() => startEdit(product)} disabled={pendingId === product.id}>Edit</button>
-                    <button type="button" onClick={() => removeProduct(product.id)} disabled={pendingId === product.id}>Delete</button>
-                  </div>
-                )}
-              </td>
+
               {onRequestChange && (
                 <td>
                   <button 

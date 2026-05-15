@@ -3,29 +3,13 @@ import { apiRequest } from '../../../config/api';
 
 const RequestDetails = ({ request }) => {
   const [current, setCurrent] = useState(request);
-  const [technicians, setTechnicians] = useState([]);
-  const [selectedTechId, setSelectedTechId] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     setCurrent(request);
-    setSelectedTechId(request?.assignedTechnicianId || '');
     setMessage('');
   }, [request]);
-
-  useEffect(() => {
-    const loadTechnicians = async () => {
-      try {
-        const result = await apiRequest('/users?role=technician');
-        setTechnicians(result.users || []);
-      } catch (error) {
-        setTechnicians([]);
-      }
-    };
-
-    loadTechnicians();
-  }, []);
 
   const updateRequest = async (payload, successText) => {
     if (!current?.id) return;
@@ -43,22 +27,6 @@ const RequestDetails = ({ request }) => {
     } finally {
       setBusy(false);
     }
-  };
-
-  const assignTechnician = () => {
-    const tech = technicians.find((techUser) => techUser.id === selectedTechId);
-    if (!tech) {
-      setMessage('Please select a technician to assign.');
-      return;
-    }
-    updateRequest(
-      {
-        status: 'Assigned',
-        assignedTechnicianId: tech.id,
-        assignedTechnicianName: tech.name || tech.email || 'Technician',
-      },
-      `Assigned to ${tech.name || tech.email}.`
-    );
   };
 
   const markCompleted = () => {
@@ -83,29 +51,22 @@ const RequestDetails = ({ request }) => {
       <p><strong>Address:</strong> {current.address}</p>
       <p><strong>Status:</strong> {current.status}</p>
       {current.assignedTechnicianName ? (
-        <p><strong>Technician:</strong> {current.assignedTechnicianName}</p>
-      ) : null}
+        <p><strong>Assigned Technician:</strong> {current.assignedTechnicianName}</p>
+      ) : (
+        <p><strong>Assigned Technician:</strong> <span style={{ color: '#9ca3af' }}>Waiting for technician to accept...</span></p>
+      )}
 
       <div style={{ marginTop: 18 }}>
-        <label style={{ display: 'block', marginBottom: 8, fontWeight: 700 }}>Assign technician</label>
-        <select
-          value={selectedTechId}
-          onChange={(e) => setSelectedTechId(e.target.value)}
-          disabled={busy}
-          style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #d1d5db', marginBottom: 12 }}
-        >
-          <option value="">Select technician</option>
-          {technicians.map((tech) => (
-            <option key={tech.id} value={tech.id}>
-              {tech.name || tech.email}
-            </option>
-          ))}
-        </select>
-        <button type="button" onClick={assignTechnician} disabled={busy || !selectedTechId} style={{ marginRight: 10 }}>
-          {busy ? 'Saving…' : 'Assign Technician'}
-        </button>
-        <button type="button" onClick={markCompleted} disabled={busy}>
-          Mark Completed
+        <button type="button" onClick={markCompleted} disabled={busy} style={{ 
+          padding: '10px 20px',
+          background: '#2563eb',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          fontWeight: 700
+        }}>
+          {busy ? 'Saving…' : 'Mark Completed'}
         </button>
       </div>
 

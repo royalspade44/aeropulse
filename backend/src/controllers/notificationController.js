@@ -13,12 +13,19 @@ const listMyNotifications = async (req, res) => {
   let notifications = await Notification.find({ user: userId }).sort({ createdAt: -1 }).limit(30);
 
   if (!notifications.length) {
+    // Check if this is the user's first login
+    const isFirstLogin = !user.lastLogin;
+    const welcomeTitle = isFirstLogin ? "Welcome to AeroPulse" : "Welcome back to AeroPulse";
+    const welcomeMessage = isFirstLogin 
+      ? "Your account is ready. You can now shop, book services, and track orders."
+      : "Great to see you again! Check out new products and manage your orders.";
+
     await Notification.insertMany([
       {
         user: userId,
         type: "account",
-        title: "Welcome to AeroPulse",
-        message: "Your account is ready. You can now shop, book services, and track orders.",
+        title: welcomeTitle,
+        message: welcomeMessage,
       },
       {
         user: userId,

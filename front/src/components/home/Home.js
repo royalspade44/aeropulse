@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useUser } from '../../context/UserContext';
@@ -35,14 +35,15 @@ function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
+  
   // Notifications Data
   const [notifications, setNotifications] = useState([]);
-  const [previousNotificationIds, setPreviousNotificationIds] = useState(new Set());
+  const previousNotificationIdsRef = useRef(new Set());
 
   useEffect(() => {
     if (!isAuthenticated) {
       setNotifications([]);
-      setPreviousNotificationIds(new Set());
+      previousNotificationIdsRef.current = new Set();
       return;
     }
 
@@ -54,7 +55,7 @@ function Home() {
           time: new Date(item.createdAt).toLocaleString()
         }));
         const currentIds = new Set(normalized.map(n => n.id));
-        const newNotifications = normalized.filter(n => !previousNotificationIds.has(n.id));
+        const newNotifications = normalized.filter(n => !previousNotificationIdsRef.current.has(n.id));
         
         if (newNotifications.length > 0) {
           // Show toast for new notifications
@@ -69,13 +70,13 @@ function Home() {
         }
         
         setNotifications(normalized);
-        setPreviousNotificationIds(currentIds);
+        previousNotificationIdsRef.current = currentIds;
       })
       .catch(() => {
         setNotifications([]);
-        setPreviousNotificationIds(new Set());
+        previousNotificationIdsRef.current = new Set();
       });
-  }, [isAuthenticated, previousNotificationIds]);
+  }, [isAuthenticated]);
 
   // Brand Data - Matches the structure in BrandsSection.js
   const brands = [
@@ -191,12 +192,25 @@ function Home() {
 
   const handleNotificationItemClick = async (notificationId) => {
     const existing = notifications.find((item) => item.id === notificationId);
-    setNotifications((prev) => prev.filter((item) => item.id !== notificationId));
+    if (existing && !existing.unread) return; // Already read, do nothing
+    
+    // Update local state to mark as read
+    setNotifications((prev) => 
+      prev.map((item) => 
+        item.id === notificationId ? { ...item, unread: false } : item
+      )
+    );
+    
     try {
       await apiRequest(`/notifications/${notificationId}/read`, { method: 'PATCH' });
     } catch (_error) {
+      // Restore if failed
       if (existing) {
-        setNotifications((prev) => [existing, ...prev]);
+        setNotifications((prev) => 
+          prev.map((item) => 
+            item.id === notificationId ? { ...item, unread: true } : item
+          )
+        );
       }
     }
   };
@@ -204,10 +218,16 @@ function Home() {
   const handleMarkAllNotificationsRead = async () => {
     if (!notifications.length) return;
     const snapshot = notifications;
-    setNotifications([]);
+    
+    // Update local state to mark all as read
+    setNotifications((prev) => 
+      prev.map((item) => ({ ...item, unread: false }))
+    );
+    
     try {
       await apiRequest('/notifications/me/read-all', { method: 'PATCH' });
     } catch (_error) {
+      // Restore if failed
       setNotifications(snapshot);
     }
   };
