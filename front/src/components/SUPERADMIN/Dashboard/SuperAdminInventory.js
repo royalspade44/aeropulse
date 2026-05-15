@@ -8,7 +8,6 @@ import TopProductsChart from '../../ADMIN/Dashboard/TopProductsChart';
 import TechnicianKPIs from '../../ADMIN/Dashboard/TechnicianKPIs';
 import CustomerAcquisitionChart from '../../ADMIN/Dashboard/CustomerAcquisitionChart';
 import '../superAdminShared.css';
-import './styles.css';
 
 const SuperAdminDashboard = () => {
   const [products, setProducts] = useState([]);
