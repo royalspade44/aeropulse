@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../../../config/api';
 import { BRANCHES } from '../../../domain/branches/branches';
 import SuperAdminLayout from '../Common/SuperAdminLayout';
-import Charts from '../../ADMIN/Dashboard/Charts';
 import SalesAnalyticsChart from '../../ADMIN/Dashboard/SalesAnalyticsChart';
 import TopProductsChart from '../../ADMIN/Dashboard/TopProductsChart';
 import TechnicianKPIs from '../../ADMIN/Dashboard/TechnicianKPIs';
@@ -14,7 +13,6 @@ const SuperAdminDashboard = () => {
   const [error, setError] = useState('');
   const [stats, setStats] = useState(null);
   const [analytics, setAnalytics] = useState(null);
-  const [statsError, setStatsError] = useState('');
   const [selectedSalesPeriod, setSelectedSalesPeriod] = useState('monthly');
   const [report, setReport] = useState({ topProducts: [], monthlySeries: [] });
 
@@ -26,14 +24,13 @@ const SuperAdminDashboard = () => {
 
   useEffect(() => {
     const load = async () => {
-      setStatsError('');
       try {
         // Load centralized stats across all branches
         const result = await apiRequest('/dashboard/superadmin');
         setStats(result.stats || null);
         setAnalytics(result.analytics || null);
       } catch (e) {
-        setStatsError(e.message);
+        console.error('Failed to load superadmin dashboard stats:', e);
       }
     };
     load();
