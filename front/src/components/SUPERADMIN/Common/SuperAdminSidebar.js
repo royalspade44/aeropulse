@@ -1,16 +1,23 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useUser } from '../../../context/UserContext';
-import { confirmDialog } from '../../../utils/dialog';
-import icons from '../../common/icons';
+import {
+  MapPin,
+  Package,
+  ShieldCheck,
+  ShoppingCart,
+  SignOut,
+  WarningCircle,
+  Wrench,
+} from "@phosphor-icons/react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useUser } from "../../../context/UserContext";
+import { confirmDialog } from "../../../utils/dialog";
 
 const links = [
-  { to: '/superadmin/dashboard', label: 'Command Center', icon: icons.shieldKeyhole },
-  { to: '/superadmin/branches', label: 'Branch Locations', icon: icons.marker },
-  { to: '/superadmin/sales', label: 'Processing Sales', icon: icons.cartShoppingFast },
-  { to: '/superadmin/inventory', label: 'Inventory Checker', icon: icons.boxOpen },
-  { to: '/superadmin/tasks', label: 'Processing Tech Tasks', icon: icons.tools },
-  { to: '/superadmin/alerts', label: 'Customer Alerts', icon: icons.diamondExclamation }
+  { to: "/superadmin/dashboard", label: "Command Center", icon: ShieldCheck },
+  { to: "/superadmin/branches", label: "Branch Locations", icon: MapPin },
+  { to: "/superadmin/sales", label: "Processing Sales", icon: ShoppingCart },
+  { to: "/superadmin/inventory", label: "Inventory Checker", icon: Package },
+  { to: "/superadmin/tasks", label: "Processing Tech Tasks", icon: Wrench },
+  { to: "/superadmin/alerts", label: "Customer Alerts", icon: WarningCircle },
 ];
 
 const SuperAdminSidebar = ({ isOpen, onClose }) => {
@@ -18,28 +25,35 @@ const SuperAdminSidebar = ({ isOpen, onClose }) => {
   const { logout } = useUser();
 
   const handleLogout = async () => {
-    const confirmed = await confirmDialog('Are you sure you want to log out?', 'Logout');
+    const confirmed = await confirmDialog(
+      "Are you sure you want to log out?",
+      "Logout",
+    );
     if (!confirmed) return;
     logout();
-    navigate('/home');
+    navigate("/home");
   };
 
   return (
-    <aside className={`super-sidebar ${isOpen ? 'open' : ''}`}>
+    <aside className={`super-sidebar ${isOpen ? "open" : ""}`}>
       <div className="super-sidebar-top">
         <div className="super-sidebar-brand">AeroPulse HQ</div>
-        <button type="button" className="super-close" onClick={onClose}>{'\u2715'}</button>
+        <button type="button" className="super-close" onClick={onClose}>
+          {"\u2715"}
+        </button>
       </div>
       <nav className="super-nav">
         {links.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
-            className={({ isActive }) => `super-nav-link ${isActive ? 'active' : ''}`}
+            className={({ isActive }) =>
+              `super-nav-link ${isActive ? "active" : ""}`
+            }
             onClick={onClose}
           >
             <span className="super-nav-icon-wrap">
-              <img src={link.icon} alt="" className="inline-icon inline-icon--md" />
+              <link.icon size={20} weight="bold" className="inline-icon" />
             </span>
             <span>{link.label}</span>
           </NavLink>
@@ -49,8 +63,9 @@ const SuperAdminSidebar = ({ isOpen, onClose }) => {
         type="button"
         className="super-logout"
         onClick={handleLogout}
+        style={{ display: "flex", alignItems: "center", gap: "8px" }}
       >
-        <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" /> Logout
+        <SignOut size={20} weight="bold" className="inline-icon" /> Logout
       </button>
     </aside>
   );

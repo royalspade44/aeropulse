@@ -1,22 +1,23 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useUser } from '../../context/UserContext';
-import './Settings.css';
-import AccountSettings from './AccountSettings';
-import NotificationSettings from './NotificationSettings';
-import PrivacySettings from './PrivacySettings';
-import PreferencesSettings from './PreferencesSettings';
-import MyAddressesSettings from './ProfileSettings';
-import icons from '../common/icons';
-import Footer from '../home/Footer';
-import { translateText } from '../../utils/customerI18n';
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../../context/UserContext";
+import { translateText } from "../../utils/customerI18n";
+import Footer from "../home/Footer";
+import AccountSettings from "./AccountSettings";
+import NotificationSettings from "./NotificationSettings";
+import PreferencesSettings from "./PreferencesSettings";
+import PrivacySettings from "./PrivacySettings";
+import MyAddressesSettings from "./ProfileSettings";
+import "./Settings.css";
+// import icons from '../common/icons';
+const icons = {}; // BOUTIQUE MIGRATION STUB
 
 const SETTINGS_TABS = [
-  { id: 'preferences', title: 'Preferences', icon: icons.customize },
-  { id: 'addresses', title: 'My Addresses', icon: icons.marker },
-  { id: 'privacy', title: 'Privacy', icon: icons.shieldKeyhole },
-  { id: 'notifications', title: 'Notifications', icon: icons.visit },
-  { id: 'security', title: 'Security', icon: icons.lock },
+  { id: "preferences", title: "Preferences", icon: icons.customize },
+  { id: "addresses", title: "My Addresses", icon: icons.marker },
+  { id: "privacy", title: "Privacy", icon: icons.shieldKeyhole },
+  { id: "notifications", title: "Notifications", icon: icons.visit },
+  { id: "security", title: "Security", icon: icons.lock },
 ];
 
 function Settings() {
@@ -33,29 +34,34 @@ function Settings() {
   } = useUser();
   const navigate = useNavigate();
 
-  const isDark = currentTheme === 'dark';
+  const isDark = currentTheme === "dark";
 
-  const [activeTab, setActiveTab] = useState('preferences');
+  const [activeTab, setActiveTab] = useState("preferences");
   const [toast, setToast] = useState(null);
 
   const formattedUser = useMemo(() => {
     if (!user) return null;
     return {
       ...user,
-      name: user.name || `${user.name_first || ''} ${user.name_last || ''}`.trim() || user.email?.split('@')[0] || 'User',
-      fullName: user.name || `${user.name_first || ''} ${user.name_last || ''}`.trim(),
-      username: user.username || '',
-      role: user.role || 'customer',
+      name:
+        user.name ||
+        `${user.name_first || ""} ${user.name_last || ""}`.trim() ||
+        user.email?.split("@")[0] ||
+        "User",
+      fullName:
+        user.name || `${user.name_first || ""} ${user.name_last || ""}`.trim(),
+      username: user.username || "",
+      role: user.role || "customer",
       preferences: user.preferences || {},
       privacy: user.privacy || {},
       notifications: user.notifications || {},
     };
   }, [user]);
 
-  const language = formattedUser?.preferences?.language || 'English';
+  const language = formattedUser?.preferences?.language || "English";
   const t = (text) => translateText(text, language);
 
-  const pushToast = (message, type = 'success') => {
+  const pushToast = (message, type = "success") => {
     setToast({ message, type });
     window.setTimeout(() => setToast(null), 2400);
   };
@@ -63,69 +69,73 @@ function Settings() {
   const callWithToast = async (action, successMessage) => {
     try {
       const result = await action();
-      pushToast(successMessage, 'success');
+      pushToast(successMessage, "success");
       return result;
     } catch (error) {
-      pushToast(error.message || 'Unable to save changes.', 'error');
+      pushToast(error.message || "Unable to save changes.", "error");
       throw error;
     }
   };
 
-  const handleUpdatePreferences = (payload) => callWithToast(
-    () => updatePreferences(payload),
-    'Preferences saved.'
-  );
+  const handleUpdatePreferences = (payload) =>
+    callWithToast(() => updatePreferences(payload), "Preferences saved.");
 
-  const handleUpdatePrivacy = (payload) => callWithToast(
-    () => updatePrivacy(payload),
-    'Privacy settings saved.'
-  );
+  const handleUpdatePrivacy = (payload) =>
+    callWithToast(() => updatePrivacy(payload), "Privacy settings saved.");
 
-  const handleUpdateNotifications = (payload) => callWithToast(
-    () => updateNotifications(payload),
-    'Notification settings saved.'
-  );
+  const handleUpdateNotifications = (payload) =>
+    callWithToast(
+      () => updateNotifications(payload),
+      "Notification settings saved.",
+    );
 
-  const handleBulkUpdateSettings = (payload) => callWithToast(
-    () => updateSettings(payload),
-    'Settings saved.'
-  );
+  const handleBulkUpdateSettings = (payload) =>
+    callWithToast(() => updateSettings(payload), "Settings saved.");
 
-  const handleDeleteAccount = (payload) => callWithToast(
-    async () => {
+  const handleDeleteAccount = (payload) =>
+    callWithToast(async () => {
       await deleteAccount(payload);
-      navigate('/login', { replace: true });
-    },
-    'Account deleted successfully.'
-  );
+      navigate("/login", { replace: true });
+    }, "Account deleted successfully.");
 
-  const handleRequestPasswordChangeEmail = () => callWithToast(
-    () => requestPasswordChangeEmail(),
-    'Password change link sent to your email.'
-  );
+  const handleRequestPasswordChangeEmail = () =>
+    callWithToast(
+      () => requestPasswordChangeEmail(),
+      "Password change link sent to your email.",
+    );
 
   const handleBack = () => {
     if (window.history.length > 2) {
       navigate(-1);
     } else {
-      navigate('/home');
+      navigate("/home");
     }
   };
 
   const handleLogout = () => {
     logout();
-    navigate('/home', { replace: true });
+    navigate("/home", { replace: true });
   };
 
   return (
-    <div className={`settings-container ${isDark ? 'dark' : ''}`}>
+    <div className={`settings-container ${isDark ? "dark" : ""}`}>
       <div className="settings-header">
-        <button className="back-btn" onClick={handleBack} aria-label="Go back" type="button">
+        <button
+          className="back-btn"
+          onClick={handleBack}
+          aria-label="Go back"
+          type="button"
+        >
           ←
         </button>
-        <h1>{t('Account Settings')}</h1>
+        <h1>{t("Account Settings")}</h1>
         <button type="button" className="logout-btn" onClick={handleLogout}>
-          <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" /> {t('Logout')}
+          <img
+            src={icons.signOutAlt}
+            alt=""
+            className="inline-icon inline-icon--md"
+          />{" "}
+          {t("Logout")}
         </button>
       </div>
 
@@ -136,13 +146,15 @@ function Settings() {
               {formattedUser?.avatarUrl ? (
                 <img src={formattedUser.avatarUrl} alt="Profile" />
               ) : (
-                <span>{(formattedUser?.name || 'U').charAt(0).toUpperCase()}</span>
+                <span>
+                  {(formattedUser?.name || "U").charAt(0).toUpperCase()}
+                </span>
               )}
             </div>
             <div>
-              <h3>{formattedUser?.name || 'User'}</h3>
-              <p>{formattedUser?.email || ''}</p>
-              <small>{(formattedUser?.role || '').toUpperCase()}</small>
+              <h3>{formattedUser?.name || "User"}</h3>
+              <p>{formattedUser?.email || ""}</p>
+              <small>{(formattedUser?.role || "").toUpperCase()}</small>
             </div>
           </div>
 
@@ -151,7 +163,7 @@ function Settings() {
               <button
                 key={tab.id}
                 type="button"
-                className={`settings-nav-item ${activeTab === tab.id ? 'active' : ''}`}
+                className={`settings-nav-item ${activeTab === tab.id ? "active" : ""}`}
                 onClick={() => setActiveTab(tab.id)}
               >
                 <img src={tab.icon} alt="" className="inline-icon" />
@@ -162,7 +174,7 @@ function Settings() {
         </aside>
 
         <section className="settings-panel-stack">
-          {activeTab === 'preferences' ? (
+          {activeTab === "preferences" ? (
             <PreferencesSettings
               user={formattedUser}
               onUpdatePreferences={handleUpdatePreferences}
@@ -170,7 +182,7 @@ function Settings() {
             />
           ) : null}
 
-          {activeTab === 'privacy' ? (
+          {activeTab === "privacy" ? (
             <PrivacySettings
               user={formattedUser}
               onUpdatePrivacy={handleUpdatePrivacy}
@@ -178,7 +190,7 @@ function Settings() {
             />
           ) : null}
 
-          {activeTab === 'notifications' ? (
+          {activeTab === "notifications" ? (
             <NotificationSettings
               user={formattedUser}
               onUpdateNotifications={handleUpdateNotifications}
@@ -186,11 +198,11 @@ function Settings() {
             />
           ) : null}
 
-          {activeTab === 'addresses' ? (
+          {activeTab === "addresses" ? (
             <MyAddressesSettings user={formattedUser} />
           ) : null}
 
-          {activeTab === 'security' ? (
+          {activeTab === "security" ? (
             <AccountSettings
               user={formattedUser}
               onRequestPasswordChangeEmail={handleRequestPasswordChangeEmail}
@@ -201,7 +213,9 @@ function Settings() {
       </div>
 
       {toast ? (
-        <div className={`settings-toast ${toast.type === 'error' ? 'settings-toast--error' : ''}`}>
+        <div
+          className={`settings-toast ${toast.type === "error" ? "settings-toast--error" : ""}`}
+        >
           {toast.message}
         </div>
       ) : null}

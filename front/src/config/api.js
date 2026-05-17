@@ -1,9 +1,16 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL || "http://localhost:5000/api";
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL ||
+  process.env.REACT_APP_BACKEND_URL ||
+  "http://localhost:5000/api";
 
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production' && API_BASE_URL.includes('localhost')) {
+if (
+  typeof window !== "undefined" &&
+  process.env.NODE_ENV === "production" &&
+  API_BASE_URL.includes("localhost")
+) {
   console.warn(
-    'Frontend is running in production but API_BASE_URL is still pointing to localhost. ' +
-    'Set REACT_APP_API_URL in Vercel to your deployed Render backend URL.'
+    "Frontend is running in production but API_BASE_URL is still pointing to localhost. " +
+      "Set REACT_APP_API_URL in Vercel to your deployed Render backend URL.",
   );
 }
 
@@ -26,6 +33,7 @@ const apiRequest = async (path, options = {}) => {
     response = await fetch(url, {
       ...options,
       ...(shouldDisableCache ? { cache: "no-store" } : {}),
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -35,9 +43,11 @@ const apiRequest = async (path, options = {}) => {
     });
   } catch (error) {
     console.error("API request failed", { url, options, error });
-    const message = error?.message?.includes("Failed to fetch") || error?.message?.includes("NetworkError")
-      ? `Server unreachable at ${url}. Check backend is running and CORS is configured correctly.`
-      : error?.message || "Network error occurred while sending the request.";
+    const message =
+      error?.message?.includes("Failed to fetch") ||
+      error?.message?.includes("NetworkError")
+        ? `Server unreachable at ${url}. Check backend is running and CORS is configured correctly.`
+        : error?.message || "Network error occurred while sending the request.";
     const err = new Error(message);
     err.status = 0;
     err.data = null;
@@ -61,17 +71,24 @@ const apiRequest = async (path, options = {}) => {
       console.warn("Cleared stale auth state after 401.", { url, options });
 
       try {
-        window.dispatchEvent(new CustomEvent("auth:logout", { detail: { reason: "401", url } }));
+        window.dispatchEvent(
+          new CustomEvent("auth:logout", { detail: { reason: "401", url } }),
+        );
       } catch (_error) {
         // ignore
       }
     }
 
-    const message = data?.message || (data?.errors && typeof data.errors === 'object' ? Object.values(data.errors).join(' ') : "Request failed");
+    const message =
+      data?.message ||
+      (data?.errors && typeof data.errors === "object"
+        ? Object.values(data.errors).join(" ")
+        : "Request failed");
     const err = new Error(message);
     err.status = response.status;
     err.data = data;
-    err.fieldErrors = data?.errors && typeof data.errors === 'object' ? data.errors : null;
+    err.fieldErrors =
+      data?.errors && typeof data.errors === "object" ? data.errors : null;
     throw err;
   }
 

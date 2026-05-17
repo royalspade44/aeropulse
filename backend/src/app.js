@@ -3,9 +3,11 @@ const fs = require("fs");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const env = require("./config/env");
+
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
@@ -23,9 +25,25 @@ const aiRoutes = require("./routes/aiRoutes");
 const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: env.corsOrigin }));
+app.use(
+  cors({
+    origin: env.corsOrigin,
+    credentials: true,
+  }),
+);
 app.use(morgan("dev"));
-app.use(cookieParser());
+app.use(
+  cookieSession({
+    name: "session",
+    keys: [env.jwtSecret],
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    httpOnly: true,
+    secure: env.nodeEnv === "production",
+    sameSite: "lax",
+    signed: true,
+  }),
+);
+app.use(cookieParser(env.jwtSecret));
 app.use(express.json({ limit: "5mb" }));
 
 app.get("/api/health", (_req, res) => {
@@ -46,14 +64,14 @@ app.use("/api/restock-orders", restockOrderRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/ai", aiRoutes);
 
-const buildPath = path.resolve(__dirname, '..', '..', 'front', 'build');
-const indexHtml = path.join(buildPath, 'index.html');
+const buildPath = path.resolve(__dirname, "..", "..", "front", "build");
+const indexHtml = path.join(buildPath, "index.html");
 
 if (fs.existsSync(indexHtml)) {
   app.use(express.static(buildPath));
 
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api/')) {
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api/")) {
       return next();
     }
     res.sendFile(indexHtml);

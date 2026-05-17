@@ -1,16 +1,23 @@
-import React from 'react';
-import { useUser } from '../../../context/UserContext';
-import icons from '../../common/icons';
-import './styles.css';
+import { Gear } from "@phosphor-icons/react";
+import { useUser } from "../../../context/UserContext";
+import "./styles.css";
 
-const AdminHeader = ({ title = 'Admin Module', subtitle = 'Control panel', onMenuToggle }) => {
+const AdminHeader = ({
+  title = "Admin Module",
+  subtitle = "Control panel",
+  onMenuToggle,
+}) => {
   const { user } = useUser();
 
   return (
     <header className="admin-header">
       <div className="admin-header-left">
-        <button className="admin-menu-toggle" onClick={onMenuToggle} type="button">
-          <img src={icons.customize} alt="" className="inline-icon inline-icon--md" />
+        <button
+          className="admin-menu-toggle"
+          onClick={onMenuToggle}
+          type="button"
+        >
+          <Gear size={20} weight="bold" className="inline-icon" />
         </button>
         <div>
           <h1>{title}</h1>
@@ -19,9 +26,9 @@ const AdminHeader = ({ title = 'Admin Module', subtitle = 'Control panel', onMen
       </div>
       <div className="admin-header-user">
         <span className="admin-user-avatar">
-          {(user?.name || 'Admin').charAt(0).toUpperCase()}
+          {(user?.name || "Admin").charAt(0).toUpperCase()}
         </span>
-        <span>{user?.name || 'Administrator'}</span>
+        <span>{user?.name || "Administrator"}</span>
       </div>
     </header>
   );

@@ -1,15 +1,24 @@
-import { useState } from 'react';
-import icons from '../common/icons';
+import {
+  Browser,
+  Lightning,
+  Package,
+  ShieldCheck,
+  ShoppingCart,
+  Snowflake,
+  Star,
+  WarningDiamond,
+} from "@phosphor-icons/react";
+import { useState } from "react";
 
 function productPlaceholderIcon(product) {
-  if (product?.category === 'window') return icons.windowFrame;
-  if (product?.category === 'floor') return icons.houseChimney;
-  return icons.temperatureFrigid;
+  if (product?.category === "window") return Browser;
+  if (product?.category === "floor") return Package;
+  return Snowflake;
 }
 
 function ProductImage({ product }) {
   const [broken, setBroken] = useState(false);
-  const placeholder = productPlaceholderIcon(product);
+  const IconComp = productPlaceholderIcon(product);
 
   if (product.imageUrl && !broken) {
     return (
@@ -24,7 +33,12 @@ function ProductImage({ product }) {
 
   return (
     <span className="product-img-fallback">
-      <img src={placeholder} alt="" className="inline-icon inline-icon--xl" />
+      <IconComp
+        size={64}
+        weight="bold"
+        className="inline-icon"
+        style={{ opacity: 0.15 }}
+      />
     </span>
   );
 }
@@ -32,19 +46,28 @@ function ProductImage({ product }) {
 function ProductGrid({ products, onAddToCart, onBuyNow, onProductClick }) {
   if (products.length === 0) {
     return (
-      <div className="no-products">
-        <img src={icons.globePointer} alt="" className="inline-icon inline-icon--xl" />
-        <p>No products found. Try adjusting your filters.</p>
+      <div
+        className="no-products"
+        style={{ textAlign: "center", padding: "60px 20px", color: "#64748b" }}
+      >
+        <WarningDiamond
+          size={64}
+          weight="bold"
+          style={{ marginBottom: "16px", opacity: 0.2 }}
+        />
+        <p style={{ fontWeight: 600 }}>
+          No products found. Try adjusting your filters.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="products-grid">
-      {products.map(product => (
+      {products.map((product) => (
         <div
           key={product.id}
-          className={`product-card ${product.featured ? 'featured' : ''}`}
+          className={`product-card ${product.featured ? "featured" : ""}`}
           onClick={() => onProductClick(product)}
           role="presentation"
         >
@@ -55,7 +78,13 @@ function ProductGrid({ products, onAddToCart, onBuyNow, onProductClick }) {
             )}
             {product.featured && (
               <div className="product-featured-badge">
-                <img src={icons.checkCircle} alt="" className="inline-icon" /> Featured
+                <Star
+                  size={12}
+                  weight="fill"
+                  className="inline-icon"
+                  style={{ marginRight: "4px" }}
+                />{" "}
+                Featured
               </div>
             )}
           </div>
@@ -64,46 +93,63 @@ function ProductGrid({ products, onAddToCart, onBuyNow, onProductClick }) {
             <div className="product-name">{product.name}</div>
             <div className="product-specs">{product.specs}</div>
             <div className="product-price">
-              {'\u20b1'}{product.price.toLocaleString()}
+              {"\u20b1"}
+              {product.price.toLocaleString()}
               {product.oldPrice && (
-                <span className="product-old-price"> {'\u20b1'}{product.oldPrice.toLocaleString()}</span>
+                <span className="product-old-price">
+                  {" "}
+                  {"\u20b1"}
+                  {product.oldPrice.toLocaleString()}
+                </span>
               )}
             </div>
-            {typeof product.stock === 'number' && product.stock > 0 && (
-              <div className="product-warranty">{product.stock} units available</div>
+
+            {typeof product.stock === "number" && product.stock > 0 && (
+              <div className="product-stock-status">
+                {product.stock} units available
+              </div>
             )}
-            <div className="product-warranty">
-              <img src={icons.lock} alt="" className="inline-icon" /> {product.warranty}
-            </div>
-            <button
-              type="button"
-              className="add-to-cart-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddToCart(product);
-              }}
-              disabled={!product.inStock}
-            >
-              {product.inStock ? (
-                <>
-                  Add to Cart <img src={icons.cartShoppingFast} alt="" className="inline-icon" />
-                </>
-              ) : (
-                'Out of Stock'
-              )}
-            </button>
-            {product.inStock && (
+
+            <div className="product-actions">
               <button
                 type="button"
-                className="add-to-cart-btn buy-now-btn"
+                className="add-to-cart-btn"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onBuyNow(product);
+                  onAddToCart(product);
                 }}
+                disabled={!product.inStock}
               >
-                Buy Now <img src={icons.bolt} alt="" className="inline-icon" />
+                {product.inStock ? (
+                  <>
+                    Add to Cart <ShoppingCart size={18} weight="bold" />
+                  </>
+                ) : (
+                  "Out of Stock"
+                )}
               </button>
-            )}
+              {product.inStock && (
+                <button
+                  type="button"
+                  className="buy-now-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onBuyNow(product);
+                  }}
+                >
+                  Buy Now <Lightning size={18} weight="fill" />
+                </button>
+              )}
+            </div>
+
+            <div className="product-warranty">
+              <ShieldCheck
+                size={14}
+                weight="bold"
+                style={{ marginRight: "6px", color: "#10b981" }}
+              />{" "}
+              {product.warranty}
+            </div>
           </div>
         </div>
       ))}

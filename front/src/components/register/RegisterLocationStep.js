@@ -1,17 +1,51 @@
-import { useState } from 'react';
-import InputField from '../common/InputField';
-import icons from '../common/icons';
-import { getRegions, getProvincesByRegion, getCitiesByProvince, getBarangaysByCity } from '../../domain/location/addressSelectors';
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle,
+  MapPin,
+  Spinner,
+  Trash,
+  WarningDiamond,
+} from "@phosphor-icons/react";
+import { useState } from "react";
+import {
+  getBarangaysByCity,
+  getCitiesByProvince,
+  getProvincesByRegion,
+  getRegions,
+} from "../../domain/location/addressSelectors";
+import {
+  BQ_COLORS,
+  BQ_FONTS,
+  BQ_GEOMETRY,
+  BQ_SHADOWS,
+} from "../common/boutique/BoutiqueTheme";
 
-function RegisterLocationStep({ formData, errors, onFieldChange, onNext, onBack, loading = false }) {
+export default function RegisterLocationStep({
+  formData,
+  errors,
+  onFieldChange,
+  onNext,
+  onBack,
+  loading = false,
+}) {
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
-  const [locationError, setLocationError] = useState('');
-  const [locationSuccess, setLocationSuccess] = useState('');
+  const [locationError, setLocationError] = useState("");
+  const [locationSuccess, setLocationSuccess] = useState("");
 
   const regions = getRegions();
-  const provinces = getProvincesByRegion(formData.location?.address?.region || '');
-  const cities = getCitiesByProvince(formData.location?.address?.region || '', formData.location?.address?.province || '');
-  const barangays = getBarangaysByCity(formData.location?.address?.region || '', formData.location?.address?.province || '', formData.location?.address?.city || '');
+  const provinces = getProvincesByRegion(
+    formData.location?.address?.region || "",
+  );
+  const cities = getCitiesByProvince(
+    formData.location?.address?.region || "",
+    formData.location?.address?.province || "",
+  );
+  const barangays = getBarangaysByCity(
+    formData.location?.address?.region || "",
+    formData.location?.address?.province || "",
+    formData.location?.address?.city || "",
+  );
 
   const updateLocationField = (field, value) => {
     const updatedLocation = {
@@ -22,85 +56,93 @@ function RegisterLocationStep({ formData, errors, onFieldChange, onNext, onBack,
       },
     };
 
-    // Cascade clearing for dependent fields
-    if (field === 'region') {
-      updatedLocation.address.province = '';
-      updatedLocation.address.city = '';
-      updatedLocation.address.barangay = '';
-    } else if (field === 'province') {
-      updatedLocation.address.city = '';
-      updatedLocation.address.barangay = '';
-    } else if (field === 'city') {
-      updatedLocation.address.barangay = '';
+    if (field === "region") {
+      updatedLocation.address.province = "";
+      updatedLocation.address.city = "";
+      updatedLocation.address.barangay = "";
+    } else if (field === "province") {
+      updatedLocation.address.city = "";
+      updatedLocation.address.barangay = "";
+    } else if (field === "city") {
+      updatedLocation.address.barangay = "";
     }
 
-    onFieldChange('location', updatedLocation);
-  };
-
-  const updateCoordinates = (coordinates) => {
-    const updatedLocation = {
-      ...formData.location,
-      coordinates: {
-        ...formData.location.coordinates,
-        ...coordinates,
-        timestamp: new Date().toISOString(),
-      },
-      source: 'gps',
-    };
-    onFieldChange('location', updatedLocation);
+    onFieldChange("location", updatedLocation);
   };
 
   const captureLocation = () => {
     setIsCapturingLocation(true);
-    setLocationError('');
-    setLocationSuccess('');
+    setLocationError("");
+    setLocationSuccess("");
 
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by this browser.');
+      setLocationError("Geolocation not supported.");
       setIsCapturingLocation(false);
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude, accuracy } = position.coords;
-        updateCoordinates({
-          latitude,
-          longitude,
-          accuracy,
-        });
-        setLocationSuccess(`Location captured: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+
+        try {
+          const apiKey =
+            process.env.REACT_APP_LOCATIONIQ_KEY || "pk.YOUR_LOCATION_IQ_KEY";
+          const response = await fetch(
+            `https://us1.locationiq.com/v1/reverse?key=${apiKey}&lat=${latitude}&lon=${longitude}&format=json`,
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            const addr = data.address || {};
+
+            const updatedLocation = {
+              ...formData.location,
+              coordinates: {
+                latitude,
+                longitude,
+                accuracy,
+                timestamp: new Date().toISOString(),
+              },
+              address: {
+                region: addr.region || addr.state || "",
+                province: addr.province || addr.county || "",
+                city:
+                  addr.city ||
+                  addr.municipality ||
+                  addr.town ||
+                  addr.village ||
+                  "",
+                barangay: addr.suburb || addr.neighbourhood || "",
+                street: [addr.road, addr.house_number]
+                  .filter(Boolean)
+                  .join(" "),
+                postalCode: addr.postcode || "",
+              },
+              source: "gps",
+            };
+            onFieldChange("location", updatedLocation);
+            setLocationSuccess(
+              `Location resolved: ${updatedLocation.address.city}`,
+            );
+          }
+        } catch (err) {
+          setLocationSuccess(
+            `Location captured: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+          );
+        }
         setIsCapturingLocation(false);
       },
       (error) => {
-        let errorMessage = 'Unable to retrieve your location.';
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage = 'Location access denied. Please enable location permissions and try again.';
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage = 'Location information is unavailable.';
-            break;
-          case error.TIMEOUT:
-            errorMessage = 'Location request timed out.';
-            break;
-          default:
-            errorMessage = 'Unable to retrieve your location.';
-            break;
-        }
-        setLocationError(errorMessage);
+        setLocationError("Unable to retrieve location.");
         setIsCapturingLocation(false);
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000, // 5 minutes
-      }
+      { enableHighAccuracy: true, timeout: 10000 },
     );
   };
 
   const clearLocation = () => {
-    const clearedLocation = {
+    const cleared = {
       coordinates: {
         latitude: null,
         longitude: null,
@@ -108,236 +150,259 @@ function RegisterLocationStep({ formData, errors, onFieldChange, onNext, onBack,
         timestamp: null,
       },
       address: {
-        region: '',
-        province: '',
-        city: '',
-        barangay: '',
-        street: '',
-        postalCode: '',
+        region: "",
+        province: "",
+        city: "",
+        barangay: "",
+        street: "",
+        postalCode: "",
       },
-      source: 'manual',
+      source: "manual",
     };
-    onFieldChange('location', clearedLocation);
-    setLocationError('');
-    setLocationSuccess('');
+    onFieldChange("location", cleared);
+    setLocationError("");
+    setLocationSuccess("");
   };
 
-  const hasCoordinates = formData.location?.coordinates?.latitude && formData.location?.coordinates?.longitude;
-  const hasAddress = formData.location?.address?.region && formData.location?.address?.province && formData.location?.address?.city;
-
-  const handleNext = () => {
-    // Location is optional, so we can proceed even without it
-    onNext();
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (loading) {
-      return;
-    }
-    handleNext();
-  };
+  const hasCoordinates = formData.location?.coordinates?.latitude;
+  const hasAddress = formData.location?.address?.city;
 
   return (
-    <form className="register-step" onSubmit={handleSubmit}>
-      <h3 className="register-step-title">Location</h3>
-      <p className="register-step-desc">Help us provide better service by sharing your location (optional)</p>
+    <form
+      className="bq-reg-step"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onNext();
+      }}
+    >
+      <div className="bq-reg-header">
+        <h3 className="bq-reg-title">Location</h3>
+        <p className="bq-reg-desc">
+          Share your location for personalized service (optional).
+        </p>
+      </div>
 
-      {/* GPS Location Capture */}
-      <div className="location-capture-section">
-        <div className="location-capture-header">
-          <h4>GPS Location</h4>
-          <p>Capture your current location for better service</p>
+      <div className="bq-location-card">
+        <div className="bq-loc-header">
+          <MapPin size={24} weight="fill" color={BQ_COLORS.brand} />
+          <div className="bq-loc-title-wrap">
+            <h4>Precision GPS</h4>
+            <p>Resolve your address instantly</p>
+          </div>
         </div>
 
-        <div className="location-capture-controls">
+        <div className="bq-loc-actions">
           <button
             type="button"
-            className={`location-capture-btn ${isCapturingLocation ? 'capturing' : ''}`}
+            className={`bq-loc-btn ${isCapturingLocation ? "loading" : ""}`}
             onClick={captureLocation}
             disabled={isCapturingLocation}
           >
             {isCapturingLocation ? (
-              <>
-                <div className="spinner"></div>
-                Capturing...
-              </>
+              <Spinner className="bq-spin" size={20} />
             ) : (
-              <>
-                {icons.marker}
-                Capture Location
-              </>
+              <MapPin size={20} weight="bold" />
             )}
+            {isCapturingLocation ? "Locating..." : "Auto-Capture Location"}
           </button>
 
           {hasCoordinates && (
             <button
               type="button"
-              className="location-clear-btn"
+              className="bq-loc-clear"
               onClick={clearLocation}
             >
-              Clear Location
+              <Trash size={18} />
             </button>
           )}
         </div>
 
         {locationError && (
-          <div className="location-message error">
-            {icons.diamondExclamation}
-            {locationError}
+          <div className="bq-loc-msg error">
+            <WarningDiamond size={16} weight="bold" /> {locationError}
           </div>
         )}
-
         {locationSuccess && (
-          <div className="location-message success">
-            {icons.checkCircle}
-            {locationSuccess}
-          </div>
-        )}
-
-        {hasCoordinates && (
-          <div className="location-coordinates">
-            <div className="coordinate-item">
-              <label>Latitude:</label>
-              <span>{formData.location.coordinates.latitude.toFixed(6)}</span>
-            </div>
-            <div className="coordinate-item">
-              <label>Longitude:</label>
-              <span>{formData.location.coordinates.longitude.toFixed(6)}</span>
-            </div>
-            {formData.location.coordinates.accuracy && (
-              <div className="coordinate-item">
-                <label>Accuracy:</label>
-                <span>±{Math.round(formData.location.coordinates.accuracy)}m</span>
-              </div>
-            )}
+          <div className="bq-loc-msg success">
+            <CheckCircle size={16} weight="bold" /> {locationSuccess}
           </div>
         )}
       </div>
 
-      {/* Manual Address Input */}
-      <div className="location-address-section">
-        <div className="location-address-header">
-          <h4>Address Information</h4>
-          <p>Provide your address details (optional)</p>
+      <div className="bq-reg-form-grid">
+        <div className="bq-reg-input-group">
+          <label className="bq-reg-label">Region</label>
+          <select
+            value={formData.location?.address?.region || ""}
+            onChange={(e) => updateLocationField("region", e.target.value)}
+            className="bq-reg-input bq-reg-select"
+          >
+            <option value="">Select Region</option>
+            {regions.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label>Region</label>
-            <select
-              value={formData.location?.address?.region || ''}
-              onChange={(e) => updateLocationField('region', e.target.value)}
-            >
-              <option value="">Select Region</option>
-              {regions.map((region) => (
-                <option key={region} value={region}>{region}</option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Province</label>
-            <select
-              value={formData.location?.address?.province || ''}
-              onChange={(e) => updateLocationField('province', e.target.value)}
-              disabled={!formData.location?.address?.region}
-            >
-              <option value="">Select Province</option>
-              {provinces.map((province) => (
-                <option key={province} value={province}>{province}</option>
-              ))}
-            </select>
-          </div>
+        <div className="bq-reg-input-group">
+          <label className="bq-reg-label">Province</label>
+          <select
+            value={formData.location?.address?.province || ""}
+            onChange={(e) => updateLocationField("province", e.target.value)}
+            disabled={!formData.location?.address?.region}
+            className="bq-reg-input bq-reg-select"
+          >
+            <option value="">Select Province</option>
+            {provinces.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label>City / Municipality</label>
-            <select
-              value={formData.location?.address?.city || ''}
-              onChange={(e) => updateLocationField('city', e.target.value)}
-              disabled={!formData.location?.address?.province}
-            >
-              <option value="">Select City / Municipality</option>
-              {cities.map((city) => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Barangay</label>
-            <select
-              value={formData.location?.address?.barangay || ''}
-              onChange={(e) => updateLocationField('barangay', e.target.value)}
-              disabled={!formData.location?.address?.city}
-            >
-              <option value="">Select Barangay</option>
-              {barangays.map((barangay) => (
-                <option key={barangay} value={barangay}>{barangay}</option>
-              ))}
-            </select>
-          </div>
+        <div className="bq-reg-input-group">
+          <label className="bq-reg-label">City</label>
+          <select
+            value={formData.location?.address?.city || ""}
+            onChange={(e) => updateLocationField("city", e.target.value)}
+            disabled={!formData.location?.address?.province}
+            className="bq-reg-input bq-reg-select"
+          >
+            <option value="">Select City</option>
+            {cities.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <InputField
-          label="Street Address"
-          type="text"
-          placeholder="House/Block/Lot No., Street Name"
-          value={formData.location?.address?.street || ''}
-          onChange={(value) => updateLocationField('street', value)}
-        />
+        <div className="bq-reg-input-group">
+          <label className="bq-reg-label">Barangay</label>
+          <select
+            value={formData.location?.address?.barangay || ""}
+            onChange={(e) => updateLocationField("barangay", e.target.value)}
+            disabled={!formData.location?.address?.city}
+            className="bq-reg-input bq-reg-select"
+          >
+            <option value="">Select Barangay</option>
+            {barangays.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label>Postal Code</label>
-            <input
-              type="text"
-              placeholder="Postal code"
-              value={formData.location?.address?.postalCode || ''}
-              onChange={(e) => updateLocationField('postalCode', e.target.value.replace(/\D/g, '').slice(0, 4))}
-              maxLength={4}
-              inputMode="numeric"
-            />
-          </div>
+        <div className="bq-reg-input-group full-width">
+          <label className="bq-reg-label">Street Address</label>
+          <input
+            type="text"
+            placeholder="House No., Building, Street"
+            value={formData.location?.address?.street || ""}
+            onChange={(e) => updateLocationField("street", e.target.value)}
+            className="bq-reg-input"
+          />
         </div>
       </div>
 
-      {/* Location Summary */}
-      {(hasCoordinates || hasAddress) && (
-        <div className="location-summary">
-          <h4>Location Summary</h4>
-          <div className="location-summary-content">
-            {hasCoordinates && (
-              <div className="summary-item">
-                <strong>GPS:</strong> {formData.location.coordinates.latitude.toFixed(4)}, {formData.location.coordinates.longitude.toFixed(4)}
-              </div>
-            )}
-            {hasAddress && (
-              <div className="summary-item">
-                <strong>Address:</strong> {[
-                  formData.location.address.street,
-                  formData.location.address.barangay,
-                  formData.location.address.city,
-                  formData.location.address.province,
-                  formData.location.address.region,
-                ].filter(Boolean).join(', ')}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Navigation */}
-      <div className="register-step-navigation">
-        <button type="button" className="back-btn" onClick={onBack} disabled={loading}>
-          Back
+      <div className="bq-reg-actions">
+        <button
+          type="button"
+          className="bq-reg-btn bq-reg-btn--ghost"
+          onClick={onBack}
+          disabled={loading}
+        >
+          <ArrowLeft size={18} weight="bold" /> Back
         </button>
-        <button type="submit" className="next-btn" disabled={loading}>
-          {loading ? 'Registering…' : 'Complete Registration'}
+        <button
+          type="submit"
+          className="bq-reg-btn bq-reg-btn--primary"
+          disabled={loading}
+        >
+          {loading ? "Registering..." : "Complete Setup"}{" "}
+          <ArrowRight size={18} weight="bold" />
         </button>
       </div>
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        .bq-reg-step { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+
+        .bq-reg-header { margin-bottom: 8px; }
+        .bq-reg-title { font-family: ${BQ_FONTS.heading}; font-size: 24px; font-weight: 800; color: ${BQ_COLORS.ink}; margin: 0; }
+        .bq-reg-desc { font-size: 15px; color: ${BQ_COLORS.inkMuted}; margin-top: 8px; }
+
+        .bq-location-card {
+          padding: 24px; background: ${BQ_COLORS.bgAlt}; border-radius: ${BQ_GEOMETRY.radiusCard};
+          display: flex; flex-direction: column; gap: 20px;
+        }
+
+        .bq-loc-header { display: flex; align-items: center; gap: 16px; }
+        .bq-loc-title-wrap h4 { font-family: ${BQ_FONTS.heading}; font-size: 16px; font-weight: 800; margin: 0; }
+        .bq-loc-title-wrap p { font-size: 13px; color: ${BQ_COLORS.inkMuted}; margin: 2px 0 0; }
+
+        .bq-loc-actions { display: flex; gap: 12px; }
+
+        .bq-loc-btn {
+          flex: 1; padding: 14px 20px; border-radius: ${BQ_GEOMETRY.radiusPill};
+          background: white; border: none; font-family: ${BQ_FONTS.heading};
+          font-weight: 800; font-size: 14px; cursor: pointer;
+          display: flex; align-items: center; justify-content: center; gap: 10px;
+          box-shadow: ${BQ_SHADOWS.soft}; transition: all 0.3s;
+        }
+        .bq-loc-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: ${BQ_SHADOWS.float}; }
+
+        .bq-loc-clear {
+          width: 48px; height: 48px; border-radius: ${BQ_GEOMETRY.radiusPill};
+          background: white; border: none; color: ${BQ_COLORS.danger};
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; box-shadow: ${BQ_SHADOWS.soft};
+        }
+
+        .bq-loc-msg { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 12px; }
+        .bq-loc-msg.error { background: #fef2f2; color: ${BQ_COLORS.danger}; }
+        .bq-loc-msg.success { background: #ecfdf5; color: ${BQ_COLORS.success}; }
+
+        .bq-reg-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .bq-reg-form-grid .full-width { grid-column: span 2; }
+
+        .bq-reg-input-group { display: flex; flex-direction: column; gap: 8px; }
+        .bq-reg-label { font-size: 12px; font-weight: 800; color: ${BQ_COLORS.ink}; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .bq-reg-input {
+          width: 100%; padding: 14px 16px; background: ${BQ_COLORS.surfaceAlt};
+          border: 1.5px solid ${BQ_COLORS.border}; border-radius: ${BQ_GEOMETRY.radiusMd};
+          font-size: 14px; color: ${BQ_COLORS.ink}; transition: all 0.3s;
+        }
+        .bq-reg-input:focus { outline: none; border-color: ${BQ_COLORS.brand}; background: white; }
+        .bq-reg-select { appearance: none; cursor: pointer; }
+
+        .bq-reg-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+
+        .bq-reg-btn {
+          padding: 14px 24px; border-radius: ${BQ_GEOMETRY.radiusPill};
+          font-family: ${BQ_FONTS.heading}; font-weight: 800; font-size: 14px;
+          text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer;
+          display: flex; align-items: center; gap: 10px; transition: all 0.3s; border: none;
+        }
+
+        .bq-reg-btn--primary { background: ${BQ_COLORS.brand}; color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .bq-reg-btn--primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+
+        .bq-reg-btn--ghost { background: transparent; color: ${BQ_COLORS.inkMuted}; }
+
+        .bq-spin { animation: bq-spin 1s linear infinite; }
+        @keyframes bq-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        @media (max-width: 640px) { .bq-reg-form-grid { grid-template-columns: 1fr; } .bq-reg-form-grid .full-width { grid-column: span 1; } }
+      `,
+        }}
+      />
     </form>
   );
 }
-
-export default RegisterLocationStep;

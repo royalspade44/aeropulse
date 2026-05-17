@@ -1,13 +1,27 @@
-import icons from '../common/icons';
-import UnitKebabMenu from './UnitKebabMenu';
+import UnitKebabMenu from "./UnitKebabMenu";
 
-function UnitCard({ unit, onClick, onScheduleService, onViewHistory, onWarrantyStatus, onRegisterQr, onReportIssue }) {
+// import icons from '../common/icons';
+const icons = {}; // BOUTIQUE MIGRATION STUB
+
+function UnitCard({
+  unit,
+  onClick,
+  onScheduleService,
+  onViewHistory,
+  onWarrantyStatus,
+  onRegisterQr,
+  onReportIssue,
+}) {
   const getStatusClass = () => {
-    switch(unit.status) {
-      case 'Good': return 'status-good';
-      case 'Needs Service': return 'status-needs-service';
-      case 'Critical': return 'status-critical';
-      default: return '';
+    switch (unit.status) {
+      case "Good":
+        return "status-good";
+      case "Needs Service":
+        return "status-needs-service";
+      case "Critical":
+        return "status-critical";
+      default:
+        return "";
     }
   };
 
@@ -25,7 +39,13 @@ function UnitCard({ unit, onClick, onScheduleService, onViewHistory, onWarrantyS
             onWarrantyStatus={onWarrantyStatus}
             onRegisterQr={onRegisterQr}
           />
-          <div className="unit-icon"><img src={icons.temperatureFrigid} alt="" className="inline-icon inline-icon--lg" /></div>
+          <div className="unit-icon">
+            <img
+              src={icons.temperatureFrigid}
+              alt=""
+              className="inline-icon inline-icon--lg"
+            />
+          </div>
         </div>
       </div>
       <div className="unit-body">
@@ -40,7 +60,9 @@ function UnitCard({ unit, onClick, onScheduleService, onViewHistory, onWarrantyS
           </div>
           <div className="info-row">
             <span className="info-label">Status</span>
-            <span className={`unit-status ${getStatusClass()}`}>{unit.status}</span>
+            <span className={`unit-status ${getStatusClass()}`}>
+              {unit.status}
+            </span>
           </div>
           {unit.ampereNextServiceLabel && (
             <div className="info-row">
@@ -51,8 +73,8 @@ function UnitCard({ unit, onClick, onScheduleService, onViewHistory, onWarrantyS
         </div>
       </div>
       <div className="unit-footer">
-        <button 
-          className="unit-btn service-btn" 
+        <button
+          className="unit-btn service-btn"
           onClick={(e) => {
             e.stopPropagation();
             onScheduleService(unit);
@@ -60,8 +82,8 @@ function UnitCard({ unit, onClick, onScheduleService, onViewHistory, onWarrantyS
         >
           Schedule Service
         </button>
-        <button 
-          className="unit-btn history-btn" 
+        <button
+          className="unit-btn history-btn"
           onClick={(e) => {
             e.stopPropagation();
             onViewHistory(unit);

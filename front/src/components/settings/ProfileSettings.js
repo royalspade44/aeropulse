@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { apiRequest } from '../../config/api';
-import AddAddressModal from '../checkout/AddAddressModal';
-import icons from '../common/icons';
+import { useEffect, useState } from "react";
+import { apiRequest } from "../../config/api";
+import AddAddressModal from "../checkout/AddAddressModal";
+// import icons from '../common/icons';
+const icons = {}; // BOUTIQUE MIGRATION STUB
 
 function MyAddressesSettings({ user }) {
   const [addresses, setAddresses] = useState([]);
@@ -13,7 +14,7 @@ function MyAddressesSettings({ user }) {
   const loadAddresses = async () => {
     setAddressLoading(true);
     try {
-      const result = await apiRequest('/users/addresses');
+      const result = await apiRequest("/users/addresses");
       setAddresses(result.addresses || []);
     } catch (_error) {
       setAddresses([]);
@@ -32,12 +33,12 @@ function MyAddressesSettings({ user }) {
       if (editingAddress?.id || editingAddress?._id) {
         const id = editingAddress.id || editingAddress._id;
         await apiRequest(`/users/addresses/${id}`, {
-          method: 'PATCH',
+          method: "PATCH",
           body: JSON.stringify(payload),
         });
       } else {
-        await apiRequest('/users/addresses', {
-          method: 'POST',
+        await apiRequest("/users/addresses", {
+          method: "POST",
           body: JSON.stringify(payload),
         });
       }
@@ -45,20 +46,20 @@ function MyAddressesSettings({ user }) {
       setAddressModalOpen(false);
       setEditingAddress(null);
     } catch (error) {
-      alert(error.message || 'Unable to save address.');
+      alert(error.message || "Unable to save address.");
     } finally {
       setAddressSaving(false);
     }
   };
 
   const handleDeleteAddress = async (addressId) => {
-    if (!window.confirm('Delete this address?')) return;
+    if (!window.confirm("Delete this address?")) return;
     setAddressSaving(true);
     try {
-      await apiRequest(`/users/addresses/${addressId}`, { method: 'DELETE' });
+      await apiRequest(`/users/addresses/${addressId}`, { method: "DELETE" });
       await loadAddresses();
     } catch (error) {
-      alert(error.message || 'Unable to delete address.');
+      alert(error.message || "Unable to delete address.");
     } finally {
       setAddressSaving(false);
     }
@@ -67,26 +68,36 @@ function MyAddressesSettings({ user }) {
   const handleSetDefaultAddress = async (addressId) => {
     setAddressSaving(true);
     try {
-      await apiRequest(`/users/addresses/${addressId}/default`, { method: 'PATCH' });
+      await apiRequest(`/users/addresses/${addressId}/default`, {
+        method: "PATCH",
+      });
       await loadAddresses();
     } catch (error) {
-      alert(error.message || 'Unable to update default address.');
+      alert(error.message || "Unable to update default address.");
     } finally {
       setAddressSaving(false);
     }
   };
 
-  const sortedAddresses = [...addresses].sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0));
+  const sortedAddresses = [...addresses].sort(
+    (a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0),
+  );
 
   return (
     <div className="settings-section">
       <div className="section-title">
         <span className="section-icon">
-          <img src={icons.marker} alt="" className="inline-icon inline-icon--md" />
+          <img
+            src={icons.marker}
+            alt=""
+            className="inline-icon inline-icon--md"
+          />
         </span>
         <div>
           <h2>My Addresses</h2>
-          <p className="setting-description">Add, edit, and manage multiple delivery addresses for checkout.</p>
+          <p className="setting-description">
+            Add, edit, and manage multiple delivery addresses for checkout.
+          </p>
         </div>
       </div>
 
@@ -95,7 +106,9 @@ function MyAddressesSettings({ user }) {
           <div className="settings-row-between">
             <div>
               <div className="setting-label">Saved Addresses</div>
-              <div className="setting-description">Manage delivery locations tied to your account.</div>
+              <div className="setting-description">
+                Manage delivery locations tied to your account.
+              </div>
             </div>
             <button
               type="button"
@@ -109,22 +122,38 @@ function MyAddressesSettings({ user }) {
             </button>
           </div>
 
-          {addressLoading ? <div className="setting-description">Loading addresses...</div> : null}
-          {!addressLoading && !sortedAddresses.length ? <div className="setting-description">No saved addresses yet.</div> : null}
+          {addressLoading ? (
+            <div className="setting-description">Loading addresses...</div>
+          ) : null}
+          {!addressLoading && !sortedAddresses.length ? (
+            <div className="setting-description">No saved addresses yet.</div>
+          ) : null}
 
           <div className="settings-address-list">
             {sortedAddresses.map((address) => {
               const id = address.id || address._id;
-              const line = [address.street, address.barangay, address.city, address.province, address.region]
+              const line = [
+                address.street,
+                address.barangay,
+                address.city,
+                address.province,
+                address.region,
+              ]
                 .filter(Boolean)
-                .join(', ');
+                .join(", ");
               return (
                 <div className="settings-address-item" key={id}>
                   <div>
-                    <strong>{address.label || address.type || 'Address'}</strong>
-                    {address.isDefault ? <span className="settings-pill">Default</span> : null}
-                    <p>{address.name} · {address.phone}</p>
-                    <small>{line || 'No address line provided'}</small>
+                    <strong>
+                      {address.label || address.type || "Address"}
+                    </strong>
+                    {address.isDefault ? (
+                      <span className="settings-pill">Default</span>
+                    ) : null}
+                    <p>
+                      {address.name} · {address.phone}
+                    </p>
+                    <small>{line || "No address line provided"}</small>
                   </div>
                   <div className="settings-address-actions">
                     <button
@@ -172,8 +201,8 @@ function MyAddressesSettings({ user }) {
           }}
           onSave={handleSaveAddress}
           initialAddress={editingAddress}
-          title={editingAddress ? 'Update Address' : 'Add New Address'}
-          saveLabel={editingAddress ? 'Save Address' : 'Add Address'}
+          title={editingAddress ? "Update Address" : "Add New Address"}
+          saveLabel={editingAddress ? "Save Address" : "Add Address"}
           isSaving={addressSaving}
         />
       )}

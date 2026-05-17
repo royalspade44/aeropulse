@@ -1,24 +1,33 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useUser } from '../../../context/UserContext';
-import { confirmDialog } from '../../../utils/dialog';
-import icons from '../../common/icons';
-import logo from '../../common/images/Cold Air Logo.jpg';
-import './styles.css';
+import {
+  ClipboardText,
+  Gear,
+  House,
+  Lock,
+  Package,
+  ShoppingCart,
+  SignOut,
+  Users,
+  Wrench,
+} from "@phosphor-icons/react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useUser } from "../../../context/UserContext";
+import { confirmDialog } from "../../../utils/dialog";
+import logo from "../../common/images/Cold Air Logo.jpg";
+import "./styles.css";
 
 const navItems = [
-  { to: '/admin/dashboard', label: 'Dashboard', icon: icons.clipboardList },
-  { to: '/admin/inventory', label: 'Inventory', icon: icons.boxOpen },
-  { to: '/admin/maintenance', label: 'Maintenance', icon: icons.tools },
-  { to: '/admin/technicians', label: 'Technicians', icon: icons.memberList },
-  { to: '/admin/orders', label: 'Orders', icon: icons.clipboardList },
-  { to: '/admin/store', label: 'Store', icon: icons.houseChimney },
-  { to: '/admin/reorder', label: 'Reorder', icon: icons.cartShoppingFast },
-  { to: '/admin/reports', label: 'Reports', icon: icons.clipboardList },
-  { to: '/admin/unlock-users', label: 'Unlock Users', icon: icons.lock },
-  { to: '/admin/settings', label: 'Settings', icon: icons.customize },
-  { to: '/admin/audit-logs', label: 'Audit Logs', icon: icons.clipboardList },
-  { to: '/admin/profile', label: 'Profile', icon: icons.memberList }
+  { to: "/admin/dashboard", label: "Dashboard", icon: ClipboardText },
+  { to: "/admin/inventory", label: "Inventory", icon: Package },
+  { to: "/admin/maintenance", label: "Maintenance", icon: Wrench },
+  { to: "/admin/technicians", label: "Technicians", icon: Users },
+  { to: "/admin/orders", label: "Orders", icon: ClipboardText },
+  { to: "/admin/store", label: "Store", icon: House },
+  { to: "/admin/reorder", label: "Reorder", icon: ShoppingCart },
+  { to: "/admin/reports", label: "Reports", icon: ClipboardText },
+  { to: "/admin/unlock-users", label: "Unlock Users", icon: Lock },
+  { to: "/admin/settings", label: "Settings", icon: Gear },
+  { to: "/admin/audit-logs", label: "Audit Logs", icon: ClipboardText },
+  { to: "/admin/profile", label: "Profile", icon: Users },
 ];
 
 const AdminSidebar = ({ isOpen, onClose }) => {
@@ -26,10 +35,13 @@ const AdminSidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    const confirmed = await confirmDialog('Are you sure you want to log out?', 'Logout');
+    const confirmed = await confirmDialog(
+      "Are you sure you want to log out?",
+      "Logout",
+    );
     if (!confirmed) return;
     logout();
-    navigate('/home');
+    navigate("/home");
   };
 
   const handleLinkClick = () => {
@@ -37,16 +49,26 @@ const AdminSidebar = ({ isOpen, onClose }) => {
   };
 
   return (
-    <aside className={`admin-sidebar ${isOpen ? 'open' : ''}`}>
+    <aside className={`admin-sidebar ${isOpen ? "open" : ""}`}>
       <div className="admin-sidebar-brand-row">
         <div className="admin-sidebar-brand">
           <span className="brand-icon">
-            <img src={logo} alt="AeroPulse" className="inline-icon inline-icon--md" style={{ borderRadius: '4px' }} />
+            <img
+              src={logo}
+              alt="AeroPulse"
+              className="inline-icon"
+              style={{ borderRadius: "4px", width: "20px", height: "20px" }}
+            />
           </span>
           <span>AeroPulse</span>
         </div>
-        <button className="admin-sidebar-close" onClick={onClose} type="button" aria-label="Close menu">
-          {'\u2715'}
+        <button
+          className="admin-sidebar-close"
+          onClick={onClose}
+          type="button"
+          aria-label="Close menu"
+        >
+          {"\u2715"}
         </button>
       </div>
 
@@ -55,11 +77,13 @@ const AdminSidebar = ({ isOpen, onClose }) => {
           <NavLink
             key={item.to}
             to={item.to}
-            className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
+            className={({ isActive }) =>
+              `admin-sidebar-link ${isActive ? "active" : ""}`
+            }
             onClick={handleLinkClick}
           >
             <span className="nav-icon">
-              <img src={item.icon} alt="" className="inline-icon inline-icon--md" />
+              <item.icon size={20} weight="bold" className="inline-icon" />
             </span>
             <span className="nav-label">{item.label}</span>
           </NavLink>
@@ -67,9 +91,13 @@ const AdminSidebar = ({ isOpen, onClose }) => {
       </nav>
 
       <div className="admin-sidebar-footer">
-        <button className="admin-sidebar-logout" onClick={handleLogout} type="button">
+        <button
+          className="admin-sidebar-logout"
+          onClick={handleLogout}
+          type="button"
+        >
           <span>
-            <img src={icons.signOutAlt} alt="" className="inline-icon inline-icon--md" />
+            <SignOut size={20} weight="bold" className="inline-icon" />
           </span>
           <span>Logout</span>
         </button>

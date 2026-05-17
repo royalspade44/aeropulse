@@ -1,15 +1,19 @@
-import React from 'react';
-import './styles.css';
-import icons from '../../common/icons';
+import "./styles.css";
+// import icons from '../../common/icons';
+const icons = {}; // BOUTIQUE MIGRATION STUB
 
 const Charts = ({ sales = [35, 40, 25, 50, 65, 72, 80] }) => {
   const max = Math.max(...sales, 1);
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
     <div className="admin-chart">
       <h3>
-        <img src={icons.clipboardList} alt="" className="admin-chart-title-icon inline-icon inline-icon--md" />
+        <img
+          src={icons.clipboardList}
+          alt=""
+          className="admin-chart-title-icon inline-icon inline-icon--md"
+        />
         Weekly Sales Trend
       </h3>
       <div className="admin-chart-bars">

@@ -1,4 +1,5 @@
-import icons from '../common/icons';
+// import icons from '../common/icons';
+const icons = {}; // BOUTIQUE MIGRATION STUB
 
 function DeliveryAddress({
   addresses,
@@ -8,16 +9,21 @@ function DeliveryAddress({
   onEditAddress,
   onDeleteAddress,
   onSetDefaultAddress,
-  isBusy
+  isBusy,
 }) {
   const formatAddressOption = (address) => {
-    const tag = address.label?.trim()
-      || (address.type === 'home' ? 'Home' : address.type === 'office' ? 'Office' : 'Address');
-    const city = address.city?.trim() || 'No city';
+    const tag =
+      address.label?.trim() ||
+      (address.type === "home"
+        ? "Home"
+        : address.type === "office"
+          ? "Office"
+          : "Address");
+    const city = address.city?.trim() || "No city";
     return `${tag} - ${city}`;
   };
 
-  const selectedValue = selectedAddress?.id || '';
+  const selectedValue = selectedAddress?.id || "";
 
   const handleSelection = (event) => {
     const next = addresses.find((item) => item.id === event.target.value);
@@ -28,10 +34,12 @@ function DeliveryAddress({
     <div className="checkout-section">
       <div className="section-header">
         <h2>Delivery Address</h2>
-        <button type="button" className="add-btn" onClick={onAddAddress}>+ Add New Address</button>
+        <button type="button" className="add-btn" onClick={onAddAddress}>
+          + Add New Address
+        </button>
       </div>
       {addresses.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '30px', color: '#999' }}>
+        <div style={{ textAlign: "center", padding: "30px", color: "#999" }}>
           No saved addresses. Click &quot;Add New Address&quot; to continue.
         </div>
       )}
@@ -59,29 +67,52 @@ function DeliveryAddress({
             <div className="address-card selected">
               <div className="address-type">
                 <span>
-                  <img src={icons.marker} alt="" className="inline-icon" /> {formatAddressOption(selectedAddress)}
+                  <img src={icons.marker} alt="" className="inline-icon" />{" "}
+                  {formatAddressOption(selectedAddress)}
                 </span>
                 {selectedAddress.isDefault && (
                   <span className="default-tag">Default</span>
                 )}
               </div>
               <div className="address-details">
-                <p><strong>{selectedAddress.name}</strong></p>
+                <p>
+                  <strong>{selectedAddress.name}</strong>
+                </p>
                 <p>{selectedAddress.street}</p>
-                <p>{selectedAddress.city}, {selectedAddress.postalCode || 'N/A'}</p>
-                <p><img src={icons.phoneCall} alt="" className="inline-icon" /> {selectedAddress.phone}</p>
+                <p>
+                  {selectedAddress.city}, {selectedAddress.postalCode || "N/A"}
+                </p>
+                <p>
+                  <img src={icons.phoneCall} alt="" className="inline-icon" />{" "}
+                  {selectedAddress.phone}
+                </p>
               </div>
 
               <div className="address-actions-row">
                 {!selectedAddress.isDefault && (
-                  <button type="button" className="add-btn" onClick={() => onSetDefaultAddress(selectedAddress)} disabled={isBusy}>
+                  <button
+                    type="button"
+                    className="add-btn"
+                    onClick={() => onSetDefaultAddress(selectedAddress)}
+                    disabled={isBusy}
+                  >
                     Set Default
                   </button>
                 )}
-                <button type="button" className="add-btn" onClick={() => onEditAddress(selectedAddress)} disabled={isBusy}>
+                <button
+                  type="button"
+                  className="add-btn"
+                  onClick={() => onEditAddress(selectedAddress)}
+                  disabled={isBusy}
+                >
                   Edit
                 </button>
-                <button type="button" className="add-btn danger" onClick={() => onDeleteAddress(selectedAddress)} disabled={isBusy}>
+                <button
+                  type="button"
+                  className="add-btn danger"
+                  onClick={() => onDeleteAddress(selectedAddress)}
+                  disabled={isBusy}
+                >
                   Delete
                 </button>
               </div>

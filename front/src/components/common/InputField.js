@@ -1,14 +1,14 @@
-import icons from './icons';
+import { WarningCircle } from "@phosphor-icons/react";
 
 function InputField({
   label,
-  type = 'text',
+  type = "text",
   placeholder,
   value,
   onChange,
   error,
   disabled,
-  required = false
+  required = false,
 }) {
   return (
     <div className="input-group">
@@ -24,11 +24,11 @@ function InputField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className={error ? 'input-error' : ''}
+        className={error ? "input-error" : ""}
       />
       {error && (
         <div className="error-message">
-          <img src={icons.diamondExclamation} alt="" className="inline-icon" />
+          <WarningCircle size={16} weight="bold" className="inline-icon" />
           <span>{error}</span>
         </div>
       )}

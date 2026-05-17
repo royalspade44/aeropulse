@@ -1,79 +1,110 @@
-import { useState } from 'react';
-import InputField from '../common/InputField';
-import Button from '../common/Button';
-import icons from '../common/icons';
+import { ArrowRight, EnvelopeSimple, LockKey } from "@phosphor-icons/react";
+import BoutiqueInput from "../common/boutique/BoutiqueInput";
+import { BQ_COLORS, BQ_GEOMETRY } from "../common/boutique/BoutiqueTheme";
 
-function LoginForm({ 
-  email, 
+export default function LoginForm({
+  email,
   password,
-  errors, 
-  onEmailChange, 
-  onPasswordChange, 
-  onSubmit, 
-  loading, 
+  errors,
+  onEmailChange,
+  onPasswordChange,
+  onSubmit,
+  loading,
   disabled,
-  onForgotPassword
+  onForgotPassword,
 }) {
-  const [showPassword, setShowPassword] = useState(false);
-
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit();
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <InputField
+    <form className="bq-login-step" onSubmit={handleSubmit}>
+      <BoutiqueInput
         label="Email Address"
+        icon={EnvelopeSimple}
         type="email"
-        placeholder="Enter your email address"
+        placeholder="you@example.com"
         value={email}
-        onChange={onEmailChange}
-        error={errors.email}
+        onChange={(e) => onEmailChange(e.target.value)}
         disabled={disabled}
+        status={errors.email ? "error" : null}
+        errorMessage={errors.email}
         required
       />
 
-      <div className="input-group">
-        <label>Password <span className="required-star">*</span></label>
-        <div className="password-wrapper">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => onPasswordChange(e.target.value)}
-            disabled={disabled}
-            className={errors.password ? 'input-error' : ''}
-          />
+      <div className="bq-login-password-field">
+        <div className="bq-login-pass-header">
+          <label className="bq-input-label">Password</label>
           <button
             type="button"
-            className="toggle-password"
-            onClick={() => setShowPassword(!showPassword)}
+            className="bq-login-forgot"
+            onClick={onForgotPassword}
+            tabIndex="-1"
           >
-            {showPassword ? 'Hide' : 'Show'}
+            Forgot?
           </button>
         </div>
-        {errors.password && (
-          <div className="error-message">
-            <img src={icons.diamondExclamation} alt="" className="inline-icon" />
-            <span>{errors.password}</span>
-          </div>
-        )}
+
+        <BoutiqueInput
+          icon={LockKey}
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => onPasswordChange(e.target.value)}
+          disabled={disabled}
+          status={errors.password ? "error" : null}
+          errorMessage={errors.password}
+          style={{ fontFamily: "monospace" }}
+          required
+        />
       </div>
 
-      <button type="button" className="forgot-link" onClick={onForgotPassword}>
-        Forgot password?
+      <button
+        type="submit"
+        className="bq-login-btn bq-login-btn--primary"
+        disabled={disabled || loading}
+      >
+        {loading ? "Signing in..." : "Sign In"}{" "}
+        {!loading && <ArrowRight size={18} weight="bold" />}
       </button>
 
-      <Button
-        type="submit"
-        disabled={disabled || loading}
-        className="login-button"
-      >
-        {loading ? 'Signing in...' : 'Sign In'}
-      </Button>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        .bq-login-step { display: flex; flex-direction: column; gap: 24px; width: 100%; }
+
+        .bq-login-password-field { display: flex; flex-direction: column; gap: 8px; }
+
+        .bq-login-pass-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .bq-login-forgot {
+          background: none; border: none; font-size: 11px; font-weight: 800;
+          color: ${BQ_COLORS.brand}; cursor: pointer; text-transform: uppercase;
+          letter-spacing: 0.1em;
+          transition: all 0.2s;
+        }
+        .bq-login-forgot:hover { text-decoration: underline; opacity: 0.8; }
+
+        .bq-login-btn {
+          width: 100%; padding: 18px; border-radius: ${BQ_GEOMETRY.radiusPill};
+          font-family: inherit; font-weight: 800; font-size: 15px;
+          text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          gap: 10px; transition: all 0.3s; border: none;
+          margin-top: 8px;
+        }
+
+        .bq-login-btn--primary { background: ${BQ_COLORS.brand}; color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .bq-login-btn--primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        .bq-login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+      `,
+        }}
+      />
     </form>
   );
 }
-
-export default LoginForm;

@@ -1,17 +1,18 @@
-import { useMemo, useState } from 'react';
-import AdminLayout from '../Common/AdminLayout';
-import { apiRequest } from '../../../config/api';
-import { exportHtmlToPdfViaPrint, exportToCsv } from '../../../utils/exporters';
-import icons from '../../common/icons';
-import '../adminShared.css';
+import { useMemo, useState } from "react";
+import { apiRequest } from "../../../config/api";
+import { exportHtmlToPdfViaPrint, exportToCsv } from "../../../utils/exporters";
+import "../adminShared.css";
+import AdminLayout from "../Common/AdminLayout";
+// import icons from '../../common/icons';
+const icons = {}; // BOUTIQUE MIGRATION STUB
 
 const tabs = [
-  { id: 'sales', label: 'Sales Report' },
-  { id: 'inventory', label: 'Inventory Report' },
-  { id: 'tech', label: 'Technician Performance' },
+  { id: "sales", label: "Sales Report" },
+  { id: "inventory", label: "Inventory Report" },
+  { id: "tech", label: "Technician Performance" },
 ];
 
-const toIsoDate = (d) => d.toISOString().split('T')[0];
+const toIsoDate = (d) => d.toISOString().split("T")[0];
 
 const defaultRange = () => {
   const to = new Date();
@@ -20,49 +21,66 @@ const defaultRange = () => {
 };
 
 function AdminReports() {
-  const [activeTab, setActiveTab] = useState('sales');
+  const [activeTab, setActiveTab] = useState("sales");
   const [range, setRange] = useState(defaultRange);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [data, setData] = useState({ summary: null, rows: [] });
 
   const canExport = data.rows.length > 0;
 
   const generate = async () => {
     setBusy(true);
-    setError('');
+    setError("");
     try {
-      if (activeTab === 'sales') {
+      if (activeTab === "sales") {
         const result = await apiRequest(
-          `/reports/sales?interval=daily&from=${encodeURIComponent(new Date(range.from).toISOString())}&to=${encodeURIComponent(new Date(range.to).toISOString())}&topN=10`
+          `/reports/sales?interval=daily&from=${encodeURIComponent(new Date(range.from).toISOString())}&to=${encodeURIComponent(new Date(range.to).toISOString())}&topN=10`,
         );
-        const totalSales = (result.series || []).reduce((sum, item) => sum + Number(item.revenue || 0), 0);
-        const totalUnits = (result.series || []).reduce((sum, item) => sum + Number(item.unitsSold || 0), 0);
+        const totalSales = (result.series || []).reduce(
+          (sum, item) => sum + Number(item.revenue || 0),
+          0,
+        );
+        const totalUnits = (result.series || []).reduce(
+          (sum, item) => sum + Number(item.unitsSold || 0),
+          0,
+        );
         const topProducts = (result.topProducts || []).map((p) => ({
           name: p.name,
           unitsSold: Number(p.unitsSold || 0),
           revenue: Number(p.revenue || 0),
         }));
         setData({
-          summary: { totalSales, totalUnits, topProductsCount: topProducts.length },
+          summary: {
+            totalSales,
+            totalUnits,
+            topProductsCount: topProducts.length,
+          },
           rows: topProducts,
         });
-      } else if (activeTab === 'inventory') {
+      } else if (activeTab === "inventory") {
         const [lowStock, allProducts] = await Promise.all([
-          apiRequest('/products/low-stock').catch(() => ({ products: [] })),
-          apiRequest('/products').catch(() => ({ products: [] })),
+          apiRequest("/products/low-stock").catch(() => ({ products: [] })),
+          apiRequest("/products").catch(() => ({ products: [] })),
         ]);
 
-        const products = Array.isArray(allProducts.products) ? allProducts.products : [];
-        const lowStockItems = Array.isArray(lowStock.products) ? lowStock.products : [];
+        const products = Array.isArray(allProducts.products)
+          ? allProducts.products
+          : [];
+        const lowStockItems = Array.isArray(lowStock.products)
+          ? lowStock.products
+          : [];
 
-        const stockValue = products.reduce((sum, p) => sum + Number(p.price || 0) * Number(p.stock || 0), 0);
+        const stockValue = products.reduce(
+          (sum, p) => sum + Number(p.price || 0) * Number(p.stock || 0),
+          0,
+        );
         const rows = lowStockItems.map((p) => ({
           sku: p.sku,
           name: p.name,
           stock: Number(p.stock || 0),
           threshold: Number(p.threshold || 0),
-          recommendation: 'Reorder recommended',
+          recommendation: "Reorder recommended",
         }));
 
         setData({
@@ -72,20 +90,37 @@ function AdminReports() {
       } else {
         // Placeholder: later you can wire to real task / dispatch metrics
         const rows = [
-          { technician: 'Technician A', completedOrders: 12, avgResponseMinutes: 45 },
-          { technician: 'Technician B', completedOrders: 9, avgResponseMinutes: 62 },
-          { technician: 'Technician C', completedOrders: 6, avgResponseMinutes: 80 },
+          {
+            technician: "Technician A",
+            completedOrders: 12,
+            avgResponseMinutes: 45,
+          },
+          {
+            technician: "Technician B",
+            completedOrders: 9,
+            avgResponseMinutes: 62,
+          },
+          {
+            technician: "Technician C",
+            completedOrders: 6,
+            avgResponseMinutes: 80,
+          },
         ];
         setData({
           summary: {
-            totalCompletedOrders: rows.reduce((s, r) => s + r.completedOrders, 0),
-            avgResponseMinutes: Math.round(rows.reduce((s, r) => s + r.avgResponseMinutes, 0) / rows.length),
+            totalCompletedOrders: rows.reduce(
+              (s, r) => s + r.completedOrders,
+              0,
+            ),
+            avgResponseMinutes: Math.round(
+              rows.reduce((s, r) => s + r.avgResponseMinutes, 0) / rows.length,
+            ),
           },
           rows,
         });
       }
     } catch (e) {
-      setError(e?.message || 'Failed to generate report.');
+      setError(e?.message || "Failed to generate report.");
       setData({ summary: null, rows: [] });
     } finally {
       setBusy(false);
@@ -93,28 +128,39 @@ function AdminReports() {
   };
 
   const title = useMemo(() => {
-    const tab = tabs.find((t) => t.id === activeTab)?.label || 'Reports';
+    const tab = tabs.find((t) => t.id === activeTab)?.label || "Reports";
     return `${tab} (${range.from} to ${range.to})`;
   }, [activeTab, range.from, range.to]);
 
   const onExportCsv = () => {
-    exportToCsv({ filename: `aeropulse-${activeTab}-${range.from}-to-${range.to}.csv`, rows: data.rows });
+    exportToCsv({
+      filename: `aeropulse-${activeTab}-${range.from}-to-${range.to}.csv`,
+      rows: data.rows,
+    });
   };
 
   const onExportPdf = () => {
     const summaryHtml = data.summary
-      ? `<div class="meta"><strong>Summary:</strong> ${Object.entries(data.summary)
-          .map(([k, v]) => `${k}: ${typeof v === 'number' ? v.toLocaleString() : String(v)}`)
-          .join(' | ')}</div>`
-      : '';
+      ? `<div class="meta"><strong>Summary:</strong> ${Object.entries(
+          data.summary,
+        )
+          .map(
+            ([k, v]) =>
+              `${k}: ${typeof v === "number" ? v.toLocaleString() : String(v)}`,
+          )
+          .join(" | ")}</div>`
+      : "";
     const headers = data.rows.length ? Object.keys(data.rows[0]) : [];
     const table = headers.length
       ? `<table>
-          <thead><tr>${headers.map((h) => `<th>${h}</th>`).join('')}</tr></thead>
+          <thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
           <tbody>
             ${data.rows
-              .map((r) => `<tr>${headers.map((h) => `<td>${r[h] ?? ''}</td>`).join('')}</tr>`)
-              .join('')}
+              .map(
+                (r) =>
+                  `<tr>${headers.map((h) => `<td>${r[h] ?? ""}</td>`).join("")}</tr>`,
+              )
+              .join("")}
           </tbody>
         </table>`
       : '<div class="meta">No rows.</div>';
@@ -125,10 +171,21 @@ function AdminReports() {
   };
 
   return (
-    <AdminLayout title="Reports" subtitle="Generate sales, inventory, and technician performance exports">
+    <AdminLayout
+      title="Reports"
+      subtitle="Generate sales, inventory, and technician performance exports"
+    >
       <div className="admin-card">
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -136,12 +193,12 @@ function AdminReports() {
                 onClick={() => setActiveTab(tab.id)}
                 style={{
                   borderRadius: 12,
-                  padding: '10px 12px',
-                  border: '1px solid #e5e7eb',
-                  background: activeTab === tab.id ? '#eff6ff' : 'white',
-                  color: activeTab === tab.id ? '#1d4ed8' : '#374151',
+                  padding: "10px 12px",
+                  border: "1px solid #e5e7eb",
+                  background: activeTab === tab.id ? "#eff6ff" : "white",
+                  color: activeTab === tab.id ? "#1d4ed8" : "#374151",
                   fontWeight: 800,
-                  cursor: 'pointer',
+                  cursor: "pointer",
                 }}
               >
                 {tab.label}
@@ -149,41 +206,91 @@ function AdminReports() {
             ))}
           </div>
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <label style={{ fontWeight: 800, fontSize: 12, color: '#374151' }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <label style={{ fontWeight: 800, fontSize: 12, color: "#374151" }}>
               From
-              <input type="date" value={range.from} onChange={(e) => setRange((p) => ({ ...p, from: e.target.value }))} />
+              <input
+                type="date"
+                value={range.from}
+                onChange={(e) =>
+                  setRange((p) => ({ ...p, from: e.target.value }))
+                }
+              />
             </label>
-            <label style={{ fontWeight: 800, fontSize: 12, color: '#374151' }}>
+            <label style={{ fontWeight: 800, fontSize: 12, color: "#374151" }}>
               To
-              <input type="date" value={range.to} onChange={(e) => setRange((p) => ({ ...p, to: e.target.value }))} />
+              <input
+                type="date"
+                value={range.to}
+                onChange={(e) =>
+                  setRange((p) => ({ ...p, to: e.target.value }))
+                }
+              />
             </label>
-            <button type="button" onClick={generate} disabled={busy} style={{ fontWeight: 800 }}>
-              {busy ? 'Generating…' : 'Generate'}
+            <button
+              type="button"
+              onClick={generate}
+              disabled={busy}
+              style={{ fontWeight: 800 }}
+            >
+              {busy ? "Generating…" : "Generate"}
             </button>
-            <button type="button" onClick={onExportCsv} disabled={!canExport} style={{ fontWeight: 800 }}>
+            <button
+              type="button"
+              onClick={onExportCsv}
+              disabled={!canExport}
+              style={{ fontWeight: 800 }}
+            >
               Export CSV
             </button>
-            <button type="button" onClick={onExportPdf} disabled={!canExport} style={{ fontWeight: 800 }}>
+            <button
+              type="button"
+              onClick={onExportPdf}
+              disabled={!canExport}
+              style={{ fontWeight: 800 }}
+            >
               Export PDF
             </button>
           </div>
         </div>
 
-        {error ? <p style={{ color: '#b91c1c', fontWeight: 700 }}>{error}</p> : null}
+        {error ? (
+          <p style={{ color: "#b91c1c", fontWeight: 700 }}>{error}</p>
+        ) : null}
 
         {data.summary ? (
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 12 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 16,
+              flexWrap: "wrap",
+              marginTop: 12,
+            }}
+          >
             <div className="stat-card" style={{ minWidth: 240 }}>
               <div className="stat-icon">
-                <img src={icons.clipboardList} alt="" className="inline-icon inline-icon--xl" />
+                <img
+                  src={icons.clipboardList}
+                  alt=""
+                  className="inline-icon inline-icon--xl"
+                />
               </div>
               <div className="stat-info">
                 <h3>Summary</h3>
-                <p style={{ fontSize: 12, fontWeight: 800, color: '#374151' }}>
+                <p style={{ fontSize: 12, fontWeight: 800, color: "#374151" }}>
                   {Object.entries(data.summary)
-                    .map(([k, v]) => `${k}: ${typeof v === 'number' ? v.toLocaleString() : String(v)}`)
-                    .join(' | ')}
+                    .map(
+                      ([k, v]) =>
+                        `${k}: ${typeof v === "number" ? v.toLocaleString() : String(v)}`,
+                    )
+                    .join(" | ")}
                 </p>
               </div>
             </div>
@@ -204,7 +311,7 @@ function AdminReports() {
                 {data.rows.map((r, idx) => (
                   <tr key={idx}>
                     {Object.keys(data.rows[0]).map((h) => (
-                      <td key={h}>{String(r[h] ?? '')}</td>
+                      <td key={h}>{String(r[h] ?? "")}</td>
                     ))}
                   </tr>
                 ))}
@@ -212,7 +319,9 @@ function AdminReports() {
             </table>
           </div>
         ) : (
-          <p style={{ marginTop: 12, color: '#6b7280', fontWeight: 700 }}>Generate a report to see results.</p>
+          <p style={{ marginTop: 12, color: "#6b7280", fontWeight: 700 }}>
+            Generate a report to see results.
+          </p>
         )}
       </div>
     </AdminLayout>
@@ -220,4 +329,3 @@ function AdminReports() {
 }
 
 export default AdminReports;
-

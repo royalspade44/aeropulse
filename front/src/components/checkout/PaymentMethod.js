@@ -1,18 +1,47 @@
-import icons from '../common/icons';
+// import icons from '../common/icons';
+const icons = {}; // BOUTIQUE MIGRATION STUB
 
 function PaymentMethod({ selectedMethod, onSelectMethod, branchHint }) {
   const paymentMethods = [
-    { id: 'cod', name: 'Cash on Delivery', description: 'Processing until you pay on delivery', iconSrc: icons.cartShoppingFast },
-    { id: 'gcash', name: 'GCash', description: 'Payment gateway — complete after order submit', iconSrc: icons.customize },
-    { id: 'credit', name: 'Credit / debit card', description: 'Payment gateway (Visa, Mastercard, JCB)', iconSrc: icons.shieldKeyhole },
-    { id: 'pay_on_install', name: 'Payment upon installation', description: 'Processing until installation is completed', iconSrc: icons.tools }
+    {
+      id: "cod",
+      name: "Cash on Delivery",
+      description: "Processing until you pay on delivery",
+      iconSrc: icons.cartShoppingFast,
+    },
+    {
+      id: "gcash",
+      name: "GCash",
+      description: "Payment gateway — complete after order submit",
+      iconSrc: icons.customize,
+    },
+    {
+      id: "credit",
+      name: "Credit / debit card",
+      description: "Payment gateway (Visa, Mastercard, JCB)",
+      iconSrc: icons.shieldKeyhole,
+    },
+    {
+      id: "pay_on_install",
+      name: "Payment upon installation",
+      description: "Processing until installation is completed",
+      iconSrc: icons.tools,
+    },
   ];
 
   return (
     <div className="checkout-section">
-      <h2 style={{ marginBottom: '20px' }}>Payment Method</h2>
+      <h2 style={{ marginBottom: "20px" }}>Payment Method</h2>
       {branchHint ? (
-        <p className="payment-branch-hint" style={{ marginTop: '-8px', marginBottom: '16px', color: '#334155', fontSize: '14px' }}>
+        <p
+          className="payment-branch-hint"
+          style={{
+            marginTop: "-8px",
+            marginBottom: "16px",
+            color: "#334155",
+            fontSize: "14px",
+          }}
+        >
           {branchHint}
         </p>
       ) : null}
@@ -20,7 +49,7 @@ function PaymentMethod({ selectedMethod, onSelectMethod, branchHint }) {
         {paymentMethods.map((method) => (
           <div
             key={method.id}
-            className={`payment-option ${selectedMethod === method.id ? 'selected' : ''}`}
+            className={`payment-option ${selectedMethod === method.id ? "selected" : ""}`}
             onClick={() => onSelectMethod(method.id)}
             role="presentation"
           >
@@ -29,7 +58,11 @@ function PaymentMethod({ selectedMethod, onSelectMethod, branchHint }) {
               <div className="payment-name">{method.name}</div>
               <div className="payment-description">{method.description}</div>
             </div>
-            <img src={method.iconSrc} alt="" className="inline-icon inline-icon--xl" />
+            <img
+              src={method.iconSrc}
+              alt=""
+              className="inline-icon inline-icon--xl"
+            />
           </div>
         ))}
       </div>

@@ -1,83 +1,109 @@
-import icons from '../common/icons';
+import { ArrowRight, X } from "@phosphor-icons/react";
+import { useMemo } from "react";
+import BoutiqueButton from "../common/boutique/BoutiqueButton";
+import BoutiqueCheckbox from "../common/boutique/BoutiqueCheckbox";
+import { BQ_COLORS } from "../common/boutique/BoutiqueTheme";
 
-function RegisterLegalConsentsStep({ formData, errors, onFieldChange, onNext }) {
+export default function RegisterLegalConsentsStep({
+  formData,
+  errors,
+  onFieldChange,
+  onNext,
+  onBack,
+}) {
+  const consents = [
+    {
+      id: "agreeTermsWarranty",
+      link: "/terms",
+      linkText: "warranty terms and conditions",
+    },
+    {
+      id: "agreeTermsService",
+      link: "/terms",
+      linkText: "service terms and conditions",
+    },
+    {
+      id: "agreeTermsApp",
+      link: "/terms",
+      linkText: "app terms and conditions",
+    },
+    {
+      id: "agreePrivacyRa10173",
+      link: "/privacy",
+      linkText: "data privacy disclosure (RA 10173)",
+    },
+  ];
+
+  const allChecked = useMemo(() => {
+    return consents.every((c) => !!formData[c.id]);
+  }, [formData]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onNext();
+    if (allChecked) {
+      onNext();
+    }
   };
 
   return (
-    <form className="register-step" onSubmit={handleSubmit}>
-      <h3 className="register-step-title">Terms &amp; privacy</h3>
-      <p className="register-step-desc">Review and accept each item before continuing.</p>
-
-      <div className="terms-group register-legal-stack">
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={!!formData.agreeTermsWarranty}
-            onChange={(e) => onFieldChange('agreeTermsWarranty', e.target.checked)}
-          />
-          <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer">warranty terms and conditions</a></span>
-        </label>
-        {errors.agreeTermsWarranty && (
-          <div className="error-message">
-            <img src={icons.diamondExclamation} alt="" className="inline-icon" />
-            <span>{errors.agreeTermsWarranty}</span>
-          </div>
-        )}
-
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={!!formData.agreeTermsService}
-            onChange={(e) => onFieldChange('agreeTermsService', e.target.checked)}
-          />
-          <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer">service terms and conditions</a></span>
-        </label>
-        {errors.agreeTermsService && (
-          <div className="error-message">
-            <img src={icons.diamondExclamation} alt="" className="inline-icon" />
-            <span>{errors.agreeTermsService}</span>
-          </div>
-        )}
-
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={!!formData.agreeTermsApp}
-            onChange={(e) => onFieldChange('agreeTermsApp', e.target.checked)}
-          />
-          <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer">app terms and conditions</a></span>
-        </label>
-        {errors.agreeTermsApp && (
-          <div className="error-message">
-            <img src={icons.diamondExclamation} alt="" className="inline-icon" />
-            <span>{errors.agreeTermsApp}</span>
-          </div>
-        )}
-
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={!!formData.agreePrivacyRa10173}
-            onChange={(e) => onFieldChange('agreePrivacyRa10173', e.target.checked)}
-          />
-          <span>I acknowledge the <a href="/privacy" target="_blank" rel="noreferrer">data privacy disclosure (RA 10173)</a></span>
-        </label>
-        {errors.agreePrivacyRa10173 && (
-          <div className="error-message">
-            <img src={icons.diamondExclamation} alt="" className="inline-icon" />
-            <span>{errors.agreePrivacyRa10173}</span>
-          </div>
-        )}
+    <form className="bq-reg-step bq-fade-in" onSubmit={handleSubmit}>
+      <div className="bq-reg-header">
+        <h3 className="bq-reg-title">Terms & Privacy</h3>
+        <p className="bq-reg-desc">
+          Please review and accept our policies to continue.
+        </p>
       </div>
 
-      <button type="submit" className="register-button">
-        Continue
-      </button>
+      <div className="bq-reg-consent-list">
+        {consents.map((c) => (
+          <BoutiqueCheckbox
+            key={c.id}
+            checked={!!formData[c.id]}
+            onChange={(val) => onFieldChange(c.id, val)}
+            error={errors[c.id]}
+          >
+            <span>
+              I agree to the{" "}
+              <a
+                href={c.link}
+                target="_blank"
+                rel="noreferrer"
+                className="bq-reg-link"
+              >
+                {c.linkText}
+              </a>
+            </span>
+          </BoutiqueCheckbox>
+        ))}
+      </div>
+
+      <div className="bq-reg-actions">
+        <BoutiqueButton variant="cancel" onClick={onBack}>
+          <X size={18} weight="bold" /> Cancel
+        </BoutiqueButton>
+        <BoutiqueButton type="submit" disabled={!allChecked}>
+          Continue <ArrowRight size={18} weight="bold" />
+        </BoutiqueButton>
+      </div>
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        .bq-reg-step { display: flex; flex-direction: column; gap: 24px; width: 100%; }
+
+        .bq-reg-header { margin-bottom: 8px; }
+        .bq-reg-title { font-size: 24px; font-weight: 800; margin: 0; }
+        .bq-reg-desc { font-size: 15px; margin-top: 8px; opacity: 0.8; }
+
+        .bq-reg-consent-list { display: flex; flex-direction: column; gap: 20px; }
+
+        .bq-reg-link { color: ${BQ_COLORS.brand}; text-decoration: none; font-weight: 700; transition: all 0.2s; }
+        .bq-reg-link:hover { text-decoration: underline; opacity: 0.8; }
+
+        .bq-reg-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+      `,
+        }}
+      />
     </form>
   );
 }
-
-export default RegisterLegalConsentsStep;

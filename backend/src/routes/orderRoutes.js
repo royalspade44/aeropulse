@@ -3,6 +3,7 @@ const { requireAuth } = require("../middleware/auth");
 const {
   createOrder,
   listMyOrders,
+  getMyOrderById,
   getMyOrderSummary,
   approveOrder,
   listOrdersForAdmin,
@@ -18,5 +19,6 @@ router.patch("/:orderId/approve", approveOrder);
 router.patch("/:orderId/process", processOrder);
 router.get("/me", listMyOrders);
 router.get("/me/summary", getMyOrderSummary);
+router.get("/me/:orderId", getMyOrderById);
 
 module.exports = router;

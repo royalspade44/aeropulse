@@ -1,4 +1,5 @@
-import icons from '../common/icons';
+// import icons from '../common/icons';
+const icons = {}; // BOUTIQUE MIGRATION STUB
 
 function LockoutWarning({ lockoutInfo, secondsLeft }) {
   if (!lockoutInfo) return null;
@@ -6,7 +7,11 @@ function LockoutWarning({ lockoutInfo, secondsLeft }) {
   return (
     <div className="lockout-warning">
       <div className="lockout-icon">
-        <img src={icons.diamondExclamation} alt="" className="inline-icon inline-icon--lg" />
+        <img
+          src={icons.diamondExclamation}
+          alt=""
+          className="inline-icon inline-icon--lg"
+        />
       </div>
       <div className="lockout-content">
         <div className="lockout-title">Account Temporarily Locked</div>
@@ -17,7 +22,9 @@ function LockoutWarning({ lockoutInfo, secondsLeft }) {
             <div className="progress-bar">
               <div
                 className="progress-fill"
-                style={{ width: `${(secondsLeft / lockoutInfo.secondsLeft) * 100}%` }}
+                style={{
+                  width: `${(secondsLeft / lockoutInfo.secondsLeft) * 100}%`,
+                }}
               />
             </div>
           </div>

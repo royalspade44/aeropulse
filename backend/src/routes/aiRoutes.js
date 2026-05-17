@@ -5,6 +5,7 @@ const { getUnitHealthInsight } = require("../controllers/aiController");
 
 const router = express.Router();
 
-router.post("/unit-health", requireAuth, getUnitHealthInsight);
+// AI Routes disabled for cleanup
+// router.post("/unit-health", requireAuth, getUnitHealthInsight);
 
 module.exports = router;

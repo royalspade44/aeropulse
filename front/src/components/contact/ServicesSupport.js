@@ -1,19 +1,35 @@
-import icons from '../common/icons';
+// import icons from '../common/icons';
+const icons = {}; // BOUTIQUE MIGRATION STUB
 
 function ServicesSupport() {
   const services = [
-    { icon: icons.temperatureFrigid, name: 'AC Installation' },
-    { icon: icons.tools, name: 'Repair Services' },
-    { icon: icons.broom, name: 'Regular Maintenance' },
-    { icon: icons.diamondExclamation, name: 'Chemical Cleaning' },
-    { icon: icons.wind, name: 'Gas Top-up' },
-    { icon: icons.clipboardList, name: 'Consultation' }
+    { icon: icons.temperatureFrigid, name: "AC Installation" },
+    { icon: icons.tools, name: "Repair Services" },
+    { icon: icons.broom, name: "Regular Maintenance" },
+    { icon: icons.diamondExclamation, name: "Chemical Cleaning" },
+    { icon: icons.wind, name: "Gas Top-up" },
+    { icon: icons.clipboardList, name: "Consultation" },
   ];
 
   const support = [
-    { title: 'Sales', phone: '09086854532', email: 'coldairairconditionaing@yahoo.com', icon: icons.cartShoppingFast },
-    { title: 'Customer Service', phone: '09086854532', email: 'coldairairconditionaing@yahoo.com', icon: icons.memberList },
-    { title: 'Technical Support', phone: '09086854532', email: 'coldairairconditionaing@yahoo.com', icon: icons.tools }
+    {
+      title: "Sales",
+      phone: "09086854532",
+      email: "coldairairconditionaing@yahoo.com",
+      icon: icons.cartShoppingFast,
+    },
+    {
+      title: "Customer Service",
+      phone: "09086854532",
+      email: "coldairairconditionaing@yahoo.com",
+      icon: icons.memberList,
+    },
+    {
+      title: "Technical Support",
+      phone: "09086854532",
+      email: "coldairairconditionaing@yahoo.com",
+      icon: icons.tools,
+    },
   ];
 
   return (
@@ -24,7 +40,11 @@ function ServicesSupport() {
           {services.map((service, index) => (
             <div key={index} className="service-item">
               <span>
-                <img src={service.icon} alt="" className="inline-icon inline-icon--md" />
+                <img
+                  src={service.icon}
+                  alt=""
+                  className="inline-icon inline-icon--md"
+                />
               </span>
               <span>{service.name}</span>
             </div>
@@ -38,12 +58,18 @@ function ServicesSupport() {
           {support.map((item, index) => (
             <div key={index} className="support-card">
               <div className="support-icon">
-                <img src={item.icon} alt="" className="inline-icon inline-icon--lg" />
+                <img
+                  src={item.icon}
+                  alt=""
+                  className="inline-icon inline-icon--lg"
+                />
               </div>
               <h4>{item.title}</h4>
               <p>{item.phone}</p>
-              <p style={{ fontSize: '12px' }}>{item.email}</p>
-              <a href={`mailto:${item.email}`} className="support-link">Contact →</a>
+              <p style={{ fontSize: "12px" }}>{item.email}</p>
+              <a href={`mailto:${item.email}`} className="support-link">
+                Contact →
+              </a>
             </div>
           ))}
         </div>

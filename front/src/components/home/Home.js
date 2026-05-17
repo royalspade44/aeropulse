@@ -1,45 +1,49 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useCart } from '../../context/CartContext';
-import { useUser } from '../../context/UserContext';
-import './styles.css';
-import Header from './Header';
-import SideMenu from './SideMenu';
-import NotificationsModal from './NotificationsModal';
-import CartModal from '../shop/CartSidebar';
-import HeroSection from './HeroSection';
-import BrandsSection from './BrandsSection';
-import InfoSection from './InfoSection';
-import Footer from './Footer';
-import icons from '../common/icons';
-import { apiRequest } from '../../config/api';
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { apiRequest } from "../../config/api";
+import { useCart } from "../../context/CartContext";
+import { useUser } from "../../context/UserContext";
+
+// Modular Boutique Components
+import BoutiqueCart from "../common/boutique/BoutiqueCart";
+import BoutiqueFooter from "../common/boutique/BoutiqueFooter";
+import BoutiqueHeader from "../common/boutique/BoutiqueHeader";
+import BoutiqueSideMenu from "../common/boutique/BoutiqueSideMenu";
+import { BQ_COLORS } from "../common/boutique/BoutiqueTheme";
+
+// Home Specific Modular Sections
+import HomeBrands from "./HomeBrands";
+import HomeHero from "./HomeHero";
+import HomeInfo from "./HomeInfo";
+import NotificationsModal from "./NotificationsModal";
 
 function Home() {
   const navigate = useNavigate();
-  const { cart, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
-  const { logout, isAuthenticated } = useUser();
-  
-  // State Management
+  const {
+    cart,
+    updateQuantity,
+    removeFromCart,
+    getCartTotal,
+    getCartCount,
+    clearCart,
+  } = useCart();
+  const { user, logout, isAuthenticated } = useUser();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activePage] = useState('home');
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showCart, setShowCart] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  
-  // Track scroll for header effects
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-  
-  
-  // Notifications Data
   const [notifications, setNotifications] = useState([]);
   const previousNotificationIdsRef = useRef(new Set());
 
+  // Track scroll for header effects
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Fetch Notifications
   useEffect(() => {
     if (!isAuthenticated) {
       setNotifications([]);
@@ -47,260 +51,162 @@ function Home() {
       return;
     }
 
-    apiRequest('/notifications/me')
+    apiRequest("/notifications/me")
       .then((response) => {
         const normalized = (response.notifications || []).map((item) => ({
           ...item,
           unread: Boolean(item.unread),
-          time: new Date(item.createdAt).toLocaleString()
+          time: new Date(item.createdAt).toLocaleString(),
         }));
-        const currentIds = new Set(normalized.map(n => n.id));
-        const newNotifications = normalized.filter(n => !previousNotificationIdsRef.current.has(n.id));
-        
-        if (newNotifications.length > 0) {
-          // Show toast for new notifications
-          newNotifications.forEach(notif => {
-            if (notif.unread) {
-              // Simple alert for now, could be replaced with toast library
-              console.log('New notification:', notif.title);
-              // For demo, show alert
-              alert(`New notification: ${notif.title}`);
-            }
-          });
-        }
-        
+        const currentIds = new Set(normalized.map((n) => n.id));
         setNotifications(normalized);
         previousNotificationIdsRef.current = currentIds;
       })
-      .catch(() => {
-        setNotifications([]);
-        previousNotificationIdsRef.current = new Set();
-      });
+      .catch(() => setNotifications([]));
   }, [isAuthenticated]);
 
-  // Brand Data - Matches the structure in BrandsSection.js
+  // Brand Data (Modularized)
   const brands = [
-    { 
-      id: 1, 
-      name: 'Midea', 
-      iconSrc: icons.temperatureFrigid,
-      logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvl2GSFigO4nNXMWW1qO_VZ1GZwjVl5alpsw&s',
-      description: 'Premium AC Solutions'
+    {
+      id: 1,
+      name: "Midea",
+      logoUrl:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvl2GSFigO4nNXMWW1qO_VZ1GZwjVl5alpsw&s",
+      description: "Premium AC Solutions",
     },
-    { 
-      id: 2, 
-      name: 'TCL', 
-      iconSrc: icons.wind,
-      logoUrl: 'https://cdn.manilastandard.net/wp-content/uploads/2023/02/TCL.png',
-      description: 'Smart Air Conditioning'
+    {
+      id: 2,
+      name: "TCL",
+      logoUrl:
+        "https://cdn.manilastandard.net/wp-content/uploads/2023/02/TCL.png",
+      description: "Smart Air Conditioning",
     },
-    { 
-      id: 3, 
-      name: 'Aux', 
-      iconSrc: icons.tools,
-      logoUrl: 'https://auxaircon.com.ph/images/aux_logo.png',
-      description: 'Energy Efficient'
+    {
+      id: 3,
+      name: "Aux",
+      logoUrl: "https://auxaircon.com.ph/images/aux_logo.png",
+      description: "Energy Efficient",
     },
-    { 
-      id: 4, 
-      name: 'Samsung', 
-      iconSrc: icons.customize,
-      logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRXFVQh2BQhYtWf9APXNliSnNTi7MBwV6yPFA&s',
-      description: 'Innovation Technology'
+    {
+      id: 4,
+      name: "Samsung",
+      logoUrl:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRXFVQh2BQhYtWf9APXNliSnNTi7MBwV6yPFA&s",
+      description: "Innovation Technology",
     },
-    { 
-      id: 5, 
-      name: 'Daikin', 
-      iconSrc: icons.checkCircle,
-      logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwu8SCQH4joBnn0HXF5F_HQKBRb85KZ8ZkuA&s',
-      description: 'World Leader in AC'
+    {
+      id: 5,
+      name: "Daikin",
+      logoUrl:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwu8SCQH4joBnn0HXF5F_HQKBRb85KZ8ZkuA&s",
+      description: "World Leader in AC",
     },
-    { 
-      id: 6, 
-      name: 'Carrier', 
-      iconSrc: icons.wind,
-      logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/Logo_of_the_Carrier_Corporation.svg',
-      description: 'Inventor of AC'
+    {
+      id: 6,
+      name: "Carrier",
+      logoUrl:
+        "https://upload.wikimedia.org/wikipedia/commons/8/8f/Logo_of_the_Carrier_Corporation.svg",
+      description: "Inventor of AC",
     },
-    { 
-      id: 7, 
-      name: 'LG', 
-      iconSrc: icons.bolt,
-      logoUrl: 'https://www.lg.com/content/dam/lge/common/logo/logo-lg-100-44.jpg',
-      description: 'Life\'s Good'
+    {
+      id: 7,
+      name: "LG",
+      logoUrl:
+        "https://www.lg.com/content/dam/lge/common/logo/logo-lg-100-44.jpg",
+      description: "Life's Good",
     },
-    { 
-      id: 8, 
-      name: 'American Home', 
-      iconSrc: icons.houseChimney,
-      logoUrl: 'https://ansons.ph/wp-content/uploads/2024/05/aham.jpg',
-      description: 'Home Comfort Solutions'
+    {
+      id: 8,
+      name: "American Home",
+      logoUrl: "https://ansons.ph/wp-content/uploads/2024/05/aham.jpg",
+      description: "Home Comfort Solutions",
     },
-    { 
-      id: 9, 
-      name: 'Gree', 
-      iconSrc: icons.wind,
-      logoUrl: 'https://1000logos.net/wp-content/uploads/2018/08/Gree-Logo.png',
-      description: 'Eco-Friendly Cooling'
+    {
+      id: 9,
+      name: "Gree",
+      logoUrl: "https://1000logos.net/wp-content/uploads/2018/08/Gree-Logo.png",
+      description: "Eco-Friendly Cooling",
     },
   ];
 
-  // Handlers
   const handleLogout = () => {
-    const keysToRemove = [
-      'currentUser',
-      'cart',
-      'addresses',
-      'orders',
-      'ac_units',
-      'failed_attempts_',
-      'aeropulse_users'
-    ];
-    
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    localStorage.clear();
     logout();
     clearCart();
-    navigate('/home');
+    navigate("/home");
   };
 
-  const handleBookNow = () => {
-    navigate('/services');
-  };
-
-  const handleViewProducts = () => {
-    navigate('/shop');
-  };
-
-  const handleCheckout = () => {
-    navigate('/checkout');
-    setShowCart(false);
-  };
-
-  const handleMenuToggle = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const handleNotificationClick = () => {
-    setShowNotifications(!showNotifications);
-    setShowCart(false);
-  };
-
-  const handleCartClick = () => {
-    setShowCart(!showCart);
-    setShowNotifications(false);
-  };
-
-  const handleNotificationItemClick = async (notificationId) => {
-    const existing = notifications.find((item) => item.id === notificationId);
-    if (existing && !existing.unread) return; // Already read, do nothing
-    
-    // Update local state to mark as read
-    setNotifications((prev) => 
-      prev.map((item) => 
-        item.id === notificationId ? { ...item, unread: false } : item
-      )
-    );
-    
-    try {
-      await apiRequest(`/notifications/${notificationId}/read`, { method: 'PATCH' });
-    } catch (_error) {
-      // Restore if failed
-      if (existing) {
-        setNotifications((prev) => 
-          prev.map((item) => 
-            item.id === notificationId ? { ...item, unread: true } : item
-          )
-        );
-      }
-    }
-  };
-
-  const handleMarkAllNotificationsRead = async () => {
-    if (!notifications.length) return;
-    const snapshot = notifications;
-    
-    // Update local state to mark all as read
-    setNotifications((prev) => 
-      prev.map((item) => ({ ...item, unread: false }))
-    );
-    
-    try {
-      await apiRequest('/notifications/me/read-all', { method: 'PATCH' });
-    } catch (_error) {
-      // Restore if failed
-      setNotifications(snapshot);
-    }
-  };
-
-  const handleMenuClose = () => {
-    setIsMenuOpen(false);
-  };
-
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
-    <div className="home-container">
-      {/* Header with scroll effect */}
-      <Header
-        onMenuToggle={handleMenuToggle}
-        onNotificationClick={handleNotificationClick}
-        onCartClick={handleCartClick}
+    <div className="bq-home-layout">
+      <BoutiqueHeader
+        variant="logo"
+        leftAction="menu"
+        onLeftAction={() => setIsMenuOpen(true)}
+        onNotificationClick={() => setShowNotifications(true)}
+        onCartClick={() => setIsCartOpen(true)}
         notificationCount={unreadCount}
+        cartCount={getCartCount()}
+        isAuthenticated={isAuthenticated}
         scrolled={scrolled}
       />
 
-      {/* Side Menu */}
-      <SideMenu
+      <BoutiqueSideMenu
         isOpen={isMenuOpen}
-        onClose={handleMenuClose}
-        activePage={activePage}
+        onClose={() => setIsMenuOpen(false)}
+        user={user}
+        isAuthenticated={isAuthenticated}
         onLogout={handleLogout}
       />
 
-      {/* Menu Overlay */}
-      {isMenuOpen && (
-        <div 
-          className="menu-overlay" 
-          onClick={handleMenuClose}
-          role="presentation"
-          aria-hidden="true"
-        />
-      )}
+      <BoutiqueCart
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cart={cart}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeFromCart}
+        onCheckout={() => navigate("/checkout")}
+        getCartTotal={getCartTotal}
+      />
 
-      {/* Notifications Modal */}
       <NotificationsModal
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
         notifications={notifications}
-        onNotificationClick={handleNotificationItemClick}
-        onMarkAllAsRead={handleMarkAllNotificationsRead}
       />
 
-      {/* Cart Modal */}
-      <CartModal
-        isOpen={showCart}
-        onClose={() => setShowCart(false)}
-        cart={cart}
-        onUpdateQuantity={updateQuantity}
-        onRemoveItem={removeFromCart}
-        onCheckout={handleCheckout}
-        getCartTotal={getCartTotal}
-      />
-
-      {/* Main Content */}
-      <main className="main-content">
-        {/* Hero Section */}
-        <HeroSection onBookNow={handleBookNow} onShop={handleViewProducts} />
-        
-        {/* Brands Section - Pass the brands data */}
-        <BrandsSection brands={brands} />
-        
-        {/* Info Section */}
-        <InfoSection />
+      <main className="bq-home-main">
+        <HomeHero
+          onBookNow={() => navigate("/services")}
+          onShop={() => navigate("/shop")}
+        />
+        <HomeBrands brands={brands} />
+        <HomeInfo />
       </main>
 
-      {/* Footer */}
-      <Footer />
+      <BoutiqueFooter />
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        .bq-home-layout {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          background: ${BQ_COLORS.bg};
+        }
+
+        .bq-home-main {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+        }
+
+        * { box-sizing: border-box; }
+      `,
+        }}
+      />
     </div>
   );
 }

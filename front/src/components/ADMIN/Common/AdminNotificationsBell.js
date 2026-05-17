@@ -1,8 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import icons from '../../common/icons';
-import { apiRequest } from '../../../config/api';
-import { getAdminNotificationsReadAt, markAllAdminNotificationsRead } from '../../../utils/adminNotifications';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { apiRequest } from "../../../config/api";
+import {
+  getAdminNotificationsReadAt,
+  markAllAdminNotificationsRead,
+} from "../../../utils/adminNotifications";
+// import icons from '../../common/icons';
+const icons = {}; // BOUTIQUE MIGRATION STUB
 
 const isOlderThanHours = (isoDate, hours) => {
   const date = new Date(isoDate);
@@ -24,35 +28,37 @@ function AdminNotificationsBell() {
     setBusy(true);
     try {
       const [lowStockResult, ordersResult] = await Promise.all([
-        apiRequest('/products/low-stock').catch(() => ({ products: [] })),
-        apiRequest('/orders').catch(() => ({ orders: [] })),
+        apiRequest("/products/low-stock").catch(() => ({ products: [] })),
+        apiRequest("/orders").catch(() => ({ orders: [] })),
       ]);
 
-      const lowStockCount = (lowStockResult.products || []).filter((p) => Number(p.stock || 0) < 5).length;
+      const lowStockCount = (lowStockResult.products || []).filter(
+        (p) => Number(p.stock || 0) < 5,
+      ).length;
 
       const pendingOrders = (ordersResult.orders || []).filter((o) => {
-        const workflow = String(o.workflowStatus || '');
-        if (workflow === 'complete' || workflow === 'cancelled') return false;
+        const workflow = String(o.workflowStatus || "");
+        if (workflow === "complete" || workflow === "cancelled") return false;
         return isOlderThanHours(o.createdAt, 24);
       });
 
       const next = [];
       if (lowStockCount > 0) {
         next.push({
-          id: 'low-stock',
+          id: "low-stock",
           createdAt: new Date().toISOString(),
-          title: 'Low stock items',
+          title: "Low stock items",
           message: `${lowStockCount} item(s) have < 5 units remaining.`,
-          to: '/admin/reorder',
+          to: "/admin/reorder",
         });
       }
       if (pendingOrders.length > 0) {
         next.push({
-          id: 'pending-orders',
+          id: "pending-orders",
           createdAt: new Date().toISOString(),
-          title: 'Pending orders',
+          title: "Pending orders",
           message: `${pendingOrders.length} pending order(s) are older than 24 hours.`,
-          to: '/admin/orders',
+          to: "/admin/orders",
         });
       }
       setItems(next);
@@ -75,8 +81,8 @@ function AdminNotificationsBell() {
       if (buttonRef.current && buttonRef.current.contains(target)) return;
       setOpen(false);
     };
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
   }, [open]);
 
   const unreadCount = useMemo(() => {
@@ -109,26 +115,48 @@ function AdminNotificationsBell() {
         onClick={() => setOpen((prev) => !prev)}
         aria-label="Open notifications"
       >
-        <img src={icons.bellNotification} alt="" className="inline-icon inline-icon--md" />
-        {unreadCount > 0 ? <span className="admin-notifications-badge">{unreadCount}</span> : null}
+        <img
+          src={icons.bellNotification}
+          alt=""
+          className="inline-icon inline-icon--md"
+        />
+        {unreadCount > 0 ? (
+          <span className="admin-notifications-badge">{unreadCount}</span>
+        ) : null}
       </button>
 
       {open ? (
-        <div className="admin-notifications-panel" ref={panelRef} role="dialog" aria-label="Notifications">
+        <div
+          className="admin-notifications-panel"
+          ref={panelRef}
+          role="dialog"
+          aria-label="Notifications"
+        >
           <div className="admin-notifications-head">
             <div className="admin-notifications-title">Notifications</div>
             <div className="admin-notifications-actions">
-              <button type="button" className="admin-notifications-link" onClick={refresh} disabled={busy}>
-                {busy ? 'Refreshing…' : 'Refresh'}
+              <button
+                type="button"
+                className="admin-notifications-link"
+                onClick={refresh}
+                disabled={busy}
+              >
+                {busy ? "Refreshing…" : "Refresh"}
               </button>
-              <button type="button" className="admin-notifications-link" onClick={onMarkAllRead}>
+              <button
+                type="button"
+                className="admin-notifications-link"
+                onClick={onMarkAllRead}
+              >
                 Mark all as read
               </button>
             </div>
           </div>
 
           {items.length === 0 ? (
-            <div className="admin-notifications-empty">No alerts right now.</div>
+            <div className="admin-notifications-empty">
+              No alerts right now.
+            </div>
           ) : (
             <div className="admin-notifications-list">
               {items.map((item) => (
@@ -138,8 +166,12 @@ function AdminNotificationsBell() {
                   className="admin-notifications-item"
                   onClick={() => onNavigate(item.to)}
                 >
-                  <div className="admin-notifications-item-title">{item.title}</div>
-                  <div className="admin-notifications-item-msg">{item.message}</div>
+                  <div className="admin-notifications-item-title">
+                    {item.title}
+                  </div>
+                  <div className="admin-notifications-item-msg">
+                    {item.message}
+                  </div>
                 </button>
               ))}
             </div>
@@ -151,4 +183,3 @@ function AdminNotificationsBell() {
 }
 
 export default AdminNotificationsBell;
-

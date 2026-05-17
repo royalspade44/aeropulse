@@ -1,0 +1,152 @@
+.order-confirmation-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 20px;
+  min-height: 60vh;
+}
+
+.order-confirmation-container.loading,
+.order-confirmation-container.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.confirmation-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.confirmation-header {
+  background: #f8f9fa;
+  padding: 40px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+.success-icon-wrapper {
+  margin-bottom: 20px;
+}
+
+.success-icon-wrapper img {
+  width: 64px;
+  height: 64px;
+}
+
+.confirmation-header h1 {
+  margin: 0 0 10px;
+  color: #2d3436;
+  font-size: 28px;
+}
+
+.order-code {
+  color: #636e72;
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.confirmation-body {
+  padding: 40px;
+}
+
+.confirmation-body h3 {
+  margin: 0 0 15px;
+  font-size: 18px;
+  color: #2d3436;
+  border-bottom: 2px solid #f1f2f6;
+  padding-bottom: 10px;
+}
+
+.order-status-section {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #e1f5fe;
+  border-radius: 8px;
+  color: #01579b;
+}
+
+.status-label {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.order-details-summary {
+  margin-bottom: 30px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding-top: 15px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #d63031;
+}
+
+.delivery-info p {
+  margin: 5px 0;
+  color: #636e72;
+}
+
+.customer-name {
+  font-weight: 600;
+  color: #2d3436 !important;
+}
+
+.confirmation-footer {
+  padding: 30px 40px;
+  background: #f8f9fa;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.primary-btn, .secondary-btn {
+  padding: 12px 30px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.primary-btn {
+  background: #0984e3;
+  color: white;
+}
+
+.primary-btn:hover {
+  background: #0873c4;
+}
+
+.secondary-btn {
+  background: #dfe6e9;
+  color: #2d3436;
+}
+
+.secondary-btn:hover {
+  background: #b2bec3;
+}
+
+@media (max-width: 600px) {
+  .confirmation-footer {
+    flex-direction: column;
+  }
+  .confirmation-header h1 {
+    font-size: 22px;
+  }
+}

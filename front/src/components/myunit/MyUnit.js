@@ -1,18 +1,19 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './MyUnit.css';
-import UnitCard from './UnitCard';
-import AddUnitModal from './AddUnitModal';
-import UnitDetailsModal from './UnitDetailsModal';
-import ServiceHistory from './ServiceHistory';
-import ScheduleServiceModal from './ScheduleServiceModal';
-import WarrantyStatusModal from './WarrantyStatusModal';
-import RegisterQrUnitModal from './RegisterQrUnitModal';
-import ReportIssueModal from './ReportIssueModal';
-import icons from '../common/icons';
-import Footer from '../home/Footer';
-import { apiRequest } from '../../config/api';
-import { useUser } from '../../context/UserContext';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { apiRequest } from "../../config/api";
+import { useUser } from "../../context/UserContext";
+import Footer from "../home/Footer";
+import AddUnitModal from "./AddUnitModal";
+import "./MyUnit.css";
+import RegisterQrUnitModal from "./RegisterQrUnitModal";
+import ReportIssueModal from "./ReportIssueModal";
+import ScheduleServiceModal from "./ScheduleServiceModal";
+import ServiceHistory from "./ServiceHistory";
+import UnitCard from "./UnitCard";
+import UnitDetailsModal from "./UnitDetailsModal";
+import WarrantyStatusModal from "./WarrantyStatusModal";
+// import icons from '../common/icons';
+const icons = {}; // BOUTIQUE MIGRATION STUB
 
 function MyUnit() {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ function MyUnit() {
   const { user } = useUser();
 
   useEffect(() => {
-    const savedUnits = localStorage.getItem('ac_units');
+    const savedUnits = localStorage.getItem("ac_units");
     if (savedUnits) {
       const parsedUnits = JSON.parse(savedUnits);
       if (Array.isArray(parsedUnits) && parsedUnits.length > 0) {
@@ -41,45 +42,48 @@ function MyUnit() {
 
     const demoUnits = [
       {
-        id: 'demo-unit-001',
-        brand: 'Daikin',
-        model: 'FTKM Series',
-        serialNumber: 'DKN-20240514-001',
-        installationDate: '2025-02-15',
-        status: 'Good',
-        ampereNextServiceLabel: 'Next recommended service in 180 days',
-        technicianReportSummary: 'Demo report: unit passed installation inspection. Monitor cooling efficiency monthly.',
-        installEnvironmentNotes: 'Mounted in living room with unobstructed airflow.',
-        notes: 'This demo unit helps validate the unit, report, and admin assignment flow.',
+        id: "demo-unit-001",
+        brand: "Daikin",
+        model: "FTKM Series",
+        serialNumber: "DKN-20240514-001",
+        installationDate: "2025-02-15",
+        status: "Good",
+        ampereNextServiceLabel: "Next recommended service in 180 days",
+        technicianReportSummary:
+          "Demo report: unit passed installation inspection. Monitor cooling efficiency monthly.",
+        installEnvironmentNotes:
+          "Mounted in living room with unobstructed airflow.",
+        notes:
+          "This demo unit helps validate the unit, report, and admin assignment flow.",
         serviceHistory: [
           {
-            id: 'demo-svc-001',
-            date: '2025-03-10',
-            time: '09:00',
-            serviceType: 'Cleaning and inspection',
-            details: 'Initial demo maintenance completed',
+            id: "demo-svc-001",
+            date: "2025-03-10",
+            time: "09:00",
+            serviceType: "Cleaning and inspection",
+            details: "Initial demo maintenance completed",
             price: 899,
-            technician: 'Senior tech',
-            status: 'Completed',
+            technician: "Senior tech",
+            status: "Completed",
           },
         ],
       },
     ];
 
     setUnits(demoUnits);
-    localStorage.setItem('ac_units', JSON.stringify(demoUnits));
+    localStorage.setItem("ac_units", JSON.stringify(demoUnits));
   }, []);
 
   const saveUnits = (updatedUnits) => {
     setUnits(updatedUnits);
-    localStorage.setItem('ac_units', JSON.stringify(updatedUnits));
+    localStorage.setItem("ac_units", JSON.stringify(updatedUnits));
   };
 
   const handleAddUnit = (newUnit) => {
     const updatedUnits = [...units, newUnit];
     saveUnits(updatedUnits);
     setShowAddModal(false);
-    alert('AC Unit added successfully!');
+    alert("AC Unit added successfully!");
   };
 
   const handleScheduleService = (unit) => {
@@ -90,39 +94,45 @@ function MyUnit() {
   const handleConfirmSchedule = (unit, serviceData) => {
     const servicePrice = (() => {
       switch (serviceData.serviceTypeId) {
-        case 'cleaning_inspection':
+        case "cleaning_inspection":
           return 899;
-        case 'diagnosis_repair':
+        case "diagnosis_repair":
           return 1499;
-        case 'location_transfer':
+        case "location_transfer":
           return 0;
         default:
           break;
       }
-      if (serviceData.serviceType === 'Cleaning and inspection') return 899;
-      if (serviceData.serviceType === 'Diagnosis and repair') return 1499;
+      if (serviceData.serviceType === "Cleaning and inspection") return 899;
+      if (serviceData.serviceType === "Diagnosis and repair") return 1499;
       return 899;
     })();
 
-    const totalPrice = servicePrice + (serviceData.technician === 'senior' ? 200 : serviceData.technician === 'express' ? 500 : 0);
+    const totalPrice =
+      servicePrice +
+      (serviceData.technician === "senior"
+        ? 200
+        : serviceData.technician === "express"
+          ? 500
+          : 0);
 
     const newService = {
       id: Date.now(),
       date: serviceData.date,
       time: serviceData.time,
       serviceType: serviceData.serviceType,
-      details: serviceData.notes || 'Scheduled service',
+      details: serviceData.notes || "Scheduled service",
       price: totalPrice,
       technician: serviceData.technician,
-      status: 'scheduled'
+      status: "scheduled",
     };
 
-    const updatedUnits = units.map(u => {
+    const updatedUnits = units.map((u) => {
       if (u.id === unit.id) {
         const updatedUnit = {
           ...u,
           serviceHistory: [...(u.serviceHistory || []), newService],
-          status: 'Needs Service'
+          status: "Needs Service",
         };
         return updatedUnit;
       }
@@ -131,7 +141,9 @@ function MyUnit() {
 
     saveUnits(updatedUnits);
     setShowScheduleModal(false);
-    alert(`Service scheduled for ${unit.brand} ${unit.model} on ${serviceData.date} at ${serviceData.time}\nTotal: ₱${totalPrice.toLocaleString()}`);
+    alert(
+      `Service scheduled for ${unit.brand} ${unit.model} on ${serviceData.date} at ${serviceData.time}\nTotal: ₱${totalPrice.toLocaleString()}`,
+    );
   };
 
   const handleViewHistory = (unit) => {
@@ -153,19 +165,19 @@ function MyUnit() {
     if (!reportingUnit) return;
 
     try {
-      await apiRequest('/service-requests/me', {
-        method: 'POST',
+      await apiRequest("/service-requests/me", {
+        method: "POST",
         body: JSON.stringify({
-          customerName: user?.name || user?.email || 'Demo customer',
-          customerEmail: user?.email || '',
-          customerPhone: user?.phone || '',
+          customerName: user?.name || user?.email || "Demo customer",
+          customerEmail: user?.email || "",
+          customerPhone: user?.phone || "",
           issueType: reportData.issueType,
           issueDescription: reportData.issueDescription,
           issue: `${reportData.issueType}: ${reportData.issueDescription}`,
           address: reportData.address,
           unitId: reportingUnit.id,
           unitName: `${reportingUnit.brand} ${reportingUnit.model}`,
-          status: 'Submitted',
+          status: "Submitted",
         }),
       });
 
@@ -173,7 +185,7 @@ function MyUnit() {
         if (u.id === reportingUnit.id) {
           return {
             ...u,
-            status: 'Needs Service',
+            status: "Needs Service",
             technicianReportSummary: `Issue reported: ${reportData.issueDescription}`,
             notes: `A service report has been submitted to admin for assignment.`,
           };
@@ -184,9 +196,11 @@ function MyUnit() {
       saveUnits(updatedUnits);
       setShowReportModal(false);
       setReportingUnit(null);
-      alert('Issue reported successfully. Admin will receive the service request and assign a technician.');
+      alert(
+        "Issue reported successfully. Admin will receive the service request and assign a technician.",
+      );
     } catch (error) {
-      alert(error?.message || 'Failed to send report. Please try again.');
+      alert(error?.message || "Failed to send report. Please try again.");
     }
   };
 
@@ -203,20 +217,27 @@ function MyUnit() {
     const updatedUnits = [...units, newUnit];
     saveUnits(updatedUnits);
     setShowQrModal(false);
-    alert(`Unit registered. AMPERE next service: ${newUnit.ampereNextServiceLabel || '—'}`);
+    alert(
+      `Unit registered. AMPERE next service: ${newUnit.ampereNextServiceLabel || "—"}`,
+    );
   };
 
   const handleBack = () => {
-    navigate('/home');
+    navigate("/home");
   };
 
   return (
     <div className="myunit-container">
       <div className="myunit-header">
         <div className="myunit-header-content">
-          <button className="back-btn" onClick={handleBack}>←</button>
+          <button className="back-btn" onClick={handleBack}>
+            ←
+          </button>
           <h1 className="myunit-title">My AC Units</h1>
-          <button className="add-unit-btn" onClick={() => setShowAddModal(true)}>
+          <button
+            className="add-unit-btn"
+            onClick={() => setShowAddModal(true)}
+          >
             + Add New Unit
           </button>
         </div>
@@ -225,16 +246,29 @@ function MyUnit() {
       <div className="myunit-main">
         {units.length === 0 ? (
           <div className="empty-units">
-            <div className="empty-icon"><img src={icons.temperatureFrigid} alt="" className="inline-icon" style={{ width: 48, height: 48 }} /></div>
+            <div className="empty-icon">
+              <img
+                src={icons.temperatureFrigid}
+                alt=""
+                className="inline-icon"
+                style={{ width: 48, height: 48 }}
+              />
+            </div>
             <div className="empty-title">No AC Units Added</div>
-            <div className="empty-text">Add your AC units to track maintenance and service history</div>
-            <button className="add-unit-btn" onClick={() => setShowAddModal(true)} style={{ marginTop: '20px' }}>
+            <div className="empty-text">
+              Add your AC units to track maintenance and service history
+            </div>
+            <button
+              className="add-unit-btn"
+              onClick={() => setShowAddModal(true)}
+              style={{ marginTop: "20px" }}
+            >
               + Add New Unit
             </button>
           </div>
         ) : (
           <div className="units-grid">
-            {units.map(unit => (
+            {units.map((unit) => (
               <UnitCard
                 key={unit.id}
                 unit={unit}

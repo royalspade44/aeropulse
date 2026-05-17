@@ -1,4 +1,11 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { apiRequest } from "../config/api";
 import { ACTIVE_BRANCH_KEY } from "../domain/branches/branches";
 
@@ -33,7 +40,8 @@ const clearSession = () => {
 
 const readActiveSession = () => {
   try {
-    return JSON.parse(localStorage.getItem(ACTIVE_ACCOUNT_SESSION_KEY));
+    const val = localStorage.getItem(ACTIVE_ACCOUNT_SESSION_KEY);
+    return val ? JSON.parse(val) : null;
   } catch (_error) {
     return null;
   }
@@ -43,7 +51,7 @@ const activateSingleSession = (user) => {
   const session = {
     accountId: user?.id || user?.email || "unknown",
     email: user?.email || "",
-    startedAt: new Date().toISOString()
+    startedAt: new Date().toISOString(),
   };
   localStorage.setItem(ACTIVE_ACCOUNT_SESSION_KEY, JSON.stringify(session));
   return session;
@@ -56,7 +64,9 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [currentSession, setCurrentSession] = useState(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const [loginPromptMessage, setLoginPromptMessage] = useState('Please log in to access this feature.');
+  const [loginPromptMessage, setLoginPromptMessage] = useState(
+    "Please log in to access this feature.",
+  );
 
   const forceLogout = useCallback(() => {
     clearSession();
@@ -66,13 +76,35 @@ export const UserProvider = ({ children }) => {
     setIsAuthenticated(false);
   }, []);
 
-  const currentLanguage = user?.preferences?.language || "English";
-  const currentTheme = user?.preferences?.theme || (user?.preferences?.darkMode ? "dark" : "light");
+  // Theme derived implicitly from browser
+  const [browserTheme, setBrowserTheme] = useState(() =>
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light",
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e) => setBrowserTheme(e.matches ? "dark" : "light");
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  const currentTheme = useMemo(
+    () => user?.preferences?.theme || browserTheme,
+    [user?.preferences?.theme, browserTheme],
+  );
+
+  // Language derived from browser locale or user preference
+  const currentLanguage = useMemo(() => {
+    if (user?.preferences?.language) return user.preferences.language;
+    const locale = navigator.language || "en-US";
+    return locale.startsWith("fil") ? "Filipino" : "English";
+  }, [user?.preferences?.language]);
 
   useEffect(() => {
     const bootstrap = async () => {
       const token = localStorage.getItem("accessToken");
-      const cachedUser = localStorage.getItem("currentUser");
       if (!token) {
         setLoading(false);
         return;
@@ -92,7 +124,8 @@ export const UserProvider = ({ children }) => {
         setCurrentSession(result.user);
         setIsAuthenticated(true);
         localStorage.setItem("currentUser", JSON.stringify(result.user));
-        const activeBranch = result.user?.activeBranch || result.user?.assignedBranch || "";
+        const activeBranch =
+          result.user?.activeBranch || result.user?.assignedBranch || "";
         if (activeBranch) {
           localStorage.setItem(ACTIVE_BRANCH_KEY, activeBranch);
         } else {
@@ -101,9 +134,6 @@ export const UserProvider = ({ children }) => {
         activateSingleSession(result.user);
       } catch (_error) {
         clearSession();
-        if (cachedUser) {
-          localStorage.removeItem("currentUser");
-        }
       } finally {
         setLoading(false);
       }
@@ -121,7 +151,8 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const onStorage = (event) => {
-      if (event.key !== ACTIVE_ACCOUNT_SESSION_KEY || !isAuthenticated || !user) return;
+      if (event.key !== ACTIVE_ACCOUNT_SESSION_KEY || !isAuthenticated || !user)
+        return;
       const next = readActiveSession();
       const accountId = user.id || user.email || "unknown";
       if (next?.accountId && next.accountId !== accountId) {
@@ -137,18 +168,18 @@ export const UserProvider = ({ children }) => {
   }, [isAuthenticated, user]);
 
   useEffect(() => {
-    const fallbackTheme = localStorage.getItem("theme") || "light";
-    const isDark = (currentTheme || fallbackTheme) === "dark";
+    const isDark = currentTheme === "dark";
     document.body.classList.toggle("dark-mode", isDark);
-    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-    localStorage.setItem("theme", isDark ? "dark" : "light");
+    document.documentElement.setAttribute(
+      "data-theme",
+      isDark ? "dark" : "light",
+    );
   }, [currentTheme]);
 
   useEffect(() => {
-    const lang = currentLanguage || localStorage.getItem("language") || "English";
-    document.documentElement.lang = String(lang).toLowerCase() === "filipino" ? "fil" : "en";
-    document.documentElement.setAttribute("data-language", lang);
-    localStorage.setItem("language", lang);
+    document.documentElement.lang =
+      currentLanguage === "Filipino" ? "fil" : "en";
+    document.documentElement.setAttribute("data-language", currentLanguage);
   }, [currentLanguage]);
 
   const login = async (email, password) => {
@@ -156,7 +187,8 @@ export const UserProvider = ({ children }) => {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
-    const userBranch = result.user?.activeBranch || result.user?.assignedBranch || "";
+    const userBranch =
+      result.user?.activeBranch || result.user?.assignedBranch || "";
     saveSession(result.token, result.user, userBranch);
     activateSingleSession(result.user);
     setUser(result.user);
@@ -262,7 +294,9 @@ export const UserProvider = ({ children }) => {
     return result;
   };
 
-  const showAuthRequiredPrompt = (message = 'Please log in to access this feature.') => {
+  const showAuthRequiredPrompt = (
+    message = "Please log in to access this feature.",
+  ) => {
     setLoginPromptMessage(message);
     setShowLoginPrompt(true);
   };

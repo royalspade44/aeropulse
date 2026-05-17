@@ -1,15 +1,22 @@
-import React from 'react';
-import { useUser } from '../../../context/UserContext';
-import icons from '../../common/icons';
+import { Gear } from "@phosphor-icons/react";
+import { useUser } from "../../../context/UserContext";
 
-const TechHeader = ({ title = 'Technician Workspace', subtitle = 'Field operations', onMenuToggle }) => {
+const TechHeader = ({
+  title = "Technician Workspace",
+  subtitle = "Field operations",
+  onMenuToggle,
+}) => {
   const { user } = useUser();
 
   return (
     <header className="tech-header">
       <div className="tech-header-left">
-        <button type="button" className="tech-menu-toggle" onClick={onMenuToggle}>
-          <img src={icons.customize} alt="" className="inline-icon inline-icon--md" />
+        <button
+          type="button"
+          className="tech-menu-toggle"
+          onClick={onMenuToggle}
+        >
+          <Gear size={20} weight="bold" className="inline-icon" />
         </button>
         <div>
           <h1>{title}</h1>
@@ -17,8 +24,10 @@ const TechHeader = ({ title = 'Technician Workspace', subtitle = 'Field operatio
         </div>
       </div>
       <div className="tech-user-chip">
-        <span className="tech-user-avatar">{(user?.name?.charAt(0) || '?').toUpperCase()}</span>
-        <span>{user?.name || '-'}</span>
+        <span className="tech-user-avatar">
+          {(user?.name?.charAt(0) || "?").toUpperCase()}
+        </span>
+        <span>{user?.name || "-"}</span>
       </div>
     </header>
   );

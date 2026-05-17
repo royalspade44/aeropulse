@@ -1,154 +1,84 @@
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Theme variable overrides (used by several page-level token sets) */
-:root[data-theme='dark'] {
-  --bg: #1a1a2e;
-  --surface: #0f3460;
-  --surface-2: #0f3460;
-  --ink: #eee;
-  --ink-muted: #aaa;
-  --ink-faint: #aaa;
-  --border: rgba(238, 238, 238, 0.12);
-
-  /* ProfileCenter tokens */
-  --p-page: #1a1a2e;
-  --p-card: #0f3460;
-  --p-surface: #0f3460;
-  --p-surface-alt: #1a1a2e;
-  --p-text-1: #eee;
-  --p-text-2: #aaa;
-  --p-text-3: #aaa;
-  --p-border: rgba(238, 238, 238, 0.12);
-  --p-border-hover: rgba(238, 238, 238, 0.22);
-
-  /* Shop palette */
-  --light-color: #1a1a2e;
-  --dark-color: #eee;
-  --secondary-color: #aaa;
-  --gray-50: #1a1a2e;
-  --gray-100: #0f3460;
-  --gray-200: rgba(238, 238, 238, 0.12);
-  --gray-300: rgba(238, 238, 238, 0.16);
-  --gray-400: #aaa;
-  --gray-500: #aaa;
-  --gray-600: #aaa;
-  --gray-700: #eee;
-  --gray-800: #eee;
-  --gray-900: #eee;
-}
-
-:root[data-theme='dark'] .login-container,
-:root[data-theme='dark'] .register-container {
-  background: #1a1a2e !important;
-}
-
-/* Global Dark Mode Styles */
-body.dark-mode {
-  background-color: #1a1a2e;
-  color: #eee;
-}
-
-body.dark-mode input,
-body.dark-mode select,
-body.dark-mode textarea {
-  background-color: #0f3460;
-  border-color: #1a1a2e;
-  color: #eee;
-}
-
-body.dark-mode input::placeholder,
-body.dark-mode textarea::placeholder {
-  color: #aaa;
-}
-
-body.dark-mode .app-modal-card {
-  background: #0f3460;
-  border-color: #1a1a2e;
-  color: #eee;
-}
-
-body.dark-mode .app-modal-card input {
-  background: #1a1a2e;
-  border-color: #1a1a2e;
-  color: #eee;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+        "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f9fafb;
+    color: #1f2937;
 }
 
 /* Toast animation */
 @keyframes fadeInOut {
-  0% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px);
-  }
-  15% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  85% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-20px);
-  }
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    15% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    85% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
 }
 
 .app-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1200;
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(3px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
 }
 
 .app-modal-card {
-  width: 100%;
-  max-width: 420px;
-  background: #fff;
-  border-radius: 14px;
-  border: 1px solid #dbe1ea;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
-  padding: 16px;
-  text-align: left;
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #dbe1ea;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+    padding: 16px;
+    text-align: left;
 }
 
 .app-modal-card h3 {
-  margin: 0 0 12px;
+    margin: 0 0 12px;
 }
 
 .app-modal-card input {
-  width: 100%;
-  border: 1px solid #dbe1ea;
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 10px;
+    width: 100%;
+    border: 1px solid #dbe1ea;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
 }
 
 .app-modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
 }
 
 .app-modal-actions button {
-  border: none;
-  border-radius: 10px;
-  padding: 9px 12px;
-  cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 12px;
+    cursor: pointer;
 }
