@@ -1,4 +1,9 @@
-import { BQ_COLORS, BQ_FONTS, BQ_GEOMETRY, BQ_SHADOWS } from '../common/boutique/BoutiqueTheme';
+import {
+  BQ_COLORS,
+  BQ_FONTS,
+  BQ_GEOMETRY,
+  BQ_SHADOWS,
+} from "../common/boutique/BoutiqueTheme";
 
 export default function HomeBrands({ brands }) {
   return (
@@ -6,7 +11,7 @@ export default function HomeBrands({ brands }) {
       <div className="brands-container">
         <h2 className="brands-title">Our Partners</h2>
         <div className="brands-grid">
-          {brands.map(brand => (
+          {brands.map((brand) => (
             <div key={brand.id} className="brand-card">
               <div className="brand-logo-wrap">
                 <img src={brand.logoUrl} alt={brand.name} />
@@ -20,7 +25,9 @@ export default function HomeBrands({ brands }) {
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         .home-brands {
           padding: 100px 40px;
           background: ${BQ_COLORS.surface};
@@ -33,57 +40,62 @@ export default function HomeBrands({ brands }) {
 
         .brands-title {
           font-family: ${BQ_FONTS.heading};
-          font-size: 14px;
-          font-weight: 800;
+          font-size: 13px;
+          font-weight: 900;
           color: ${BQ_COLORS.inkMuted};
           text-transform: uppercase;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.25em;
           text-align: center;
-          margin-bottom: 64px;
+          margin-bottom: 72px;
+          opacity: 0.6;
         }
 
         .brands-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 32px;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 24px;
         }
 
         .brand-card {
           display: flex;
           align-items: center;
           gap: 24px;
-          padding: 24px;
-          background: ${BQ_COLORS.bg};
+          padding: 32px;
+          background: white;
           border-radius: ${BQ_GEOMETRY.radiusCard};
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
           cursor: pointer;
+          border: 1px solid ${BQ_COLORS.border};
         }
 
         .brand-card:hover {
-          transform: translateY(-8px);
-          background: white;
-          box-shadow: ${BQ_SHADOWS.float};
+          transform: translateY(-10px) scale(1.02);
+          box-shadow: ${BQ_SHADOWS.hover};
+          border-color: transparent;
         }
 
         .brand-logo-wrap {
-          width: 80px; height: 80px;
-          background: white;
-          border-radius: 16px;
+          width: 88px; height: 88px;
+          background: ${BQ_COLORS.bg};
+          border-radius: 20px;
           display: flex; align-items: center; justify-content: center;
-          padding: 12px;
+          padding: 16px;
           flex-shrink: 0;
-          box-shadow: ${BQ_SHADOWS.soft};
+          transition: transform 0.5s ease;
         }
+        .brand-card:hover .brand-logo-wrap { transform: scale(1.1); background: white; }
         .brand-logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
 
         .brand-info { display: flex; flex-direction: column; }
-        .brand-name { font-family: ${BQ_FONTS.heading}; font-size: 18px; font-weight: 800; color: ${BQ_COLORS.ink}; }
-        .brand-desc { font-size: 13px; color: ${BQ_COLORS.inkMuted}; margin-top: 2px; }
+        .brand-name { font-family: ${BQ_FONTS.heading}; font-size: 20px; font-weight: 900; color: ${BQ_COLORS.ink}; letter-spacing: -0.02em; }
+        .brand-desc { font-size: 14px; color: ${BQ_COLORS.inkMuted}; margin-top: 4px; font-weight: 500; }
 
         @media (max-width: 768px) {
           .brands-grid { grid-template-columns: 1fr; }
         }
-      ` }} />
+      `,
+        }}
+      />
     </section>
   );
 }

@@ -76,24 +76,8 @@ export const UserProvider = ({ children }) => {
     setIsAuthenticated(false);
   }, []);
 
-  // Theme derived implicitly from browser
-  const [browserTheme, setBrowserTheme] = useState(() =>
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light",
-  );
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (e) => setBrowserTheme(e.matches ? "dark" : "light");
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
-
-  const currentTheme = useMemo(
-    () => user?.preferences?.theme || browserTheme,
-    [user?.preferences?.theme, browserTheme],
-  );
+  // Theme is strictly light-mode-only
+  const currentTheme = "light";
 
   // Language derived from browser locale or user preference
   const currentLanguage = useMemo(() => {
@@ -168,13 +152,10 @@ export const UserProvider = ({ children }) => {
   }, [isAuthenticated, user]);
 
   useEffect(() => {
-    const isDark = currentTheme === "dark";
-    document.body.classList.toggle("dark-mode", isDark);
-    document.documentElement.setAttribute(
-      "data-theme",
-      isDark ? "dark" : "light",
-    );
-  }, [currentTheme]);
+    // Enforce light theme attributes
+    document.body.classList.remove("dark-mode");
+    document.documentElement.setAttribute("data-theme", "light");
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang =

@@ -1,6 +1,12 @@
 import { Eye, EyeSlash, WarningDiamond } from "@phosphor-icons/react";
 import { useState } from "react";
-import { BQ_COLORS, BQ_GEOMETRY, BQ_SHADOWS } from "./BoutiqueTheme";
+import {
+  BQ_COLORS,
+  BQ_FONTS,
+  BQ_GEOMETRY,
+  BQ_SHADOWS,
+  BQ_WEIGHTS,
+} from "./BoutiqueTheme";
 
 /**
  * BOUTIQUE INPUT
@@ -95,8 +101,9 @@ export default function BoutiqueInput({
         }
 
         .bq-input-label {
+          font-family: ${BQ_FONTS.heading};
           font-size: 13px;
-          font-weight: 700;
+          font-weight: ${BQ_WEIGHTS.bold};
           color: ${BQ_COLORS.ink};
           text-transform: uppercase;
           letter-spacing: 0.05em;
@@ -118,7 +125,7 @@ export default function BoutiqueInput({
           background: ${BQ_COLORS.surfaceAlt};
           border: 1.5px solid var(--field-accent);
           border-radius: ${BQ_GEOMETRY.radiusMd};
-          font-family: 'DM Sans', sans-serif;
+          font-family: ${BQ_FONTS.body};
           font-size: 15px;
           color: ${BQ_COLORS.ink};
           transition: all 0.3s ease;
@@ -164,10 +171,10 @@ export default function BoutiqueInput({
 
         .bq-input-error-msg {
           display: flex; align-items: center; gap: 6px;
-          font-size: 12px; color: ${BQ_COLORS.danger}; font-weight: 700; margin-top: 4px; padding-left: 4px;
+          font-size: 12px; color: ${BQ_COLORS.danger}; font-weight: ${BQ_WEIGHTS.bold}; margin-top: 4px; padding-left: 4px;
         }
 
-        .bq-input-hint { font-size: 11px; color: ${BQ_COLORS.inkMuted}; margin-top: 4px; font-weight: 600; }
+        .bq-input-hint { font-size: 11px; color: ${BQ_COLORS.inkMuted}; margin-top: 4px; font-weight: ${BQ_WEIGHTS.semibold}; }
 
         /* Unified status badge styles used by VerifyInput and Steps */
         .bq-verified-badge {

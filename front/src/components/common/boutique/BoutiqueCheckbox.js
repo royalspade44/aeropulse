@@ -1,131 +1,91 @@
-import { Check } from "@phosphor-icons/react";
-import { BQ_COLORS, BQ_GEOMETRY, BQ_SHADOWS } from "./BoutiqueTheme";
+import { BQ_COLORS, BQ_FONTS, BQ_GEOMETRY, BQ_WEIGHTS } from "./BoutiqueTheme";
 
 /**
  * BOUTIQUE CHECKBOX
- * High-fidelity themed checkbox component.
+ * Unified selection element for both single (radio) and multiple (checkbox) selection.
+ * Features the signature "Blue Dot" visual indicator.
  */
 export default function BoutiqueCheckbox({
   label,
+  children,
   checked,
   onChange,
-  error,
-  children,
+  type = "checkbox", // "checkbox" or "radio"
   ...props
 }) {
   return (
-    <div className={`bq-checkbox-group ${error ? "has-error" : ""}`}>
-      <label className={`bq-checkbox-wrapper ${checked ? "checked" : ""}`}>
-        <div className="bq-checkbox-hit-area">
-          <input
-            type="checkbox"
-            className="bq-checkbox-input"
-            checked={checked}
-            onChange={(e) => onChange(e.target.checked)}
-            {...props}
-          />
-          <div className={`bq-checkbox-box ${checked ? "checked" : ""}`}>
-            {checked && <Check size={14} weight="bold" />}
-          </div>
+    <label
+      className={`bq-checkbox-container ${checked ? "active" : ""} bq-checkbox--${type}`}
+    >
+      <div className="bq-checkbox-wrapper">
+        <input
+          type={type}
+          checked={checked}
+          onChange={(e) => onChange(type === "radio" ? true : e.target.checked)}
+          {...props}
+        />
+        <div className="bq-checkbox-indicator">
+          <div className="bq-selection-dot" />
         </div>
+      </div>
+      {(children || label) && (
+        <span className="bq-checkbox-text">{children || label}</span>
+      )}
 
-        <div className="bq-checkbox-content">
-          {label && <span className="bq-checkbox-label">{label}</span>}
-          {children}
-        </div>
-      </label>
-      {error && <span className="bq-checkbox-error-msg">{error}</span>}
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        .bq-checkbox-group {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          width: 100%;
-          --checkbox-accent: ${BQ_COLORS.inkFaint};
-        }
-
-        .bq-checkbox-wrapper {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          padding: 16px 20px;
-          background: ${BQ_COLORS.surfaceAlt};
-          border: 1.5px solid var(--checkbox-accent);
-          border-radius: ${BQ_GEOMETRY.radiusMd};
-          cursor: pointer;
-          transition: all 0.3s ease;
+        .bq-checkbox-container {
+          display: flex; align-items: center; gap: 14px;
+          padding: 10px 16px; border-radius: ${BQ_GEOMETRY.radiusPill};
+          cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          border: 1.5px solid transparent;
           user-select: none;
+          width: 100%;
+        }
+        .bq-checkbox-container:hover { background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateX(4px); }
+        .bq-checkbox-container.active { background: white; border-color: ${BQ_COLORS.accent}; }
+
+        .bq-checkbox-wrapper { position: relative; width: 22px; height: 22px; flex-shrink: 0; }
+        .bq-checkbox-wrapper input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+
+        .bq-checkbox-indicator {
+          position: absolute; top: 0; left: 0; height: 22px; width: 22px;
+          background-color: white; border: 2.5px solid ${BQ_COLORS.border};
+          border-radius: 7px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          display: flex; align-items: center; justify-content: center;
         }
 
-        .bq-checkbox-wrapper:hover {
-          background: white;
-          box-shadow: ${BQ_SHADOWS.soft};
-          --checkbox-accent: ${BQ_COLORS.brand};
+        .bq-checkbox--radio .bq-checkbox-indicator { border-radius: 50%; }
+
+        .bq-checkbox-container:hover .bq-checkbox-indicator { border-color: ${BQ_COLORS.accent}; }
+        .bq-checkbox-container.active .bq-checkbox-indicator { border-color: ${BQ_COLORS.accent}; }
+
+        .bq-selection-dot {
+          width: 12px; height: 12px;
+          background: ${BQ_COLORS.accent};
+          border-radius: 3px;
+          transform: scale(0);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
         }
 
-        /* Sync wrapper color when checked */
-        .bq-checkbox-wrapper.checked {
-          --checkbox-accent: ${BQ_COLORS.brand};
-          background: #fafdff; /* Light brand tint */
+        .bq-checkbox--radio .bq-selection-dot { border-radius: 50%; }
+
+        .bq-checkbox-container.active .bq-selection-dot { transform: scale(1); }
+
+        .bq-checkbox-text {
+          font-family: ${BQ_FONTS.body}; font-size: 15px; font-weight: ${BQ_WEIGHTS.semibold};
+          color: ${BQ_COLORS.inkMuted}; transition: color 0.3s ease;
+          display: flex; align-items: center; gap: 4px;
         }
+        .bq-checkbox-container.active .bq-checkbox-text { color: ${BQ_COLORS.ink}; }
 
-        .bq-checkbox-wrapper.checked:hover {
-           background: white;
-        }
-
-        .bq-checkbox-group.has-error { --checkbox-accent: ${BQ_COLORS.danger}; }
-        .has-error .bq-checkbox-wrapper { background: #fffafb; }
-        .has-error .bq-checkbox-wrapper:hover { background: white; }
-        .bq-checkbox-hit-area {
-          position: relative;
-          width: 20px;
-          height: 20px;
-          flex-shrink: 0;
-        }
-
-        .bq-checkbox-input {
-          position: absolute;
-          opacity: 0;
-          cursor: pointer;
-          height: 0;
-          width: 0;
-        }
-
-        .bq-checkbox-box {
-          height: 20px;
-          width: 20px;
-          background-color: white;
-          border: 2px solid currentColor;
-          border-radius: 6px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s ease;
-          color: white;
-        }
-
-        .bq-checkbox-box.checked {
-          background-color: var(--checkbox-accent);
-          border-color: var(--checkbox-accent);
-        }
-
-        .bq-checkbox-content {
-          display: flex;
-          flex-direction: column;
-          font-size: 14px;
-          color: ${BQ_COLORS.ink};
-          line-height: 1.5;
-          font-weight: 500;
-        }
-
-        .bq-checkbox-label { font-weight: 600; }
-
-        .bq-checkbox-error-msg { font-size: 12px; color: ${BQ_COLORS.danger}; font-weight: 700; padding-left: 4px; }
+        .bq-checkbox-text a { color: ${BQ_COLORS.accent}; text-decoration: none; font-weight: ${BQ_WEIGHTS.bold}; }
+        .bq-checkbox-text a:hover { text-decoration: underline; }
       `,
         }}
-      />{" "}
-    </div>
+      />
+    </label>
   );
 }

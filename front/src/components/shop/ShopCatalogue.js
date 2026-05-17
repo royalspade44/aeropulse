@@ -1,9 +1,10 @@
 import { WarningDiamond } from "@phosphor-icons/react";
+import BoutiqueSelect from "../common/boutique/BoutiqueSelect";
 import {
   BQ_COLORS,
   BQ_FONTS,
   BQ_GEOMETRY,
-  BQ_SHADOWS,
+  BQ_WEIGHTS,
 } from "../common/boutique/BoutiqueTheme";
 import ProductCard from "./ProductCard";
 
@@ -15,6 +16,15 @@ export default function ShopCatalogue({
   sortBy,
   onSortChange,
 }) {
+  const sortOptions = [
+    { value: "default", label: "Sort by: Default" },
+    { value: "price_asc", label: "Price: Low to High" },
+    { value: "price_desc", label: "Price: High to Low" },
+    { value: "hp_asc", label: "Horsepower: Low to High" },
+    { value: "hp_desc", label: "Horsepower: High to Low" },
+    { value: "name_asc", label: "Name: A to Z" },
+  ];
+
   return (
     <section className="bq-catalogue">
       <div className="bq-scrollview">
@@ -22,17 +32,11 @@ export default function ShopCatalogue({
           <div className="bq-results-count">
             Found {products.length} products
           </div>
-          <select
-            className="bq-sort-select"
+          <BoutiqueSelect
+            options={sortOptions}
             value={sortBy}
-            onChange={(e) => onSortChange(e.target.value)}
-          >
-            <option value="default">Sort by: Default</option>
-            <option value="price_asc">Price: Low to High</option>
-            <option value="price_desc">Price: High to Low</option>
-            <option value="name_asc">Name: A to Z</option>
-            <option value="discount_desc">Biggest Discount</option>
-          </select>
+            onChange={onSortChange}
+          />
         </div>
 
         {products.length === 0 ? (
@@ -65,16 +69,15 @@ export default function ShopCatalogue({
           top: ${BQ_GEOMETRY.headerHeight};
           display: flex;
           flex-direction: column;
-          background: ${BQ_COLORS.bg};
+          background: white;
         }
 
         .bq-scrollview {
           flex: 1;
           overflow-y: auto;
-          padding: 40px 60px;
+          padding: 32px;
           scrollbar-width: none;
-          border-left: 1px solid rgba(0,0,0,0.05);
-          border-right: 1px solid rgba(0,0,0,0.05);
+          border-left: 1px solid ${BQ_COLORS.border};
         }
         .bq-scrollview::-webkit-scrollbar { display: none; }
 
@@ -82,30 +85,29 @@ export default function ShopCatalogue({
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 48px;
+          margin-bottom: 32px;
+          position: sticky;
+          top: -32px;
+          background: white;
+          z-index: 100;
+          padding: 24px 0 12px;
+          margin-top: -32px;
+          border-bottom: 1px solid rgba(0,0,0,0.03);
         }
 
         .bq-results-count {
           font-family: ${BQ_FONTS.heading};
-          font-size: 16px; font-weight: 600;
+          font-size: 14px; font-weight: ${BQ_WEIGHTS.bold};
           color: ${BQ_COLORS.inkMuted};
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          opacity: 0.6;
         }
-
-        .bq-sort-select {
-          padding: 12px 24px;
-          border-radius: ${BQ_GEOMETRY.radiusPill};
-          border: none;
-          font-family: ${BQ_FONTS.body};
-          font-size: 15px; font-weight: 600;
-          background: ${BQ_COLORS.surface};
-          box-shadow: ${BQ_SHADOWS.soft};
-          cursor: pointer; transition: all 0.3s;
-          outline: none;
-        }
-        .bq-sort-select:hover { box-shadow: ${BQ_SHADOWS.float}; transform: translateY(-2px); }
 
         .bq-grid {
-          display: flex; flex-wrap: wrap; gap: 40px;
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 24px;
         }
 
         .bq-empty-state {
@@ -113,7 +115,7 @@ export default function ShopCatalogue({
           padding: 100px 20px; color: ${BQ_COLORS.inkFaint};
         }
         .bq-empty-state p {
-          font-family: ${BQ_FONTS.heading}; font-weight: 700; font-size: 18px; margin-top: 16px;
+          font-family: ${BQ_FONTS.heading}; font-weight: ${BQ_WEIGHTS.bold}; font-size: 18px; margin-top: 16px;
         }
       `,
         }}

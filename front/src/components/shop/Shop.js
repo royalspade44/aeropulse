@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { apiRequest } from "../../config/api";
+import { API_BASE_URL, apiRequest } from "../../config/api";
 import { useCart } from "../../context/CartContext";
 import { useUser } from "../../context/UserContext";
 import {
@@ -13,34 +13,391 @@ import ProductModal from "./ProductModal";
 import BoutiqueCart from "../common/boutique/BoutiqueCart";
 import BoutiqueFooter from "../common/boutique/BoutiqueFooter";
 import BoutiqueHeader from "../common/boutique/BoutiqueHeader";
-import { BQ_COLORS, BQ_GEOMETRY } from "../common/boutique/BoutiqueTheme";
+import BoutiqueSideMenu from "../common/boutique/BoutiqueSideMenu";
+import { BQ_GEOMETRY } from "../common/boutique/BoutiqueTheme";
 import ShopCatalogue from "./ShopCatalogue";
 import ShopSidebar from "./ShopSidebar";
 
 const fallbackProducts = [
   {
-    id: 1,
-    name: "American Home Inverter AC 1.0HP",
+    name: "American Home Inverter",
+    sku: "AHAC-MINV1023EHW",
     brand: "American Home",
     category: "split",
-    price: 18499,
-    oldPrice: 20999,
     specs: "1.0HP",
-    model: "AHAC-MINV1023EHW",
-    energyRating: "5 Stars",
-    warranty: "1 year parts & labor, 5 years compressor",
-    description: "Energy efficient inverter AC with rapid cooling technology",
-    discount: 12,
-    inStock: true,
-    imageUrl:
-      "https://ansons.ph/wp-content/uploads/2024/12/29_AHAC-MINV1023EHW.jpg",
+    price: 18499,
+    threshold: 3,
+    stock: 16,
+    description: "Energy efficient inverter with rapid cooling technology",
+    warranty: "1 year parts, 5 years compressor",
   },
-  // ... more products will come from backend or fallback logic
+  {
+    name: "American Home Inverter",
+    sku: "AHAC-MINV1523EHW",
+    brand: "American Home",
+    category: "split",
+    specs: "1.5HP",
+    price: 21999,
+    threshold: 3,
+    stock: 15,
+    description: "Advanced inverter technology for maximum energy savings",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "American Home Inverter",
+    sku: "AHAC-MINV2023EHW",
+    brand: "American Home",
+    category: "split",
+    specs: "2.0HP",
+    price: 28499,
+    threshold: 3,
+    stock: 14,
+    description:
+      "Powerful cooling performance with intelligent inverter control",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "American Home Inverter",
+    sku: "AHAC-MINV2523EHW",
+    brand: "American Home",
+    category: "split",
+    specs: "2.5HP",
+    price: 31499,
+    threshold: 2,
+    stock: 12,
+    description: "High-capacity inverter unit designed for large spaces",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "American Home Inverter",
+    sku: "AHAC-MINV3023EHW",
+    brand: "American Home",
+    category: "split",
+    specs: "3.0HP",
+    price: 43999,
+    threshold: 2,
+    stock: 10,
+    description: "Commercial-grade cooling power with Boutique efficiency",
+    warranty: "1 year parts, 5 years compressor",
+  },
+
+  {
+    name: "TCL Full DC Inverter",
+    sku: "TAC-10CSD-KEI-S-2",
+    brand: "TCL",
+    category: "split",
+    specs: "1.0HP",
+    price: 21500,
+    threshold: 3,
+    stock: 16,
+    description: "Full DC inverter with T-AI technology for precision comfort",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "TCL Full DC Inverter",
+    sku: "TAC-13CSD-KEI-S-2",
+    brand: "TCL",
+    category: "split",
+    specs: "1.5HP",
+    price: 22500,
+    threshold: 3,
+    stock: 15,
+    description: "Smart cooling with optimized airflow and energy tracking",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "TCL Full DC Inverter",
+    sku: "TAC-19CSD-KEI-S-2",
+    brand: "TCL",
+    category: "split",
+    specs: "2.0HP",
+    price: 28700,
+    threshold: 3,
+    stock: 14,
+    description: "Intelligent comfort with ultra-quiet operation",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "TCL Full DC Inverter",
+    sku: "TAC-25CSD-KEI-S-2",
+    brand: "TCL",
+    category: "split",
+    specs: "2.5HP",
+    price: 33600,
+    threshold: 2,
+    stock: 12,
+    description: "Premium inverter performance for demanding environments",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "TCL Full DC Inverter",
+    sku: "TAC-30CSD-KEI-S-2",
+    brand: "TCL",
+    category: "split",
+    specs: "3.0HP",
+    price: 48999,
+    threshold: 2,
+    stock: 10,
+    description: "Maximum capacity cooling with advanced filtration",
+    warranty: "1 year parts, 5 years compressor",
+  },
+
+  {
+    name: "Midea Celest Pro",
+    sku: "MSCE-10CRFN8",
+    brand: "Midea",
+    category: "split",
+    specs: "1.0HP",
+    price: 22999,
+    threshold: 3,
+    stock: 14,
+    description:
+      "Professional-grade cooling with precision temperature control",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "Midea Celest Pro",
+    sku: "MSCE-13CRFN8",
+    brand: "Midea",
+    category: "split",
+    specs: "1.5HP",
+    price: 23999,
+    threshold: 3,
+    stock: 14,
+    description: "Advanced Celest technology for rapid heat extraction",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "Midea Celest Pro",
+    sku: "MSCE-19CRFN8",
+    brand: "Midea",
+    category: "split",
+    specs: "2.0HP",
+    price: 30499,
+    threshold: 3,
+    stock: 13,
+    description: "High-efficiency cooling with smart dehumidification",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "Midea Celest Pro",
+    sku: "MSCE-22CRFN8",
+    brand: "Midea",
+    category: "split",
+    specs: "2.5HP",
+    price: 35499,
+    threshold: 2,
+    stock: 11,
+    description: "Industrial-strength cooling in a sleek boutique form factor",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "Midea Celest Pro",
+    sku: "MSCE-25CRFN8",
+    brand: "Midea",
+    category: "split",
+    specs: "3.0HP",
+    price: 51499,
+    threshold: 2,
+    stock: 9,
+    description: "Maximum performance Celest unit for open layouts",
+    warranty: "1 year parts, 5 years compressor",
+  },
+
+  {
+    name: "Samsung Digital Inverter",
+    sku: "AR09TYHYE",
+    brand: "Samsung",
+    category: "split",
+    specs: "1.0HP",
+    price: 22999,
+    threshold: 2,
+    stock: 12,
+    description: "Digital inverter technology for stable and silent cooling",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "Samsung Digital Inverter",
+    sku: "AR12TYHYE",
+    brand: "Samsung",
+    category: "split",
+    specs: "1.5HP",
+    price: 25999,
+    threshold: 2,
+    stock: 11,
+    description: "Consistent temperature management with smart eco-mode",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "Samsung Digital Inverter",
+    sku: "AR18TYHYE",
+    brand: "Samsung",
+    category: "split",
+    specs: "2.0HP",
+    price: 30999,
+    threshold: 2,
+    stock: 10,
+    description: "Advanced airflow design for rapid room-wide cooling",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "Samsung Digital Inverter",
+    sku: "AR24TYHYE",
+    brand: "Samsung",
+    category: "split",
+    specs: "2.5HP",
+    price: 35999,
+    threshold: 2,
+    stock: 9,
+    description: "Premium digital inverter for ultimate environmental control",
+    warranty: "1 year parts, 5 years compressor",
+  },
+
+  {
+    name: "LG Premium Dual Inverter",
+    sku: "HSN09IPX3",
+    brand: "LG",
+    category: "split",
+    specs: "1.0HP",
+    price: 31499,
+    threshold: 2,
+    stock: 11,
+    description: "Dual Inverter technology with WiFi ThinQ integration",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "LG Premium Dual Inverter",
+    sku: "HSN12IPX3",
+    brand: "LG",
+    category: "split",
+    specs: "1.5HP",
+    price: 33499,
+    threshold: 2,
+    stock: 11,
+    description: "Sophisticated dual-compressor system for 70% energy savings",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "LG Premium Dual Inverter",
+    sku: "HSN18IPX3",
+    brand: "LG",
+    category: "split",
+    specs: "2.0HP",
+    price: 41499,
+    threshold: 2,
+    stock: 10,
+    description: "High-end cooling with active energy monitoring and WiFi",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "LG Premium Dual Inverter",
+    sku: "HSN24IPX3",
+    brand: "LG",
+    category: "split",
+    specs: "2.5HP",
+    price: 46499,
+    threshold: 2,
+    stock: 9,
+    description:
+      "Professional-grade dual inverter for larger residential spaces",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "LG Premium Dual Inverter",
+    sku: "HSN30IPC",
+    brand: "LG",
+    category: "split",
+    specs: "3.0HP",
+    price: 82999,
+    threshold: 1,
+    stock: 7,
+    description: "Top-of-the-line LG dual inverter with maximum throughput",
+    warranty: "1 year parts, 5 years compressor",
+  },
+
+  {
+    name: "TCL Full DC Inverter Window",
+    sku: "TAC09-CWI-UJE2",
+    brand: "TCL",
+    category: "window",
+    specs: "1.0HP",
+    price: 21995,
+    threshold: 2,
+    stock: 13,
+    description: "Quiet window unit with full DC inverter and WiFi control",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "TCL Full DC Inverter Window",
+    sku: "TAC12-CWI-UJE2",
+    brand: "TCL",
+    category: "window",
+    specs: "1.5HP",
+    price: 23995,
+    threshold: 2,
+    stock: 12,
+    description: "Compact window-type cooling with intelligent eco-sensors",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "TCL Full DC Inverter Window",
+    sku: "TAC18-CWI-UJE2",
+    brand: "TCL",
+    category: "window",
+    specs: "2.0HP",
+    price: 31995,
+    threshold: 2,
+    stock: 10,
+    description: "Powerful window unit with precision temperature management",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "TCL Full DC Inverter Window",
+    sku: "TAC24-CWI-UJE2",
+    brand: "TCL",
+    category: "window",
+    specs: "2.5HP",
+    price: 35995,
+    threshold: 2,
+    stock: 9,
+    description: "High-performance window unit for large rooms",
+    warranty: "1 year parts, 5 years compressor",
+  },
+
+  {
+    name: "Carrier Opus Inverter Floor Type",
+    sku: "53CNV030WTHP",
+    brand: "Carrier",
+    category: "floor",
+    specs: "3.0HP",
+    price: 95000,
+    threshold: 1,
+    stock: 6,
+    description: "Energenius Inverter Technology for vertical air distribution",
+    warranty: "1 year parts, 5 years compressor",
+  },
+  {
+    name: "Carrier Slim Floor Type",
+    sku: "53CLV036308",
+    brand: "Carrier",
+    category: "floor",
+    specs: "4.0HP",
+    price: 100000,
+    threshold: 1,
+    stock: 5,
+    description: "Slim floor-type design with industrial cooling capacity",
+    warranty: "1 year parts, 5 years compressor",
+  },
 ];
 
-function Shop() {
-  const navigate = useNavigate();
-  const location = useLocation();
+// Helper to parse HP numeric value for sorting
+const parseHP = (hpStr) => {
+  if (!hpStr) return 0;
+  const match = hpStr.match(/(\d+\.?\d*)/);
+  return match ? parseFloat(match[1]) : 0;
+};
+
+const Shop = () => {
   const {
     cart,
     addToCart,
@@ -49,40 +406,80 @@ function Shop() {
     getCartCount,
     getCartTotal,
   } = useCart();
-  const { isAuthenticated, showAuthRequiredPrompt } = useUser();
+  const { user, isAuthenticated, logout } = useUser();
+  const navigate = useNavigate();
+  const location = useLocation();
 
+  const [backendProducts, setBackendProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Filters
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
   const [sortBy, setSortBy] = useState("default");
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [backendProducts, setBackendProducts] = useState([]);
 
   useEffect(() => {
-    apiRequest("/products/public")
-      .then((response) => {
-        const mapped = (response.products || []).map((product) => ({
-          id: product.id,
-          name: product.name,
-          brand: product.brand || "Generic",
-          category: product.category || "split",
-          price: Number(product.price) || 0,
-          specs: product.specs || "",
-          description: Array.isArray(product.features)
-            ? product.features.join(", ")
-            : "Energy efficient AC.",
-          inStock: Number(product.stock) > 0,
-          stock: Number(product.stock) || 0,
-          model: product.sku || "",
-          warranty: "1 year parts, 5 years compressor",
-          imageUrl: product.imageUrl || "",
-        }));
+    const fetchProducts = async () => {
+      try {
+        const response = await apiRequest("/products/public");
+        const mapped = (response.products || []).map((product) => {
+          // Strip redundant "AC" from name and description
+          const cleanName = (product.name || "")
+            .replace(/\s*AC\s*$/gi, "")
+            .trim();
+          const rawDesc =
+            Array.isArray(product.features) && product.features.length > 0
+              ? product.features.join(", ")
+              : product.description || "";
+          const cleanDesc =
+            rawDesc.replace(/\s*AC\s*$/gi, "").trim() ||
+            "Energy efficient unit.";
+
+          return {
+            id: product.id,
+            name: cleanName,
+            brand: product.brand || "Generic",
+            category: product.category || "split",
+            price: Number(product.price) || 0,
+            specs: product.specs || "",
+            description: cleanDesc,
+            inStock: Number(product.stock) > 0,
+            stock: Number(product.stock) || 0,
+            model: product.sku || "",
+            warranty: product.warranty || "1 year parts, 5 years compressor",
+            imageUrl: `${API_BASE_URL}/products/${product.id}/image`,
+            discount: product.discount || 0,
+            featured: product.featured || false,
+          };
+        });
         setBackendProducts(mapped);
-      })
-      .catch(() => setBackendProducts([]));
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
   }, []);
+
+  // Sync category from URL if present
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const cat = params.get("cat");
+    if (cat) setSelectedCategory(cat);
+  }, [location.search]);
+
+  // Buy Now flow integration
+  useEffect(() => {
+    const handleBuyNowEvent = () => navigate("/checkout");
+    window.addEventListener("bq:buy-now", handleBuyNowEvent);
+    return () => window.removeEventListener("bq:buy-now", handleBuyNowEvent);
+  }, [navigate]);
 
   const products = useMemo(() => {
     const merged = mergeProductLists(fallbackProducts, backendProducts, {
@@ -92,53 +489,34 @@ function Shop() {
     return deduplicateProducts(merged, { verbose: false });
   }, [backendProducts]);
 
-  const categories = useMemo(() => {
-    const counts = products.reduce((acc, product) => {
-      const key = product.category || "split";
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
-    return [
-      { id: "all", name: "All Products", count: products.length },
-      { id: "split", name: "Split Type AC", count: counts.split || 0 },
-      { id: "window", name: "Window Type AC", count: counts.window || 0 },
-      { id: "floor", name: "Floor Mounted AC", count: counts.floor || 0 },
-    ];
-  }, [products]);
-
-  const brands = useMemo(
-    () => [
-      "all",
-      ...Array.from(new Set(products.map((p) => p.brand).filter(Boolean))),
-    ],
-    [products],
-  );
-
   const filteredProducts = useMemo(() => {
-    let filtered = products;
-    if (selectedCategory !== "all")
-      filtered = filtered.filter((p) => p.category === selectedCategory);
-    if (selectedBrand !== "all")
-      filtered = filtered.filter((p) => p.brand === selectedBrand);
-    if (searchTerm) {
-      const low = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.name.toLowerCase().includes(low) ||
-          p.brand.toLowerCase().includes(low),
-      );
-    }
-    filtered = filtered.filter(
-      (p) => p.price >= priceRange.min && p.price <= priceRange.max,
-    );
-
-    if (sortBy === "price_asc") filtered.sort((a, b) => a.price - b.price);
-    else if (sortBy === "price_desc")
-      filtered.sort((a, b) => b.price - a.price);
-    else if (sortBy === "name_asc")
-      filtered.sort((a, b) => a.name.localeCompare(b.name));
-
-    return filtered;
+    return products
+      .filter((p) => {
+        const catMatch =
+          selectedCategory === "all" || p.category === selectedCategory;
+        const brandMatch = selectedBrand === "all" || p.brand === selectedBrand;
+        const priceMatch =
+          p.price >= priceRange.min && p.price <= priceRange.max;
+        const searchMatch =
+          p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          p.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (p.model && p.model.toLowerCase().includes(searchTerm.toLowerCase()));
+        return catMatch && brandMatch && priceMatch && searchMatch;
+      })
+      .sort((a, b) => {
+        if (sortBy === "price_asc") return a.price - b.price;
+        if (sortBy === "price_desc") return b.price - a.price;
+        if (sortBy === "hp_asc")
+          return (
+            parseHP(a.specs || a.capacity) - parseHP(b.specs || b.capacity)
+          );
+        if (sortBy === "hp_desc")
+          return (
+            parseHP(b.specs || b.capacity) - parseHP(a.specs || a.capacity)
+          );
+        if (sortBy === "name_asc") return a.name.localeCompare(b.name);
+        return 0;
+      });
   }, [
     products,
     selectedCategory,
@@ -148,36 +526,51 @@ function Shop() {
     sortBy,
   ]);
 
-  const handleAddToCart = (product) => {
-    if (!isAuthenticated)
-      return showAuthRequiredPrompt("Please log in to add items.");
-    addToCart(product, 1);
-  };
+  const categories = useMemo(() => {
+    const counts = products.reduce((acc, product) => {
+      const key = product.category || "split";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+    return [
+      { id: "all", name: "All Types", count: products.length },
+      { id: "split", name: "Split Type", count: counts.split || 0 },
+      { id: "window", name: "Window Type", count: counts.window || 0 },
+      { id: "floor", name: "Floor Type", count: counts.floor || 0 },
+    ];
+  }, [products]);
 
-  const handleCheckout = () => {
-    if (!isAuthenticated)
-      return showAuthRequiredPrompt("Please log in to proceed to checkout.");
-    navigate("/checkout");
-    setIsCartOpen(false);
+  const brands = useMemo(() => {
+    const unique = [...new Set(products.map((p) => p.brand).filter(Boolean))];
+    return ["all", ...unique];
+  }, [products]);
+
+  const handleAddToCart = (product, qty = 1) => {
+    if (!isAuthenticated) return navigate("/login");
+    addToCart(product, qty);
   };
 
   const handleBuyNow = (product) => {
-    if (!isAuthenticated)
-      return showAuthRequiredPrompt("Please log in to buy.");
+    if (!isAuthenticated) return navigate("/login");
     addToCart(product, 1);
     navigate("/checkout");
+  };
+
+  const handleCheckout = () => {
+    if (!isAuthenticated) return navigate("/login");
+    navigate("/checkout");
+    setIsCartOpen(false);
   };
 
   return (
     <div className="bq-shop-layout">
       <BoutiqueHeader
-        variant="text"
         title="Shop AC Units"
-        leftAction="back"
-        onLeftAction={() => navigate("/home")}
+        onLeftAction={() => setSidebarOpen(true)}
+        leftAction="menu"
+        cartCount={getCartCount()}
         isAuthenticated={isAuthenticated}
         onCartClick={() => setIsCartOpen(true)}
-        cartCount={getCartCount()}
       />
 
       <main className="bq-shop-main">
@@ -192,6 +585,8 @@ function Shop() {
           onPriceChange={(key, val) =>
             setPriceRange((prev) => ({ ...prev, [key]: parseInt(val) || 0 }))
           }
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
           onClearFilters={() => {
             setSelectedCategory("all");
             setSelectedBrand("all");
@@ -222,37 +617,47 @@ function Shop() {
 
       <BoutiqueFooter />
 
-      <ProductModal
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        onAddToCart={handleAddToCart}
+      <BoutiqueSideMenu
+        isOpen={isSidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        user={user}
+        isAuthenticated={isAuthenticated}
+        onLogout={logout}
       />
+
+      {selectedProduct && (
+        <ProductModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onAddToCart={handleAddToCart}
+        />
+      )}
 
       <style
         dangerouslySetInnerHTML={{
           __html: `
         .bq-shop-layout {
-          min-height: 100vh;
           display: flex;
           flex-direction: column;
-          background: ${BQ_COLORS.bg};
+          min-height: 100vh;
+          background: white;
         }
 
         .bq-shop-main {
+          flex: 1;
           display: flex;
-          flex-direction: row;
+          background: white;
           width: 100%;
           min-height: calc(100vh - ${BQ_GEOMETRY.headerHeight});
           position: relative;
         }
 
-        /* Standardize some common elements across modules */
         * { box-sizing: border-box; }
       `,
         }}
       />
     </div>
   );
-}
+};
 
 export default Shop;

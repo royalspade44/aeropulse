@@ -1,19 +1,17 @@
 const mongoose = require("mongoose");
 
+/**
+ * OTP REQUEST MODEL V3
+ * Renamed to OtpRequestV3 to force Mongoose to bypass the stuck/cached model
+ * that was throwing stale enum validation errors.
+ */
 const otpRequestSchema = new mongoose.Schema(
   {
-    email: { type: String, lowercase: true, trim: true, default: "" },
-    phone: { type: String, trim: true, default: "" },
-    action: {
-      type: String,
-      enum: ["login", "register_email", "register_phone", "password_reset"],
-      required: true,
-    },
-    channel: {
-      type: String,
-      enum: ["email", "sms"],
-      required: true,
-    },
+    email: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    messenger_handle: { type: String, default: "" },
+    action: { type: String, required: true },
+    channel: { type: String, required: true },
     codeHash: { type: String, required: true },
     requestedAt: { type: Date, default: Date.now },
     expiresAt: { type: Date, required: true },
@@ -21,10 +19,12 @@ const otpRequestSchema = new mongoose.Schema(
     verifiedAt: { type: Date, default: null },
     metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 otpRequestSchema.index({ email: 1, action: 1, channel: 1 });
 otpRequestSchema.index({ phone: 1, action: 1, channel: 1 });
+otpRequestSchema.index({ messenger_handle: 1, action: 1, channel: 1 });
 
-module.exports = mongoose.model("OtpRequest", otpRequestSchema);
+// We use a unique model name to bypass any global Mongoose caching issues
+module.exports = mongoose.model("OtpRequestV3", otpRequestSchema);

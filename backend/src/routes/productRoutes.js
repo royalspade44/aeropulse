@@ -4,6 +4,7 @@ const {
   listProducts,
   listPublicProducts,
   listLowStockProducts,
+  getProductImage,
   createProduct,
   restockProduct,
   updateBranchStock,
@@ -14,6 +15,7 @@ const {
 const router = express.Router();
 
 router.get("/public", listPublicProducts);
+router.get("/:productId/image", getProductImage);
 
 router.use(requireAuth);
 
@@ -26,4 +28,3 @@ router.patch("/:productId", updateProduct);
 router.delete("/:productId", deleteProduct);
 
 module.exports = router;
-

@@ -3,13 +3,21 @@ const mongoose = require("mongoose");
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    sku: { type: String, required: true, trim: true, unique: true, index: true },
+    sku: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+      index: true,
+    },
     brand: { type: String, default: "" },
     category: { type: String, default: "split" },
     description: { type: String, default: "", trim: true },
     specs: { type: String, default: "" },
     features: [{ type: String }],
     image: { type: String, default: "", trim: true },
+    imageData: { type: Buffer },
+    imageContentType: { type: String },
     stock: { type: Number, default: 0 },
     branchStock: {
       type: Map,
@@ -25,7 +33,7 @@ const productSchema = new mongoose.Schema(
     price: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true, index: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 productSchema.set("toJSON", {
@@ -41,11 +49,11 @@ productSchema.set("toJSON", {
 // This ensures no duplicates can be created at the database level
 productSchema.index(
   { sku: 1 },
-  { 
+  {
     unique: true,
-    collation: { locale: 'en', strength: 2 },
-    name: 'idx_sku_unique_case_insensitive'
-  }
+    collation: { locale: "en", strength: 2 },
+    name: "idx_sku_unique_case_insensitive",
+  },
 );
 
 // Compound index for unique product variants (name + specs combination)
@@ -53,9 +61,9 @@ productSchema.index(
   { name: 1, specs: 1 },
   {
     unique: true,
-    collation: { locale: 'en', strength: 2 },
-    name: 'idx_name_specs_unique_case_insensitive'
-  }
+    collation: { locale: "en", strength: 2 },
+    name: "idx_name_specs_unique_case_insensitive",
+  },
 );
 
 // Regular indexes for common queries
@@ -65,4 +73,3 @@ productSchema.index({ createdAt: -1 });
 productSchema.index({ stock: 1 });
 
 module.exports = mongoose.model("Product", productSchema);
-

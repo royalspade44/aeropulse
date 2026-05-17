@@ -3,42 +3,312 @@ const { BRANCHES } = require("../domain/branchRouting");
 const { validateProductUniqueness } = require("../utils/productValidation");
 
 const SAMPLE_PRODUCTS = [
-  { name: "American Home Inverter AC", sku: "AHAC-MINV1023EHW", brand: "American Home", category: "split", specs: "1.0HP", price: 18499, threshold: 3, stock: 16 },
-  { name: "American Home Inverter AC", sku: "AHAC-MINV1523EHW", brand: "American Home", category: "split", specs: "1.5HP", price: 21999, threshold: 3, stock: 15 },
-  { name: "American Home Inverter AC", sku: "AHAC-MINV2023EHW", brand: "American Home", category: "split", specs: "2.0HP", price: 28499, threshold: 3, stock: 14 },
-  { name: "American Home Inverter AC", sku: "AHAC-MINV2523EHW", brand: "American Home", category: "split", specs: "2.5HP", price: 31499, threshold: 2, stock: 12 },
-  { name: "American Home Inverter AC", sku: "AHAC-MINV3023EHW", brand: "American Home", category: "split", specs: "3.0HP", price: 43999, threshold: 2, stock: 10 },
+  {
+    name: "American Home Inverter AC",
+    sku: "AHAC-MINV1023EHW",
+    brand: "American Home",
+    category: "split",
+    specs: "1.0HP",
+    price: 18499,
+    threshold: 3,
+    stock: 16,
+  },
+  {
+    name: "American Home Inverter AC",
+    sku: "AHAC-MINV1523EHW",
+    brand: "American Home",
+    category: "split",
+    specs: "1.5HP",
+    price: 21999,
+    threshold: 3,
+    stock: 15,
+  },
+  {
+    name: "American Home Inverter AC",
+    sku: "AHAC-MINV2023EHW",
+    brand: "American Home",
+    category: "split",
+    specs: "2.0HP",
+    price: 28499,
+    threshold: 3,
+    stock: 14,
+  },
+  {
+    name: "American Home Inverter AC",
+    sku: "AHAC-MINV2523EHW",
+    brand: "American Home",
+    category: "split",
+    specs: "2.5HP",
+    price: 31499,
+    threshold: 2,
+    stock: 12,
+  },
+  {
+    name: "American Home Inverter AC",
+    sku: "AHAC-MINV3023EHW",
+    brand: "American Home",
+    category: "split",
+    specs: "3.0HP",
+    price: 43999,
+    threshold: 2,
+    stock: 10,
+  },
 
-  { name: "TCL Full DC Inverter AC", sku: "TAC-10CSD-KEI-S-2", brand: "TCL", category: "split", specs: "1.0HP", price: 21500, threshold: 3, stock: 16 },
-  { name: "TCL Full DC Inverter AC", sku: "TAC-13CSD-KEI-S-2", brand: "TCL", category: "split", specs: "1.5HP", price: 22500, threshold: 3, stock: 15 },
-  { name: "TCL Full DC Inverter AC", sku: "TAC-19CSD-KEI-S-2", brand: "TCL", category: "split", specs: "2.0HP", price: 28700, threshold: 3, stock: 14 },
-  { name: "TCL Full DC Inverter AC", sku: "TAC-25CSD-KEI-S-2", brand: "TCL", category: "split", specs: "2.5HP", price: 33600, threshold: 2, stock: 12 },
-  { name: "TCL Full DC Inverter AC", sku: "TAC-30CSD-KEI-S-2", brand: "TCL", category: "split", specs: "3.0HP", price: 48999, threshold: 2, stock: 10 },
+  {
+    name: "TCL Full DC Inverter AC",
+    sku: "TAC-10CSD-KEI-S-2",
+    brand: "TCL",
+    category: "split",
+    specs: "1.0HP",
+    price: 21500,
+    threshold: 3,
+    stock: 16,
+  },
+  {
+    name: "TCL Full DC Inverter AC",
+    sku: "TAC-13CSD-KEI-S-2",
+    brand: "TCL",
+    category: "split",
+    specs: "1.5HP",
+    price: 22500,
+    threshold: 3,
+    stock: 15,
+  },
+  {
+    name: "TCL Full DC Inverter AC",
+    sku: "TAC-19CSD-KEI-S-2",
+    brand: "TCL",
+    category: "split",
+    specs: "2.0HP",
+    price: 28700,
+    threshold: 3,
+    stock: 14,
+  },
+  {
+    name: "TCL Full DC Inverter AC",
+    sku: "TAC-25CSD-KEI-S-2",
+    brand: "TCL",
+    category: "split",
+    specs: "2.5HP",
+    price: 33600,
+    threshold: 2,
+    stock: 12,
+  },
+  {
+    name: "TCL Full DC Inverter AC",
+    sku: "TAC-30CSD-KEI-S-2",
+    brand: "TCL",
+    category: "split",
+    specs: "3.0HP",
+    price: 48999,
+    threshold: 2,
+    stock: 10,
+  },
 
-  { name: "Midea Celest Pro AC", sku: "MSCE-10CRFN8", brand: "Midea", category: "split", specs: "1.0HP", price: 22999, threshold: 3, stock: 14 },
-  { name: "Midea Celest Pro AC", sku: "MSCE-13CRFN8", brand: "Midea", category: "split", specs: "1.5HP", price: 23999, threshold: 3, stock: 14 },
-  { name: "Midea Celest Pro AC", sku: "MSCE-19CRFN8", brand: "Midea", category: "split", specs: "2.0HP", price: 30499, threshold: 3, stock: 13 },
-  { name: "Midea Celest Pro AC", sku: "MSCE-22CRFN8", brand: "Midea", category: "split", specs: "2.5HP", price: 35499, threshold: 2, stock: 11 },
-  { name: "Midea Celest Pro AC", sku: "MSCE-25CRFN8", brand: "Midea", category: "split", specs: "3.0HP", price: 51499, threshold: 2, stock: 9 },
+  {
+    name: "Midea Celest Pro AC",
+    sku: "MSCE-10CRFN8",
+    brand: "Midea",
+    category: "split",
+    specs: "1.0HP",
+    price: 22999,
+    threshold: 3,
+    stock: 14,
+  },
+  {
+    name: "Midea Celest Pro AC",
+    sku: "MSCE-13CRFN8",
+    brand: "Midea",
+    category: "split",
+    specs: "1.5HP",
+    price: 23999,
+    threshold: 3,
+    stock: 14,
+  },
+  {
+    name: "Midea Celest Pro AC",
+    sku: "MSCE-19CRFN8",
+    brand: "Midea",
+    category: "split",
+    specs: "2.0HP",
+    price: 30499,
+    threshold: 3,
+    stock: 13,
+  },
+  {
+    name: "Midea Celest Pro AC",
+    sku: "MSCE-22CRFN8",
+    brand: "Midea",
+    category: "split",
+    specs: "2.5HP",
+    price: 35499,
+    threshold: 2,
+    stock: 11,
+  },
+  {
+    name: "Midea Celest Pro AC",
+    sku: "MSCE-25CRFN8",
+    brand: "Midea",
+    category: "split",
+    specs: "3.0HP",
+    price: 51499,
+    threshold: 2,
+    stock: 9,
+  },
 
-  { name: "Samsung Digital Inverter AC", sku: "AR09TYHYE", brand: "Samsung", category: "split", specs: "1.0HP", price: 22999, threshold: 2, stock: 12 },
-  { name: "Samsung Digital Inverter AC", sku: "AR12TYHYE", brand: "Samsung", category: "split", specs: "1.5HP", price: 25999, threshold: 2, stock: 11 },
-  { name: "Samsung Digital Inverter AC", sku: "AR18TYHYE", brand: "Samsung", category: "split", specs: "2.0HP", price: 30999, threshold: 2, stock: 10 },
-  { name: "Samsung Digital Inverter AC", sku: "AR24TYHYE", brand: "Samsung", category: "split", specs: "2.5HP", price: 35999, threshold: 2, stock: 9 },
+  {
+    name: "Samsung Digital Inverter AC",
+    sku: "AR09TYHYE",
+    brand: "Samsung",
+    category: "split",
+    specs: "1.0HP",
+    price: 22999,
+    threshold: 2,
+    stock: 12,
+  },
+  {
+    name: "Samsung Digital Inverter AC",
+    sku: "AR12TYHYE",
+    brand: "Samsung",
+    category: "split",
+    specs: "1.5HP",
+    price: 25999,
+    threshold: 2,
+    stock: 11,
+  },
+  {
+    name: "Samsung Digital Inverter AC",
+    sku: "AR18TYHYE",
+    brand: "Samsung",
+    category: "split",
+    specs: "2.0HP",
+    price: 30999,
+    threshold: 2,
+    stock: 10,
+  },
+  {
+    name: "Samsung Digital Inverter AC",
+    sku: "AR24TYHYE",
+    brand: "Samsung",
+    category: "split",
+    specs: "2.5HP",
+    price: 35999,
+    threshold: 2,
+    stock: 9,
+  },
 
-  { name: "LG Premium Dual Inverter AC", sku: "HSN09IPX3", brand: "LG", category: "split", specs: "1.0HP", price: 31499, threshold: 2, stock: 11 },
-  { name: "LG Premium Dual Inverter AC", sku: "HSN12IPX3", brand: "LG", category: "split", specs: "1.5HP", price: 33499, threshold: 2, stock: 11 },
-  { name: "LG Premium Dual Inverter AC", sku: "HSN18IPX3", brand: "LG", category: "split", specs: "2.0HP", price: 41499, threshold: 2, stock: 10 },
-  { name: "LG Premium Dual Inverter AC", sku: "HSN24IPX3", brand: "LG", category: "split", specs: "2.5HP", price: 46499, threshold: 2, stock: 9 },
-  { name: "LG Premium Dual Inverter AC", sku: "HSN30IPC", brand: "LG", category: "split", specs: "3.0HP", price: 82999, threshold: 1, stock: 7 },
+  {
+    name: "LG Premium Dual Inverter AC",
+    sku: "HSN09IPX3",
+    brand: "LG",
+    category: "split",
+    specs: "1.0HP",
+    price: 31499,
+    threshold: 2,
+    stock: 11,
+  },
+  {
+    name: "LG Premium Dual Inverter AC",
+    sku: "HSN12IPX3",
+    brand: "LG",
+    category: "split",
+    specs: "1.5HP",
+    price: 33499,
+    threshold: 2,
+    stock: 11,
+  },
+  {
+    name: "LG Premium Dual Inverter AC",
+    sku: "HSN18IPX3",
+    brand: "LG",
+    category: "split",
+    specs: "2.0HP",
+    price: 41499,
+    threshold: 2,
+    stock: 10,
+  },
+  {
+    name: "LG Premium Dual Inverter AC",
+    sku: "HSN24IPX3",
+    brand: "LG",
+    category: "split",
+    specs: "2.5HP",
+    price: 46499,
+    threshold: 2,
+    stock: 9,
+  },
+  {
+    name: "LG Premium Dual Inverter AC",
+    sku: "HSN30IPC",
+    brand: "LG",
+    category: "split",
+    specs: "3.0HP",
+    price: 82999,
+    threshold: 1,
+    stock: 7,
+  },
 
-  { name: "TCL Full DC Inverter Window AC", sku: "TAC09-CWI-UJE2", brand: "TCL", category: "window", specs: "1.0HP", price: 21995, threshold: 2, stock: 13 },
-  { name: "TCL Full DC Inverter Window AC", sku: "TAC12-CWI-UJE2", brand: "TCL", category: "window", specs: "1.5HP", price: 23995, threshold: 2, stock: 12 },
-  { name: "TCL Full DC Inverter Window AC", sku: "TAC18-CWI-UJE2", brand: "TCL", category: "window", specs: "2.0HP", price: 31995, threshold: 2, stock: 10 },
-  { name: "TCL Full DC Inverter Window AC", sku: "TAC24-CWI-UJE2", brand: "TCL", category: "window", specs: "2.5HP", price: 35995, threshold: 2, stock: 9 },
+  {
+    name: "TCL Full DC Inverter Window AC",
+    sku: "TAC09-CWI-UJE2",
+    brand: "TCL",
+    category: "window",
+    specs: "1.0HP",
+    price: 21995,
+    threshold: 2,
+    stock: 13,
+  },
+  {
+    name: "TCL Full DC Inverter Window AC",
+    sku: "TAC12-CWI-UJE2",
+    brand: "TCL",
+    category: "window",
+    specs: "1.5HP",
+    price: 23995,
+    threshold: 2,
+    stock: 12,
+  },
+  {
+    name: "TCL Full DC Inverter Window AC",
+    sku: "TAC18-CWI-UJE2",
+    brand: "TCL",
+    category: "window",
+    specs: "2.0HP",
+    price: 31995,
+    threshold: 2,
+    stock: 10,
+  },
+  {
+    name: "TCL Full DC Inverter Window AC",
+    sku: "TAC24-CWI-UJE2",
+    brand: "TCL",
+    category: "window",
+    specs: "2.5HP",
+    price: 35995,
+    threshold: 2,
+    stock: 9,
+  },
 
-  { name: "Carrier Opus Inverter Floor Mounted", sku: "53CNV030WTHP", brand: "Carrier", category: "floor", specs: "3.0HP", price: 95000, threshold: 1, stock: 6 },
-  { name: "Carrier Slim Floor Mounted", sku: "53CLV036308", brand: "Carrier", category: "floor", specs: "4.0HP", price: 100000, threshold: 1, stock: 5 },
+  {
+    name: "Carrier Opus Inverter Floor Mounted",
+    sku: "53CNV030WTHP",
+    brand: "Carrier",
+    category: "floor",
+    specs: "3.0HP",
+    price: 95000,
+    threshold: 1,
+    stock: 6,
+  },
+  {
+    name: "Carrier Slim Floor Mounted",
+    sku: "53CLV036308",
+    brand: "Carrier",
+    category: "floor",
+    specs: "4.0HP",
+    price: 100000,
+    threshold: 1,
+    stock: 5,
+  },
 ];
 
 let sampleSeedPromise = null;
@@ -66,19 +336,29 @@ const getBranchValue = (branchStock, branch) => {
   return Number(branchStock?.[branch] || 0);
 };
 
-const getBranchTotal = (product) => BRANCHES.reduce((sum, branch) => sum + getBranchValue(product.branchStock, branch), 0);
+const getBranchTotal = (product) =>
+  BRANCHES.reduce(
+    (sum, branch) => sum + getBranchValue(product.branchStock, branch),
+    0,
+  );
 
 const applyBranchStock = (product, stockByBranch) => {
   BRANCHES.forEach((branch) => {
     const value = Math.max(0, Number(stockByBranch?.[branch] || 0));
     product.branchStock.set(branch, value);
   });
-  product.stock = BRANCHES.reduce((sum, branch) => sum + Number(product.branchStock?.get(branch) || 0), 0);
+  product.stock = BRANCHES.reduce(
+    (sum, branch) => sum + Number(product.branchStock?.get(branch) || 0),
+    0,
+  );
 };
 
 const createSampleDoc = (item) => {
   const branchStock = distributeStockToBranches(item.stock);
-  const total = Object.values(branchStock).reduce((sum, value) => sum + Number(value || 0), 0);
+  const total = Object.values(branchStock).reduce(
+    (sum, value) => sum + Number(value || 0),
+    0,
+  );
   return {
     ...item,
     stock: total,
@@ -89,7 +369,10 @@ const createSampleDoc = (item) => {
 
 const replenishStockIfEmpty = async (product, fallbackStock) => {
   const existingBranchTotal = getBranchTotal(product);
-  const existingTotal = Math.max(existingBranchTotal, Number(product.stock) || 0);
+  const existingTotal = Math.max(
+    existingBranchTotal,
+    Number(product.stock) || 0,
+  );
   if (existingTotal > 0) return false;
   applyBranchStock(product, distributeStockToBranches(fallbackStock));
   await product.save();
@@ -105,9 +388,15 @@ const ensureSampleInventory = async () => {
   }
 
   sampleSeedPromise = (async () => {
-    const sampleBySku = new Map(SAMPLE_PRODUCTS.map((item) => [item.sku, item]));
-    const existingSamples = await Product.find({ sku: { $in: Array.from(sampleBySku.keys()) } });
-    const existingBySku = new Map(existingSamples.map((product) => [product.sku, product]));
+    const sampleBySku = new Map(
+      SAMPLE_PRODUCTS.map((item) => [item.sku, item]),
+    );
+    const existingSamples = await Product.find({
+      sku: { $in: Array.from(sampleBySku.keys()) },
+    });
+    const existingBySku = new Map(
+      existingSamples.map((product) => [product.sku, product]),
+    );
 
     const docsToInsert = [];
     for (const item of SAMPLE_PRODUCTS) {
@@ -134,12 +423,18 @@ const ensureSampleInventory = async () => {
         existing.price = Number(item.price);
         touched = true;
       }
-      if ((Number(existing.threshold) || 0) <= 0 && Number(item.threshold) > 0) {
+      if (
+        (Number(existing.threshold) || 0) <= 0 &&
+        Number(item.threshold) > 0
+      ) {
         existing.threshold = Number(item.threshold);
         touched = true;
       }
 
-      const replenished = await replenishStockIfEmpty(existing, item.stock || DISTRIBUTION_FALLBACK_STOCK);
+      const replenished = await replenishStockIfEmpty(
+        existing,
+        item.stock || DISTRIBUTION_FALLBACK_STOCK,
+      );
       if (touched && !replenished) {
         await existing.save();
       }
@@ -151,7 +446,11 @@ const ensureSampleInventory = async () => {
 
     if (process.env.NODE_ENV !== "production") {
       const globallyDepleted = await Product.find({ stock: { $lte: 0 } });
-      await Promise.all(globallyDepleted.map((product) => replenishStockIfEmpty(product, DISTRIBUTION_FALLBACK_STOCK)));
+      await Promise.all(
+        globallyDepleted.map((product) =>
+          replenishStockIfEmpty(product, DISTRIBUTION_FALLBACK_STOCK),
+        ),
+      );
     }
 
     sampleSeedDone = true;
@@ -162,10 +461,11 @@ const ensureSampleInventory = async () => {
   return sampleSeedPromise;
 };
 
-const toBranchStockObject = (product) => BRANCHES.reduce((acc, branch) => {
-  acc[branch] = Number(product.branchStock?.get(branch) || 0);
-  return acc;
-}, {});
+const toBranchStockObject = (product) =>
+  BRANCHES.reduce((acc, branch) => {
+    acc[branch] = Number(product.branchStock?.get(branch) || 0);
+    return acc;
+  }, {});
 
 const toRoleAwareProduct = (product, req) => {
   const base = product.toJSON();
@@ -192,13 +492,21 @@ const requireAdmin = (req, res) => {
 
 const listProducts = async (req, res) => {
   await ensureSampleInventory();
-  const products = await Product.find({}).sort({ createdAt: -1 });
-  return res.json({ products: products.map((p) => toRoleAwareProduct(p, req)) });
+  const products = await Product.find({})
+    .select("-imageData")
+    .sort({ createdAt: -1 });
+  return res.json({
+    products: products.map((p) => toRoleAwareProduct(p, req)),
+  });
 };
 
 const listPublicProducts = async (_req, res) => {
   await ensureSampleInventory();
-  const products = await Product.find({ stock: { $gt: 0 } }).sort({ createdAt: -1 });
+  const products = await Product.find({ stock: { $gt: 0 } })
+    .select("-imageData")
+    .sort({
+      createdAt: -1,
+    });
   return res.json({ products: products.map((p) => p.toJSON()) });
 };
 
@@ -207,7 +515,9 @@ const listLowStockProducts = async (req, res) => {
     threshold: { $gt: 0 },
   }).sort({ stock: 1, createdAt: -1 });
   const roleAware = products.map((p) => toRoleAwareProduct(p, req));
-  const lowStock = roleAware.filter((p) => Number(p.stock || 0) < Number(p.threshold || 0));
+  const lowStock = roleAware.filter(
+    (p) => Number(p.stock || 0) < Number(p.threshold || 0),
+  );
   return res.json({ products: lowStock });
 };
 
@@ -228,9 +538,9 @@ const createProduct = async (req, res) => {
   } = req.body || {};
 
   if (!name || !sku) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       message: "Name and SKU are required",
-      fields: { name: "required", sku: "required" }
+      fields: { name: "required", sku: "required" },
     });
   }
 
@@ -238,19 +548,20 @@ const createProduct = async (req, res) => {
   const uniquenessCheck = await validateProductUniqueness({
     name: name.trim(),
     sku: String(sku).trim(),
-    specs: String(specs || '').trim()
+    specs: String(specs || "").trim(),
   });
 
   if (uniquenessCheck.isDuplicate) {
-    const errorMessage = uniquenessCheck.duplicateType === 'sku'
-      ? "A product with this SKU already exists"
-      : "A product with this name and specs combination already exists";
-    
-    return res.status(409).json({ 
+    const errorMessage =
+      uniquenessCheck.duplicateType === "sku"
+        ? "A product with this SKU already exists"
+        : "A product with this name and specs combination already exists";
+
+    return res.status(409).json({
       message: errorMessage,
-      field: uniquenessCheck.duplicateType === 'sku' ? 'sku' : 'name',
+      field: uniquenessCheck.duplicateType === "sku" ? "sku" : "name",
       duplicateType: uniquenessCheck.duplicateType,
-      existingProduct: uniquenessCheck.existingProduct
+      existingProduct: uniquenessCheck.existingProduct,
     });
   }
 
@@ -266,7 +577,10 @@ const createProduct = async (req, res) => {
       if (branch !== scoped) normalizedBranchStock[branch] = 0;
     });
   }
-  const totalStock = Object.values(normalizedBranchStock).reduce((sum, value) => sum + value, 0);
+  const totalStock = Object.values(normalizedBranchStock).reduce(
+    (sum, value) => sum + value,
+    0,
+  );
 
   try {
     const product = await Product.create({
@@ -274,7 +588,7 @@ const createProduct = async (req, res) => {
       sku: String(sku).trim(),
       brand: String(brand).trim(),
       category,
-      specs: String(specs || '').trim(),
+      specs: String(specs || "").trim(),
       features: Array.isArray(features) ? features.filter(Boolean) : [],
       stock: totalStock || Number(stock) || 0,
       branchStock: normalizedBranchStock,
@@ -285,29 +599,29 @@ const createProduct = async (req, res) => {
   } catch (e) {
     // Handle database-level unique constraint violations
     if (e?.code === 11000) {
-      const field = Object.keys(e.keyPattern || {})[0] || 'unknown';
-      const isDuplicateSku = field === 'sku';
-      
-      return res.status(409).json({ 
-        message: isDuplicateSku 
-          ? "A product with this SKU already exists" 
+      const field = Object.keys(e.keyPattern || {})[0] || "unknown";
+      const isDuplicateSku = field === "sku";
+
+      return res.status(409).json({
+        message: isDuplicateSku
+          ? "A product with this SKU already exists"
           : "A product with this name and specs combination already exists",
-        field: isDuplicateSku ? 'sku' : 'name',
-        code: 'E_DUPLICATE_PRODUCT'
+        field: isDuplicateSku ? "sku" : "name",
+        code: "E_DUPLICATE_PRODUCT",
       });
     }
-    
+
     // Handle validation errors
-    if (e.name === 'ValidationError') {
-      return res.status(400).json({ 
+    if (e.name === "ValidationError") {
+      return res.status(400).json({
         message: "Product validation failed",
         errors: Object.entries(e.errors).reduce((acc, [key, val]) => {
           acc[key] = val.message;
           return acc;
-        }, {})
+        }, {}),
       });
     }
-    
+
     throw e;
   }
 };
@@ -325,7 +639,9 @@ const restockProduct = async (req, res) => {
 
   const qty = Number(quantity);
   if (!Number.isFinite(qty) || qty <= 0) {
-    return res.status(400).json({ message: "quantity must be a positive number" });
+    return res
+      .status(400)
+      .json({ message: "quantity must be a positive number" });
   }
 
   if (req.authUser.role !== "superadmin") {
@@ -346,7 +662,10 @@ const restockProduct = async (req, res) => {
     product.features = features.filter(Boolean);
   }
 
-  const summedStock = BRANCHES.reduce((sum, name) => sum + Number(product.branchStock?.get(name) || 0), 0);
+  const summedStock = BRANCHES.reduce(
+    (sum, name) => sum + Number(product.branchStock?.get(name) || 0),
+    0,
+  );
   product.stock = summedStock;
   await product.save();
 
@@ -364,24 +683,32 @@ const updateBranchStock = async (req, res) => {
     return res.status(404).json({ message: "Product not found" });
   }
 
-  const scopedBranch = req.authUser.role === "superadmin" ? branch : req.activeBranch;
+  const scopedBranch =
+    req.authUser.role === "superadmin" ? branch : req.activeBranch;
   if (!scopedBranch || !BRANCHES.includes(scopedBranch)) {
     return res.status(400).json({ message: "A valid branch is required" });
   }
 
   const qty = Number(quantity);
   if (!Number.isFinite(qty) || qty <= 0) {
-    return res.status(400).json({ message: "quantity must be a positive number" });
+    return res
+      .status(400)
+      .json({ message: "quantity must be a positive number" });
   }
 
   if (action !== "add") {
-    return res.status(400).json({ message: "Only stock additions are allowed. Use action=add." });
+    return res
+      .status(400)
+      .json({ message: "Only stock additions are allowed. Use action=add." });
   }
 
   const current = Number(product.branchStock?.get(scopedBranch) || 0);
   const next = current + qty;
   product.branchStock.set(scopedBranch, next);
-  const summedStock = BRANCHES.reduce((sum, name) => sum + Number(product.branchStock?.get(name) || 0), 0);
+  const summedStock = BRANCHES.reduce(
+    (sum, name) => sum + Number(product.branchStock?.get(name) || 0),
+    0,
+  );
   product.stock = summedStock;
   await product.save();
 
@@ -397,33 +724,39 @@ const updateProduct = async (req, res) => {
     return res.status(404).json({ message: "Product not found" });
   }
 
-  const { name, brand, category, specs, features, threshold, price } = req.body || {};
+  const { name, brand, category, specs, features, threshold, price } =
+    req.body || {};
 
   // If updating name or specs, validate uniqueness
   if (name !== undefined || specs !== undefined) {
     const newName = name !== undefined ? String(name).trim() : product.name;
     const newSpecs = specs !== undefined ? String(specs).trim() : product.specs;
-    
+
     // Only check if values are actually changing
-    if (newName.toLowerCase() !== String(product.name).trim().toLowerCase() ||
-        newSpecs.toLowerCase() !== String(product.specs).trim().toLowerCase()) {
-      
-      const uniquenessCheck = await validateProductUniqueness({
-        name: newName,
-        sku: product.sku,
-        specs: newSpecs
-      }, productId);
+    if (
+      newName.toLowerCase() !== String(product.name).trim().toLowerCase() ||
+      newSpecs.toLowerCase() !== String(product.specs).trim().toLowerCase()
+    ) {
+      const uniquenessCheck = await validateProductUniqueness(
+        {
+          name: newName,
+          sku: product.sku,
+          specs: newSpecs,
+        },
+        productId,
+      );
 
       if (uniquenessCheck.isDuplicate) {
-        const errorMessage = uniquenessCheck.duplicateType === 'sku'
-          ? "A product with this SKU already exists"
-          : "A product with this name and specs combination already exists";
-        
+        const errorMessage =
+          uniquenessCheck.duplicateType === "sku"
+            ? "A product with this SKU already exists"
+            : "A product with this name and specs combination already exists";
+
         return res.status(409).json({
           message: errorMessage,
-          field: uniquenessCheck.duplicateType === 'sku' ? 'sku' : 'name',
+          field: uniquenessCheck.duplicateType === "sku" ? "sku" : "name",
           duplicateType: uniquenessCheck.duplicateType,
-          existingProduct: uniquenessCheck.existingProduct
+          existingProduct: uniquenessCheck.existingProduct,
         });
       }
     }
@@ -434,7 +767,8 @@ const updateProduct = async (req, res) => {
   if (category !== undefined) product.category = String(category).trim();
   if (specs !== undefined) product.specs = String(specs).trim();
   if (Array.isArray(features)) product.features = features.filter(Boolean);
-  if (threshold !== undefined) product.threshold = Math.max(0, Number(threshold) || 0);
+  if (threshold !== undefined)
+    product.threshold = Math.max(0, Number(threshold) || 0);
   if (price !== undefined) product.price = Math.max(0, Number(price) || 0);
 
   try {
@@ -443,29 +777,29 @@ const updateProduct = async (req, res) => {
   } catch (e) {
     // Handle database-level unique constraint violations
     if (e?.code === 11000) {
-      const field = Object.keys(e.keyPattern || {})[0] || 'unknown';
-      const isDuplicateSku = field === 'sku';
-      
+      const field = Object.keys(e.keyPattern || {})[0] || "unknown";
+      const isDuplicateSku = field === "sku";
+
       return res.status(409).json({
-        message: isDuplicateSku 
-          ? "A product with this SKU already exists" 
+        message: isDuplicateSku
+          ? "A product with this SKU already exists"
           : "A product with this name and specs combination already exists",
-        field: isDuplicateSku ? 'sku' : 'name',
-        code: 'E_DUPLICATE_PRODUCT'
+        field: isDuplicateSku ? "sku" : "name",
+        code: "E_DUPLICATE_PRODUCT",
       });
     }
-    
+
     // Handle validation errors
-    if (e.name === 'ValidationError') {
-      return res.status(400).json({ 
+    if (e.name === "ValidationError") {
+      return res.status(400).json({
         message: "Product validation failed",
         errors: Object.entries(e.errors).reduce((acc, [key, val]) => {
           acc[key] = val.message;
           return acc;
-        }, {})
+        }, {}),
       });
     }
-    
+
     throw e;
   }
 };
@@ -483,14 +817,28 @@ const deleteProduct = async (req, res) => {
   return res.json({ message: "Product deleted successfully" });
 };
 
+const getProductImage = async (req, res) => {
+  const { productId } = req.params;
+  try {
+    const product = await Product.findById(productId);
+    if (!product || !product.imageData) {
+      return res.status(404).json({ message: "Image not found" });
+    }
+    res.set("Content-Type", product.imageContentType || "image/jpeg");
+    return res.send(product.imageData);
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   listProducts,
   listPublicProducts,
   listLowStockProducts,
+  getProductImage,
   createProduct,
   restockProduct,
   updateBranchStock,
   updateProduct,
   deleteProduct,
 };
-

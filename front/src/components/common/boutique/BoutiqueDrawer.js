@@ -1,37 +1,55 @@
 import { X } from "@phosphor-icons/react";
+import { useEffect } from "react";
 import { BQ_COLORS, BQ_FONTS } from "./BoutiqueTheme";
 
 /**
  * BOUTIQUE DRAWER
  * A unified sliding container for menus, carts, and other side-panels.
+ * CLEANED: Now uses hardware-accelerated transforms and strictly
+ * scopes its state-based translations via inline styles.
  */
 export default function BoutiqueDrawer({
   isOpen,
   onClose,
-  side = "left", // "left" or "right"
-  width = "400px",
   title,
   children,
+  side = "right", // 'left' or 'right'
+  width = "400px",
 }) {
+  const isLeft = side === "left";
+
+  // Handle escape key
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape" && isOpen) onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose]);
+
   return (
     <>
-      {/* OVERLAY */}
+      {/* Backdrop */}
       <div
         className={`bq-drawer-overlay ${isOpen ? "active" : ""}`}
         onClick={onClose}
       />
 
-      {/* PANEL */}
+      {/* Panel */}
       <div
-        className={`bq-drawer-panel bq-drawer--${side} ${isOpen ? "active" : ""}`}
+        className={`bq-drawer-panel bq-drawer--${side}`}
+        style={{
+          width: width,
+          transform: isOpen
+            ? "translateX(0)"
+            : `translateX(${isLeft ? "-100%" : "100%"})`,
+          left: isLeft ? 0 : "auto",
+          right: isLeft ? "auto" : 0,
+        }}
       >
         <div className="bq-drawer-header">
-          {title && <h2 className="bq-drawer-title">{title}</h2>}
-          <button
-            className="bq-drawer-close"
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <h2 className="bq-drawer-title">{title}</h2>
+          <button className="bq-drawer-close" onClick={onClose}>
             <X size={24} weight="bold" />
           </button>
         </div>
@@ -45,43 +63,26 @@ export default function BoutiqueDrawer({
         .bq-drawer-overlay {
           position: fixed; inset: 0;
           background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
-          z-index: 1500; opacity: 0; visibility: hidden;
-          transition: all 0.4s ease;
+          z-index: 1500; opacity: 0; pointer-events: none;
+          transition: opacity 0.4s ease;
         }
-        .bq-drawer-overlay.active { opacity: 1; visibility: visible; }
-
-        .bq-drawer-panel {
-          position: fixed; top: 0; height: 100%;
-          width: ${width}; max-width: 90vw;
-          background: ${BQ_COLORS.surface};
-          z-index: 2000; display: flex; flex-direction: column;
-          box-shadow: ${side === "left" ? "20px" : "-20px"} 0 80px rgba(0,0,0,0.15);
-          transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .bq-drawer--left { left: calc(-1 * ${width}); }
-        .bq-drawer--left.active { left: 0; }
-
-        .bq-drawer--right { right: calc(-1 * ${width}); }
-        .bq-drawer--right.active { right: 0; }
+        .bq-drawer-overlay.active { opacity: 1; pointer-events: auto; }
 
         .bq-drawer-header {
           padding: 32px;
           display: flex; align-items: center; justify-content: space-between;
           border-bottom: 1px solid ${BQ_COLORS.border};
-          flex-shrink: 0;
         }
 
         .bq-drawer-title {
           font-family: ${BQ_FONTS.heading};
-          font-size: 24px; font-weight: 800;
-          letter-spacing: -0.02em; margin: 0;
-          color: ${BQ_COLORS.ink};
+          font-size: 20px; font-weight: 700; color: ${BQ_COLORS.ink};
+          margin: 0; text-transform: uppercase; letter-spacing: 0.05em;
         }
 
         .bq-drawer-close {
-          background: transparent; border: none; cursor: pointer;
-          color: ${BQ_COLORS.ink}; transition: transform 0.2s;
+          background: transparent; border: none; color: ${BQ_COLORS.ink};
+          cursor: pointer; transition: transform 0.3s ease;
           display: flex; align-items: center; justify-content: center;
         }
         .bq-drawer-close:hover { transform: rotate(90deg); }

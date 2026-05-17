@@ -1,45 +1,49 @@
+import {
+  Cards,
+  ComputerTower,
+  ShieldCheck,
+  Snowflake,
+  SquareSplitHorizontal,
+  X,
+} from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
-// import icons from "../common/icons";
-const icons = {}; // BOUTIQUE MIGRATION STUB
+import { getBrandLogo } from "../../config/brandLogos";
+import BoutiqueButton from "../common/boutique/BoutiqueButton";
+import BoutiqueNumberInput from "../common/boutique/BoutiqueNumberInput";
+import BoutiqueTechnicalCard from "../common/boutique/BoutiqueTechnicalCard";
+import {
+  BQ_COLORS,
+  BQ_FONTS,
+  BQ_SHADOWS,
+  BQ_WEIGHTS,
+} from "../common/boutique/BoutiqueTheme";
 
 function productPlaceholderIcon(product) {
-  if (product?.category === "window") return icons.windowFrame;
-  if (product?.category === "floor") return icons.houseChimney;
-  return icons.temperatureFrigid;
+  if (product?.category === "window") return SquareSplitHorizontal;
+  if (product?.category === "floor") return ComputerTower;
+  if (product?.category === "split") return Cards;
+  return Snowflake;
 }
 
 function ModalProductImage({ product }) {
+  const [imgBroken, setBroken] = useState(false);
+  const IconComp = productPlaceholderIcon(product);
   const hasImage = product?.imageUrl && product.imageUrl.trim() !== "";
 
-  if (hasImage) {
+  if (hasImage && !imgBroken) {
     return (
       <img
         src={product.imageUrl}
         alt={product.name}
-        className="modal-product-img"
-        style={{ width: "100%", maxHeight: "300px", objectFit: "contain" }}
+        onError={() => setBroken(true)}
+        className="bq-modal-img"
       />
     );
   }
 
   return (
-    <div
-      className="modal-product-fallback"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100%",
-        height: "200px",
-        background: "#f1f5f9",
-        borderRadius: "12px",
-      }}
-    >
-      <img
-        src={productPlaceholderIcon(product)}
-        alt=""
-        style={{ width: "80px", height: "80px", opacity: 0.15 }}
-      />
+    <div className="bq-modal-fallback">
+      <IconComp size={120} weight="bold" />
     </div>
   );
 }
@@ -47,7 +51,6 @@ function ModalProductImage({ product }) {
 function ProductModal({ product, onClose, onAddToCart }) {
   const [quantity, setQuantity] = useState(1);
 
-  // Reset quantity when modal opens for a new product
   useEffect(() => {
     setQuantity(1);
   }, [product?.id]);
@@ -56,321 +59,278 @@ function ProductModal({ product, onClose, onAddToCart }) {
   const maxQuantity = product?.stock || 0;
   const isOutOfStock = maxQuantity <= 0;
 
+  const handleQuantityChange = (e) => {
+    const val = e.target.value;
+    if (val === "") {
+      setQuantity("");
+      return;
+    }
+    const num = parseInt(val);
+    if (isNaN(num)) return;
+
+    if (num < 1) setQuantity(1);
+    else if (maxQuantity > 0 && num > maxQuantity) setQuantity(maxQuantity);
+    else setQuantity(num);
+  };
+
+  const handleBlur = () => {
+    if (quantity === "" || quantity < 1) setQuantity(1);
+  };
+
   const handleAddToCart = () => {
     if (isOutOfStock) return;
-    onAddToCart(product, quantity);
+    const finalQty = parseInt(quantity) || 1;
+    onAddToCart(product, finalQty);
     onClose();
+  };
+
+  const handleBuyNow = () => {
+    if (isOutOfStock) return;
+    const finalQty = parseInt(quantity) || 1;
+    onAddToCart(product, finalQty);
+    onClose();
+    window.dispatchEvent(new CustomEvent("bq:buy-now"));
   };
 
   if (!product) return null;
 
+  // Strip brand and AC from title
+  const nameBase = product.name
+    .toLowerCase()
+    .startsWith(product.brand.toLowerCase())
+    ? product.name.slice(product.brand.length).trim()
+    : product.name;
+
+  const displayName = nameBase.replace(/\s*AC\s*$/gi, "").trim();
+
+  const horsepower = product.specs || product.capacity || "";
+  const brandLogoUrl = getBrandLogo(product.brand);
+  const currentQty = parseInt(quantity) || 1;
+  const totalPrice = product.price * currentQty;
+
   return (
-    <div
-      className="product-modal-overlay"
-      onClick={onClose}
-      role="presentation"
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(15, 23, 42, 0.6)",
-        backdropFilter: "blur(8px)",
-        zIndex: 3000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
-        animation: "fadeIn 0.2s ease",
-      }}
-    >
-      <div
-        className="product-modal"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        style={{
-          background: "white",
-          width: "100%",
-          maxWidth: "900px",
-          borderRadius: "24px",
-          overflow: "hidden",
-          position: "relative",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-          animation: "modalSlideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <button
-          type="button"
-          className="close-modal-btn"
-          onClick={onClose}
-          style={{
-            position: "absolute",
-            top: "16px",
-            right: "16px",
-            width: "36px",
-            height: "36px",
-            borderRadius: "50%",
-            background: "white",
-            border: "1px solid #e5e7eb",
-            fontSize: "22px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            zIndex: 10,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-          }}
-        >
-          ×
-        </button>
-        <div
-          className="modal-content"
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}
-        >
-          <div
-            className="modal-image"
-            style={{
-              background: "#f8fafc",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "40px",
-            }}
-          >
+    <div className="bq-modal-overlay" onClick={onClose}>
+      <button className="bq-modal-floating-close" onClick={onClose}>
+        <X size={28} weight="bold" />
+      </button>
+
+      <div className="bq-modal-container" onClick={(e) => e.stopPropagation()}>
+        <div className="bq-modal-grid">
+          <div className="bq-modal-visual">
             <ModalProductImage product={product} />
           </div>
-          <div
-            className="modal-details"
-            style={{
-              padding: "40px",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: "24px",
-                fontWeight: 800,
-                color: "#0f172a",
-                margin: "0 0 4px",
-              }}
-            >
-              {product.name}
-            </h2>
-            <div
-              className="modal-brand"
-              style={{
-                fontSize: "13px",
-                fontWeight: 800,
-                color: "#2563eb",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: "16px",
-              }}
-            >
-              {product.brand}
-            </div>
-            <div
-              className="modal-price"
-              style={{
-                fontSize: "28px",
-                fontWeight: 800,
-                color: "#0f172a",
-                marginBottom: "20px",
-              }}
-            >
-              {"\u20b1"}
-              {product.price.toLocaleString()}
-              {product.oldPrice && (
-                <span
-                  className="product-old-price"
-                  style={{
-                    fontSize: "16px",
-                    color: "#94a3b8",
-                    textDecoration: "line-through",
-                    marginLeft: "10px",
-                    fontWeight: 500,
-                  }}
-                >
-                  {" "}
-                  {"\u20b1"}
-                  {product.oldPrice.toLocaleString()}
-                </span>
-              )}
-            </div>
-            <p
-              className="modal-description"
-              style={{
-                fontSize: "14px",
-                color: "#64748b",
-                lineHeight: 1.6,
-                marginBottom: "24px",
-              }}
-            >
-              {product.description}
-            </p>
-            <ul
-              className="modal-specs"
-              style={{
-                listStyle: "none",
-                padding: 0,
-                margin: "0 0 24px 0",
-                display: "grid",
-                gap: "8px",
-              }}
-            >
-              <li
-                style={{
-                  display: "flex",
-                  fontSize: "13.5px",
-                  borderBottom: "1px solid #f1f5f9",
-                  paddingBottom: "8px",
-                }}
-              >
-                <span
-                  className="spec-label"
-                  style={{ fontWeight: 700, color: "#0f172a", width: "100px" }}
-                >
-                  Model:
-                </span>
-                <span>{product.model}</span>
-              </li>
-              <li
-                style={{
-                  display: "flex",
-                  fontSize: "13.5px",
-                  borderBottom: "1px solid #f1f5f9",
-                  paddingBottom: "8px",
-                }}
-              >
-                <span
-                  className="spec-label"
-                  style={{ fontWeight: 700, color: "#0f172a", width: "100px" }}
-                >
-                  Capacity:
-                </span>
-                <span>{product.specs || product.capacity}</span>
-              </li>
-              <li
-                style={{
-                  display: "flex",
-                  fontSize: "13.5px",
-                  borderBottom: "1px solid #f1f5f9",
-                  paddingBottom: "8px",
-                }}
-              >
-                <span
-                  className="spec-label"
-                  style={{ fontWeight: 700, color: "#0f172a", width: "100px" }}
-                >
-                  Energy:
-                </span>
-                <span>{product.energyRating}</span>
-              </li>
-            </ul>
-            {typeof availableStock === "number" ? (
-              <div
-                className="product-warranty"
-                style={{
-                  marginBottom: "16px",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  color: availableStock > 0 ? "#10b981" : "#ef4444",
-                }}
-              >
-                {availableStock > 0
-                  ? `${availableStock} units available`
-                  : "Out of Stock"}
+
+          <div className="bq-modal-body">
+            <div className="bq-modal-header">
+              <div className="bq-header-top-row">
+                <div className="bq-modal-brand-line">
+                  <div className="bq-modal-logo">
+                    <img src={brandLogoUrl} alt={product.brand} />
+                  </div>
+                  <div className="bq-modal-title-stack">
+                    <span className="bq-modal-model-label">
+                      {product.model || "MODEL"}
+                    </span>
+                    <h2 className="bq-modal-title">{displayName}</h2>
+                  </div>
+                </div>
               </div>
-            ) : null}
-            <div
-              className="quantity-selector"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "16px",
-                marginBottom: "24px",
-                padding: "6px",
-                background: "#f1f5f9",
-                width: "fit-content",
-                borderRadius: "10px",
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                style={{
-                  width: "30px",
-                  height: "30px",
-                  borderRadius: "6px",
-                  border: "none",
-                  background: "white",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-                }}
-              >
-                -
-              </button>
-              <span
-                style={{
-                  fontWeight: 800,
-                  minWidth: "20px",
-                  textAlign: "center",
-                }}
-              >
-                {quantity}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  setQuantity((prev) =>
-                    maxQuantity ? Math.min(maxQuantity, prev + 1) : prev + 1,
-                  )
-                }
-                disabled={Boolean(maxQuantity) && quantity >= maxQuantity}
-                aria-label="Increase quantity"
-                style={{
-                  width: "30px",
-                  height: "30px",
-                  borderRadius: "6px",
-                  border: "none",
-                  background: "white",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-                }}
-              >
-                +
-              </button>
             </div>
-            <button
-              type="button"
-              className="add-to-cart-modal"
-              onClick={handleAddToCart}
-              disabled={isOutOfStock}
-              style={{
-                width: "100%",
-                padding: "14px",
-                background: "#2563eb",
-                color: "white",
-                border: "none",
-                borderRadius: "12px",
-                fontWeight: 800,
-                fontSize: "14px",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                marginTop: "auto",
-              }}
-            >
-              {isOutOfStock
-                ? "Out of Stock"
-                : `Add to Cart - \u20b1${(product.price * quantity).toLocaleString()}`}
-            </button>
+
+            <div className="bq-modal-main">
+              <p className="bq-modal-desc">{product.description}</p>
+
+              <div className="bq-modal-specs-scroll-area">
+                <div className="bq-modal-specs-row">
+                  <BoutiqueTechnicalCard variant="blue" size="md">
+                    {horsepower}
+                  </BoutiqueTechnicalCard>
+                  <BoutiqueTechnicalCard variant="neutral" size="md">
+                    {product.brand}
+                  </BoutiqueTechnicalCard>
+                  <BoutiqueTechnicalCard variant="neutral" size="md">
+                    {product.model || "N/A"}
+                  </BoutiqueTechnicalCard>
+                </div>
+              </div>
+
+              <div className="bq-modal-warranty-row">
+                <ShieldCheck size={18} weight="bold" /> {product.warranty}
+              </div>
+            </div>
+
+            <div className="bq-transaction-hub">
+              <div className="bq-hub-status">
+                <BoutiqueTechnicalCard
+                  variant={isOutOfStock ? "danger" : "success"}
+                  size="sm"
+                >
+                  {isOutOfStock
+                    ? "Temporarily Unavailable"
+                    : `${availableStock} units available`}
+                </BoutiqueTechnicalCard>
+              </div>
+
+              <div className="bq-price-summary">
+                <div className="bq-total-badge">Total Price</div>
+                <div className="bq-price-main">
+                  <span className="bq-price-symbol">₱</span>
+                  <span className="bq-price-num">
+                    {totalPrice.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bq-modal-footer">
+                <BoutiqueNumberInput
+                  value={quantity}
+                  onChange={setQuantity}
+                  max={maxQuantity}
+                  width="140px"
+                />
+
+                <div className="bq-modal-actions">
+                  <BoutiqueButton
+                    variant="outline"
+                    onClick={handleBuyNow}
+                    disabled={isOutOfStock}
+                  >
+                    Buy Now
+                  </BoutiqueButton>
+
+                  <BoutiqueButton
+                    variant="primary"
+                    onClick={handleAddToCart}
+                    disabled={isOutOfStock}
+                  >
+                    {isOutOfStock ? "Unavailable" : "Add to Cart"}
+                  </BoutiqueButton>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        .bq-modal-overlay {
+          position: fixed; inset: 0;
+          background: rgba(0,0,0,0.5); backdrop-filter: blur(20px);
+          z-index: 3000; display: flex; align-items: center; justify-content: center;
+          padding: 24px; animation: bq-fade-in 0.3s ease;
+        }
+
+        .bq-modal-floating-close {
+          position: absolute;
+          top: calc(50% - 280px - 28px);
+          left: calc(50% + 560px + 28px);
+          background: transparent; border: 2px solid white; color: white;
+          width: 56px; height: 56px; border-radius: 50%;
+          cursor: pointer; display: flex; align-items: center; justify-content: center;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          z-index: 3001; opacity: 0.6;
+          transform: translate(-100%, -100%);
+        }
+        .bq-modal-floating-close:hover { opacity: 1; transform: translate(-100%, -100%) scale(1.1) rotate(90deg); background: white; color: ${BQ_COLORS.ink}; }
+
+        .bq-modal-container {
+          background: white;
+          width: 1120px;
+          height: 560px;
+          border-radius: 40px; overflow: visible; position: relative;
+          box-shadow: ${BQ_SHADOWS.hover};
+          animation: bq-modal-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+          font-family: ${BQ_FONTS.body};
+        }
+
+        @keyframes bq-fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes bq-modal-up { from { opacity: 0; transform: translateY(40px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        .bq-modal-grid { display: grid; grid-template-columns: 1fr 1fr; height: 100%; border-radius: 40px; overflow: hidden; }
+
+        .bq-modal-visual {
+          background: ${BQ_COLORS.bg}; display: flex; align-items: center; justify-content: center;
+          padding: 60px; position: relative;
+          border-right: 1px solid ${BQ_COLORS.border};
+        }
+        .bq-modal-img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.05)); }
+        .bq-modal-fallback { opacity: 0.1; color: ${BQ_COLORS.ink}; }
+
+        .bq-modal-body { padding: 48px 60px; display: flex; flex-direction: column; background: white; overflow: hidden; }
+
+        .bq-modal-header { margin-bottom: 24px; flex-shrink: 0; }
+        .bq-header-top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; width: 100%; }
+
+        .bq-modal-brand-line { display: flex; align-items: flex-start; gap: 20px; flex: 1; }
+
+        .bq-modal-logo {
+          width: 56px; height: 56px; background: ${BQ_COLORS.bg};
+          border-radius: 14px; display: flex; align-items: center; justify-content: center;
+          padding: 8px; flex-shrink: 0; border: 1px solid ${BQ_COLORS.border};
+        }
+        .bq-modal-logo img { width: 100%; height: 100%; object-fit: contain; }
+
+        .bq-modal-title-stack { display: flex; flex-direction: column; flex: 1; }
+        .bq-modal-model-label {
+          font-family: ${BQ_FONTS.heading}; font-size: 13px; font-weight: ${BQ_WEIGHTS.bold};
+          color: ${BQ_COLORS.inkMuted}; text-transform: uppercase;
+          letter-spacing: 0.25em; margin-bottom: 4px; display: block; opacity: 0.9;
+        }
+        .bq-modal-title {
+          font-family: ${BQ_FONTS.heading}; font-size: 42px; font-weight: ${BQ_WEIGHTS.bold};
+          color: ${BQ_COLORS.ink}; margin: 0; line-height: 0.95; letter-spacing: -0.05em;
+        }
+
+        .bq-modal-main { flex: 1; overflow-y: auto; padding-right: 12px; margin-bottom: 24px; scrollbar-width: thin; }
+        .bq-modal-main::-webkit-scrollbar { width: 4px; }
+        .bq-modal-main::-webkit-scrollbar-thumb { background: ${BQ_COLORS.border}; border-radius: 10px; }
+
+        .bq-modal-desc { font-size: 15px; color: ${BQ_COLORS.inkMuted}; line-height: 1.6; margin-bottom: 24px; font-weight: ${BQ_WEIGHTS.medium}; }
+
+        .bq-modal-warranty-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: ${BQ_COLORS.inkMuted}; font-weight: ${BQ_WEIGHTS.semibold}; opacity: 0.8; margin-bottom: 24px; }
+
+        .bq-modal-specs-scroll-area { width: 100%; overflow-x: auto; scrollbar-width: none; margin-bottom: 8px; }
+        .bq-modal-specs-scroll-area::-webkit-scrollbar { display: none; }
+
+        .bq-modal-specs-row { display: flex; gap: 16px; min-width: max-content; padding-bottom: 4px; }
+
+        .bq-transaction-hub { margin-top: auto; padding-top: 32px; border-top: 1px solid ${BQ_COLORS.border}; display: flex; flex-direction: column; gap: 24px; }
+
+        .bq-hub-status { display: flex; align-items: center; }
+
+        .bq-price-summary { display: flex; justify-content: space-between; align-items: flex-end; }
+        .bq-total-badge {
+            font-family: ${BQ_FONTS.heading}; font-size: 11px; font-weight: ${BQ_WEIGHTS.bold};
+            color: white; background: ${BQ_COLORS.brand}; padding: 4px 10px; border-radius: 6px;
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+        .bq-price-main { display: flex; align-items: baseline; gap: 4px; color: ${BQ_COLORS.ink}; }
+        .bq-price-symbol { font-family: ${BQ_FONTS.heading}; font-size: 24px; font-weight: ${BQ_WEIGHTS.bold}; }
+        .bq-price-num { font-family: ${BQ_FONTS.heading}; font-size: 42px; font-weight: ${BQ_WEIGHTS.bold}; letter-spacing: -0.04em; line-height: 1; }
+
+        .bq-modal-footer {
+          display: flex;
+          gap: 16px;
+          align-items: center;
+          flex-shrink: 0;
+        }
+
+        .bq-modal-actions { display: flex; gap: 12px; flex: 1; align-items: center; }
+
+        @media (max-width: 1200px) {
+          .bq-modal-container { width: 90vw; height: auto; max-height: 95vh; overflow-y: auto; }
+          .bq-modal-grid { grid-template-columns: 1fr; border-radius: 40px; }
+          .bq-modal-visual { height: 320px; }
+          .bq-modal-body { padding: 24px; }
+          .bq-modal-footer { flex-direction: column; align-items: stretch; }
+          .bq-modal-actions { width: 100%; }
+          .bq-modal-floating-close { top: 20px; right: 20px; width: 44px; height: 44px; position: fixed; }
+        }
+      `,
+        }}
+      />
     </div>
   );
 }
