@@ -17,14 +17,14 @@ export default function BoutiqueCart({
       onClose={onClose}
       side="right"
       width="440px"
-      title="Your Bag"
+      title="Your Cart"
     >
       <div className="bq-cart-wrapper">
         <div className="bq-cart-items">
           {cart.length === 0 ? (
             <div className="bq-cart-empty">
               <ShoppingCartSimple size={64} weight="bold" />
-              <p>Your bag is empty.</p>
+              <p>Your cart is empty.</p>
             </div>
           ) : (
             cart.map((item) => (

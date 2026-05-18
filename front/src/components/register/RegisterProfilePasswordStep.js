@@ -15,6 +15,7 @@ import { defaultAliasFromEmail } from "../../domain/register/defaultAliasFromEma
 import { validateProfileAndSecurityStep } from "../../domain/register/validateRegistrationProfile";
 import BoutiqueButton from "../common/boutique/BoutiqueButton";
 import BoutiqueInput from "../common/boutique/BoutiqueInput";
+import { BQ_COLORS } from "../common/boutique/BoutiqueTheme";
 
 export default function RegisterProfilePasswordStep({
   formData,
@@ -23,7 +24,7 @@ export default function RegisterProfilePasswordStep({
   detectedRole,
   detectedRoleLabel,
   onNext,
-  onBack,
+  onCancel,
 }) {
   const [localErrors, setLocalErrors] = useState({});
 
@@ -263,7 +264,7 @@ export default function RegisterProfilePasswordStep({
       </div>
 
       <div className="bq-reg-actions">
-        <BoutiqueButton variant="cancel" onClick={onBack}>
+        <BoutiqueButton type="button" variant="cancel" onClick={onCancel}>
           <X size={18} weight="bold" /> Cancel
         </BoutiqueButton>
         <BoutiqueButton type="submit">
@@ -292,7 +293,7 @@ export default function RegisterProfilePasswordStep({
         .bq-match-indicator.success { color: #10b981; }
         .bq-match-indicator.error { color: #ef4444; }
 
-        .bq-reg-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+        .bq-reg-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; border-top: 1px solid ${BQ_COLORS.border}; padding-top: 32px; }
 
         @media (max-width: 640px) {
           .bq-reg-form-grid { grid-template-columns: 1fr; }

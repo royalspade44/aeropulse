@@ -1,202 +1,161 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../config/api";
 import { useUser } from "../../context/UserContext";
 import {
-  detectRoleFromEmail,
-  getRoleLabel,
-} from "../../domain/register/detectRoleFromEmail";
-import { validateRegistrationProfile } from "../../domain/register/validateRegistrationProfile";
-import { BQ_COLORS } from "../common/boutique/BoutiqueTheme";
-
+  loadEncrypted,
+  removeEncrypted,
+  saveEncrypted,
+} from "../../utils/secureStorage";
 import BoutiqueAuthHeader from "../common/boutique/BoutiqueAuthHeader";
 import BoutiqueAuthLayout from "../common/boutique/BoutiqueAuthLayout";
+import { BQ_COLORS } from "../common/boutique/BoutiqueTheme";
 import RegisterContactStep from "./RegisterContactStep";
 import RegisterEmailStep from "./RegisterEmailStep";
 import RegisterLegalConsentsStep from "./RegisterLegalConsentsStep";
 import RegisterLocationStep from "./RegisterLocationStep";
 import RegisterProfilePasswordStep from "./RegisterProfilePasswordStep";
 
-import {
-  loadEncrypted,
-  removeEncrypted,
-  saveEncrypted,
-} from "../../utils/secureStorage";
+const STORAGE_KEY = "bq_reg_state";
+const STEPS = ["legal", "email", "identity", "contact", "location"];
 
-const STEPS = ["legal", "email", "profile", "contact", "location"];
-const STORAGE_KEY = "aeropulse_register_state";
-
-function Register() {
-  const { register } = useUser();
+export default function Register() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { register } = useUser();
+  const isShuttingDown = useRef(false);
 
   const [stepIndex, setStepIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [submissionError, setSubmissionError] = useState("");
+
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
     email: "",
     emailVerified: false,
+    registrationSecret: "",
+    provisioningUri: "",
+    firstName: "",
+    lastName: "",
     alias: "",
+    password: "",
     phone: "",
     phoneVerified: false,
     messengerHandle: "",
     messengerVerified: false,
-    password: "",
-    confirmPassword: "",
-    registrationSecret: "",
-    provisioningUri: "",
-    verifiedCode: "",
-    registrationToken: "",
-    address: "",
-    billingRegion: "",
-    billingProvince: "",
-    billingCity: "",
-    billingBarangay: "",
-    billingStreet: "",
+    role: "customer",
     branch: "",
+    locations: [], // Array of { coordinates, address, source }
     agreeTermsWarranty: false,
     agreeTermsService: false,
     agreeTermsApp: false,
     agreePrivacyRa10173: false,
-    location: {
-      coordinates: {
-        latitude: null,
-        longitude: null,
-        accuracy: null,
-        timestamp: null,
-      },
-      address: {
-        region: "",
-        province: "",
-        city: "",
-        barangay: "",
-        street: "",
-        postalCode: "",
-      },
-      source: "manual",
-    },
   });
 
+  const [errors, setErrors] = useState({});
+
+  // Persistence
   useEffect(() => {
-    async function init() {
-      // Priority 1: Backend Session
-      try {
-        const response = await apiRequest("/auth/session");
-        if (response.session?.registrationProgress) {
-          const progress = response.session.registrationProgress;
-          const data = { ...progress.formData };
-
-          if (!data.emailVerified) {
-            data.email = "";
-            data.registrationSecret = "";
-            data.provisioningUri = "";
-          }
-          if (!data.phoneVerified) data.phone = "";
-          if (!data.messengerVerified) data.messengerHandle = "";
-
-          setStepIndex(progress.stepIndex || 0);
-          setFormData(data);
-          return;
-        }
-      } catch (err) {
-        console.error("Failed to fetch registration session:", err);
-      }
-
-      // Priority 2: Local Storage Fallback
+    const init = async () => {
       const saved = await loadEncrypted(STORAGE_KEY);
-      if (saved) {
+      if (saved && saved.formData) {
+        setFormData((prev) => ({
+          ...prev,
+          ...saved.formData,
+          // Ensure locations exists even if loading old saved data
+          locations: saved.formData.locations || [],
+        }));
         setStepIndex(saved.stepIndex || 0);
-        setFormData(saved.formData);
       }
-    }
+    };
     init();
   }, []);
 
   useEffect(() => {
-    const sync = async () => {
-      saveEncrypted(STORAGE_KEY, { stepIndex, formData });
+    if (isShuttingDown.current) return;
+    const persist = async () => {
       try {
-        await apiRequest("/auth/session/registration", {
-          method: "POST",
-          body: JSON.stringify({ progress: { stepIndex, formData } }),
-        });
-      } catch (err) {
-        // Ignore sync errors
+        await saveEncrypted(STORAGE_KEY, { formData, stepIndex });
+      } catch (e) {
+        /* ignore during shutdown */
       }
     };
-
-    const timer = setTimeout(sync, 1000);
-    return () => clearTimeout(timer);
-  }, [stepIndex, formData]);
-
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [submissionError, setSubmissionError] = useState("");
-
-  const detectedRole = useMemo(
-    () => detectRoleFromEmail(formData.email),
-    [formData.email],
-  );
-  const detectedRoleLabel = useMemo(
-    () => getRoleLabel(detectedRole),
-    [detectedRole],
-  );
+    persist();
+  }, [formData, stepIndex]);
 
   const handleFieldChange = useCallback((field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: "" }));
+    setErrors((prev) => ({ ...prev, [field]: null }));
   }, []);
 
+  const goNext = () =>
+    setStepIndex((prev) => Math.min(prev + 1, STEPS.length - 1));
+  const goBack = () => setStepIndex((prev) => Math.max(prev - 1, 0));
+
+  // HARD SESSION CLEAR
   const clearRegistrationSession = async () => {
-    const isAnyVerified =
+    const hasVerifiedData =
       formData.emailVerified ||
       formData.phoneVerified ||
       formData.messengerVerified;
 
-    if (isAnyVerified) {
+    if (hasVerifiedData) {
       const confirmed = window.confirm(
-        "You have verified identity fields. Are you sure you want to cancel? This will clear all your progress.",
+        "You have successfully verified one or more contact methods. Are you sure you want to cancel? All progress will be lost.",
       );
       if (!confirmed) return;
     }
 
-    removeEncrypted(STORAGE_KEY);
+    console.log("[BOUTIQUE] Terminating registration session...");
+    isShuttingDown.current = true;
+
     try {
-      await apiRequest("/auth/session/registration", {
-        method: "POST",
-        body: JSON.stringify({ progress: null }),
+      // 1. Clear backend session (Nuclear Reset)
+      await apiRequest("/auth/logout", { method: "POST" });
+
+      // 2. Clear local storage
+      removeEncrypted(STORAGE_KEY);
+
+      // 3. Force reset local state to absolute defaults
+      setFormData({
+        email: "",
+        emailVerified: false,
+        registrationSecret: "",
+        provisioningUri: "",
+        firstName: "",
+        lastName: "",
+        alias: "",
+        password: "",
+        phone: "",
+        phoneVerified: false,
+        messengerHandle: "",
+        messengerVerified: false,
+        role: "customer",
+        branch: "",
+        locations: [],
+        agreeTermsWarranty: false,
+        agreeTermsService: false,
+        agreeTermsApp: false,
+        agreePrivacyRa10173: false,
       });
+      setStepIndex(0);
+
+      // 4. Return to Login
+      navigate("/login");
     } catch (err) {
-      // Ignore
-    }
-    navigate("/login");
-  };
-
-  const goNext = () => {
-    if (stepIndex < STEPS.length - 1) {
-      setStepIndex((prev) => prev + 1);
-      window.scrollTo(0, 0);
+      console.error("Session termination failed", err);
+      removeEncrypted(STORAGE_KEY);
+      navigate("/login");
     }
   };
 
-  const goBack = () => {
-    if (stepIndex > 0) {
-      setStepIndex((prev) => prev - 1);
-      window.scrollTo(0, 0);
-    }
-  };
+  const detectedRole = useMemo(() => {
+    const email = formData.email.toLowerCase();
+    if (email.includes("superadmin")) return "superadmin";
+    if (email.includes("admin")) return "admin";
+    if (email.includes("technician")) return "technician";
+    return "customer";
+  }, [formData.email]);
 
   const handleFinalSubmit = async () => {
-    const { errors: vErrors, valid } = validateRegistrationProfile(
-      formData,
-      detectedRole,
-    );
-    if (!valid) {
-      setErrors(vErrors);
-      return;
-    }
-
     setLoading(true);
     setSubmissionError("");
 
@@ -209,22 +168,14 @@ function Register() {
         phone: formData.phone,
         password: formData.password,
         messenger_handle: formData.messengerHandle,
-        address: formData.address,
-        billingAddress: {
-          region: formData.billingRegion,
-          province: formData.billingProvince,
-          city: formData.billingCity,
-          barangay: formData.billingBarangay,
-          street: formData.billingStreet,
-        },
         role: detectedRole,
         branch: formData.branch,
-        location: formData.location,
+        locations: formData.locations,
       };
 
       await register(payload);
       removeEncrypted(STORAGE_KEY);
-      navigate("/shop");
+      navigate("/login");
     } catch (err) {
       setSubmissionError(err.message || "Registration failed.");
     } finally {
@@ -237,11 +188,11 @@ function Register() {
   return (
     <BoutiqueAuthLayout>
       <BoutiqueAuthHeader title="Join AeroPulse">
-        <div className="bq-reg-step-dots">
+        <div className="bq-reg-progress">
           {STEPS.map((s, i) => (
             <div
               key={s}
-              className={`bq-reg-dot ${i === stepIndex ? "active" : ""} ${i < stepIndex ? "done" : ""}`}
+              className={`bq-progress-bar ${i === stepIndex ? "active" : ""} ${i < stepIndex ? "done" : ""}`}
             />
           ))}
         </div>
@@ -263,26 +214,25 @@ function Register() {
             errors={errors}
             onFieldChange={handleFieldChange}
             detectedRole={detectedRole}
-            detectedRoleLabel={detectedRoleLabel}
+            detectedRoleLabel={detectedRole.toUpperCase()}
             onNext={goNext}
             onBack={goBack}
           />
         )}
-        {step === "profile" && (
+        {step === "identity" && (
           <RegisterProfilePasswordStep
             formData={formData}
-            errors={errors}
             onFieldChange={handleFieldChange}
             detectedRole={detectedRole}
-            detectedRoleLabel={detectedRoleLabel}
+            detectedRoleLabel={detectedRole.toUpperCase()}
             onNext={goNext}
-            onBack={clearRegistrationSession}
+            onBack={goBack}
+            onCancel={clearRegistrationSession}
           />
         )}
         {step === "contact" && (
           <RegisterContactStep
             formData={formData}
-            errors={errors}
             onFieldChange={handleFieldChange}
             onNext={goNext}
             onBack={goBack}
@@ -291,7 +241,6 @@ function Register() {
         {step === "location" && (
           <RegisterLocationStep
             formData={formData}
-            errors={errors}
             onFieldChange={handleFieldChange}
             onNext={handleFinalSubmit}
             onBack={goBack}
@@ -300,26 +249,46 @@ function Register() {
         )}
 
         {submissionError && (
-          <div className="bq-reg-global-error">{submissionError}</div>
+          <div className="bq-reg-submit-error">{submissionError}</div>
         )}
       </div>
 
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        .bq-reg-step-container { display: flex; flex-direction: column; }
+        .bq-reg-step-container {
+          width: 100%;
+          animation: bq-step-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-        .bq-reg-step-dots { display: flex; gap: 8px; margin-top: 12px; }
-        .bq-reg-dot { width: 8px; height: 8px; border-radius: 4px; background: ${BQ_COLORS.border}; transition: all 0.3s; }
-        .bq-reg-dot.active { width: 24px; background: ${BQ_COLORS.ink}; }
-        .bq-reg-dot.done { background: ${BQ_COLORS.brand}; }
+        @keyframes bq-step-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .bq-reg-global-error { margin-top: 24px; padding: 16px; background: #fffafb; border: 1.5px solid ${BQ_COLORS.danger}; border-radius: 12px; color: ${BQ_COLORS.danger}; font-size: 14px; font-weight: 700; text-align: center; }
+        .bq-reg-progress {
+          display: flex; gap: 6px; align-items: center;
+        }
+
+        .bq-progress-bar {
+          width: 12px; height: 4px; border-radius: 2px;
+          background: ${BQ_COLORS.border}; transition: all 0.4s ease;
+        }
+        .bq-progress-bar.active { width: 32px; background: ${BQ_COLORS.accent}; }
+        .bq-progress-bar.done { background: ${BQ_COLORS.ink}; }
+
+        .bq-reg-submit-error {
+          margin-top: 24px; padding: 16px; background: #fff1f2;
+          border: 1.5px solid ${BQ_COLORS.danger}; border-radius: 12px;
+          color: ${BQ_COLORS.danger}; font-size: 14px; font-weight: 700;
+          text-align: center; animation: bq-shake 0.4s ease;
+        }
+
+        @keyframes bq-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
       `,
         }}
       />
     </BoutiqueAuthLayout>
   );
 }
-
-export default Register;

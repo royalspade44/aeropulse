@@ -1,6 +1,7 @@
 import {
   Cards,
   ComputerTower,
+  Lightning,
   ShieldCheck,
   Snowflake,
   SquareSplitHorizontal,
@@ -59,24 +60,6 @@ function ProductModal({ product, onClose, onAddToCart }) {
   const maxQuantity = product?.stock || 0;
   const isOutOfStock = maxQuantity <= 0;
 
-  const handleQuantityChange = (e) => {
-    const val = e.target.value;
-    if (val === "") {
-      setQuantity("");
-      return;
-    }
-    const num = parseInt(val);
-    if (isNaN(num)) return;
-
-    if (num < 1) setQuantity(1);
-    else if (maxQuantity > 0 && num > maxQuantity) setQuantity(maxQuantity);
-    else setQuantity(num);
-  };
-
-  const handleBlur = () => {
-    if (quantity === "" || quantity < 1) setQuantity(1);
-  };
-
   const handleAddToCart = () => {
     if (isOutOfStock) return;
     const finalQty = parseInt(quantity) || 1;
@@ -110,11 +93,12 @@ function ProductModal({ product, onClose, onAddToCart }) {
 
   return (
     <div className="bq-modal-overlay" onClick={onClose}>
-      <button className="bq-modal-floating-close" onClick={onClose}>
-        <X size={28} weight="bold" />
-      </button>
-
       <div className="bq-modal-container" onClick={(e) => e.stopPropagation()}>
+        {/* Floating Close Button outside modal boundary */}
+        <button className="bq-modal-floating-close" onClick={onClose}>
+          <X size={24} weight="bold" />
+        </button>
+
         <div className="bq-modal-grid">
           <div className="bq-modal-visual">
             <ModalProductImage product={product} />
@@ -160,51 +144,58 @@ function ProductModal({ product, onClose, onAddToCart }) {
             </div>
 
             <div className="bq-transaction-hub">
-              <div className="bq-hub-status">
-                <BoutiqueTechnicalCard
-                  variant={isOutOfStock ? "danger" : "success"}
-                  size="sm"
-                >
-                  {isOutOfStock
-                    ? "Temporarily Unavailable"
-                    : `${availableStock} units available`}
-                </BoutiqueTechnicalCard>
-              </div>
-
-              <div className="bq-price-summary">
-                <div className="bq-total-badge">Total Price</div>
-                <div className="bq-price-main">
-                  <span className="bq-price-symbol">₱</span>
-                  <span className="bq-price-num">
-                    {totalPrice.toLocaleString()}
-                  </span>
+              <div className="bq-interactive-footer">
+                <div className="bq-selection-column">
+                  <div className="bq-misc-badges">
+                    <BoutiqueTechnicalCard
+                      variant={isOutOfStock ? "danger" : "success"}
+                      size="sm"
+                    >
+                      {isOutOfStock
+                        ? "Temporarily Unavailable"
+                        : `${availableStock} units available`}
+                    </BoutiqueTechnicalCard>
+                  </div>
+                  <BoutiqueNumberInput
+                    value={quantity}
+                    onChange={setQuantity}
+                    max={maxQuantity}
+                    width="180px"
+                  />
                 </div>
-              </div>
 
-              <div className="bq-modal-footer">
-                <BoutiqueNumberInput
-                  value={quantity}
-                  onChange={setQuantity}
-                  max={maxQuantity}
-                  width="140px"
-                />
+                <div className="bq-modal-reveal-container">
+                  <div className="bq-modal-reveal-group">
+                    <div className="bq-modal-price-row">
+                      <div className="bq-price-main">
+                        <span className="bq-price-symbol">₱</span>
+                        <span className="bq-price-num">
+                          {totalPrice.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="bq-modal-buy-row">
+                      <BoutiqueButton
+                        variant="outline"
+                        fullWidth
+                        onClick={handleBuyNow}
+                        disabled={isOutOfStock}
+                      >
+                        Buy Now <Lightning size={18} weight="fill" />
+                      </BoutiqueButton>
+                    </div>
+                  </div>
 
-                <div className="bq-modal-actions">
-                  <BoutiqueButton
-                    variant="outline"
-                    onClick={handleBuyNow}
-                    disabled={isOutOfStock}
-                  >
-                    Buy Now
-                  </BoutiqueButton>
-
-                  <BoutiqueButton
-                    variant="primary"
-                    onClick={handleAddToCart}
-                    disabled={isOutOfStock}
-                  >
-                    {isOutOfStock ? "Unavailable" : "Add to Cart"}
-                  </BoutiqueButton>
+                  <div className="bq-modal-add-row">
+                    <BoutiqueButton
+                      variant="primary"
+                      fullWidth
+                      onClick={handleAddToCart}
+                      disabled={isOutOfStock}
+                    >
+                      {isOutOfStock ? "Unavailable" : "Add to Cart"}
+                    </BoutiqueButton>
+                  </div>
                 </div>
               </div>
             </div>
@@ -224,16 +215,15 @@ function ProductModal({ product, onClose, onAddToCart }) {
 
         .bq-modal-floating-close {
           position: absolute;
-          top: calc(50% - 280px - 28px);
-          left: calc(50% + 560px + 28px);
-          background: transparent; border: 2px solid white; color: white;
-          width: 56px; height: 56px; border-radius: 50%;
+          top: -20px;
+          right: -20px;
+          background: white; border: 1.5px solid ${BQ_COLORS.border}; color: ${BQ_COLORS.ink};
+          width: 48px; height: 48px; border-radius: 50%;
           cursor: pointer; display: flex; align-items: center; justify-content: center;
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          z-index: 3001; opacity: 0.6;
-          transform: translate(-100%, -100%);
+          z-index: 3001; box-shadow: ${BQ_SHADOWS.soft};
         }
-        .bq-modal-floating-close:hover { opacity: 1; transform: translate(-100%, -100%) scale(1.1) rotate(90deg); background: white; color: ${BQ_COLORS.ink}; }
+        .bq-modal-floating-close:hover { transform: scale(1.1) rotate(90deg); box-shadow: ${BQ_SHADOWS.hover}; background: ${BQ_COLORS.bg}; }
 
         .bq-modal-container {
           background: white;
@@ -263,8 +253,6 @@ function ProductModal({ product, onClose, onAddToCart }) {
         .bq-modal-header { margin-bottom: 24px; flex-shrink: 0; }
         .bq-header-top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; width: 100%; }
 
-        .bq-modal-brand-line { display: flex; align-items: flex-start; gap: 20px; flex: 1; }
-
         .bq-modal-logo {
           width: 56px; height: 56px; background: ${BQ_COLORS.bg};
           border-radius: 14px; display: flex; align-items: center; justify-content: center;
@@ -289,7 +277,7 @@ function ProductModal({ product, onClose, onAddToCart }) {
 
         .bq-modal-desc { font-size: 15px; color: ${BQ_COLORS.inkMuted}; line-height: 1.6; margin-bottom: 24px; font-weight: ${BQ_WEIGHTS.medium}; }
 
-        .bq-modal-warranty-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: ${BQ_COLORS.inkMuted}; font-weight: ${BQ_WEIGHTS.semibold}; opacity: 0.8; margin-bottom: 24px; }
+        .bq-modal-warranty-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: ${BQ_COLORS.inkMuted}; font-weight: ${BQ_WEIGHTS.semibold}; opacity: 0.8; }
 
         .bq-modal-specs-scroll-area { width: 100%; overflow-x: auto; scrollbar-width: none; margin-bottom: 8px; }
         .bq-modal-specs-scroll-area::-webkit-scrollbar { display: none; }
@@ -300,7 +288,46 @@ function ProductModal({ product, onClose, onAddToCart }) {
 
         .bq-hub-status { display: flex; align-items: center; }
 
-        .bq-price-summary { display: flex; justify-content: space-between; align-items: flex-end; }
+        .bq-interactive-footer {
+          display: flex;
+          gap: 16px;
+          align-items: flex-end;
+          flex-shrink: 0;
+          height: 124px;
+        }
+
+        .bq-selection-column { display: flex; flex-direction: column; gap: 12px; }
+        .bq-misc-badges { display: flex; flex-direction: column; gap: 6px; }
+
+        .bq-modal-reveal-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .bq-modal-reveal-group {
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(68px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .bq-modal-reveal-group:has(+ .bq-modal-add-row:hover, .bq-modal-buy-row:hover) {
+            transform: translateY(28px);
+        }
+
+        .bq-modal-reveal-group, .bq-modal-add-row, .bq-modal-buy-row {
+            width: fit-content;
+            margin-left: auto;
+        }
+
+        .bq-modal-price-row { display: flex; justify-content: space-between; align-items: center; height: 52px; width: 100%; }
+
         .bq-total-badge {
             font-family: ${BQ_FONTS.heading}; font-size: 11px; font-weight: ${BQ_WEIGHTS.bold};
             color: white; background: ${BQ_COLORS.brand}; padding: 4px 10px; border-radius: 6px;
@@ -310,22 +337,33 @@ function ProductModal({ product, onClose, onAddToCart }) {
         .bq-price-symbol { font-family: ${BQ_FONTS.heading}; font-size: 24px; font-weight: ${BQ_WEIGHTS.bold}; }
         .bq-price-num { font-family: ${BQ_FONTS.heading}; font-size: 42px; font-weight: ${BQ_WEIGHTS.bold}; letter-spacing: -0.04em; line-height: 1; }
 
-        .bq-modal-footer {
-          display: flex;
-          gap: 16px;
-          align-items: center;
-          flex-shrink: 0;
+        .bq-modal-buy-row { height: 56px; display: flex; }
+        .bq-modal-add-row {
+            margin-top: 12px;
+            position: relative;
+            z-index: 2;
+            height: 56px;
+            display: flex;
         }
 
-        .bq-modal-actions { display: flex; gap: 12px; flex: 1; align-items: center; }
+        .bq-modal-brand-line {
+            flex-direction: row;
+            display: flex;
+            gap: 16px;
+        }
+
+        .bq-tech-card {
+            width: fit-content;
+        }
 
         @media (max-width: 1200px) {
           .bq-modal-container { width: 90vw; height: auto; max-height: 95vh; overflow-y: auto; }
           .bq-modal-grid { grid-template-columns: 1fr; border-radius: 40px; }
           .bq-modal-visual { height: 320px; }
           .bq-modal-body { padding: 24px; }
-          .bq-modal-footer { flex-direction: column; align-items: stretch; }
-          .bq-modal-actions { width: 100%; }
+          .bq-interactive-footer { height: auto; flex-direction: column; align-items: stretch; }
+          .bq-modal-reveal-container { height: auto; overflow: visible; }
+          .bq-modal-reveal-group { transform: none; }
           .bq-modal-floating-close { top: 20px; right: 20px; width: 44px; height: 44px; position: fixed; }
         }
       `,

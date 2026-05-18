@@ -13,6 +13,7 @@ import ProductModal from "./ProductModal";
 import BoutiqueCart from "../common/boutique/BoutiqueCart";
 import BoutiqueFooter from "../common/boutique/BoutiqueFooter";
 import BoutiqueHeader from "../common/boutique/BoutiqueHeader";
+import BoutiqueNotifications from "../common/boutique/BoutiqueNotifications";
 import BoutiqueSideMenu from "../common/boutique/BoutiqueSideMenu";
 import { BQ_GEOMETRY } from "../common/boutique/BoutiqueTheme";
 import ShopCatalogue from "./ShopCatalogue";
@@ -415,6 +416,49 @@ const Shop = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+
+  // Mark single notification as read
+  const handleNotificationClick = async (id) => {
+    try {
+      await apiRequest(`/notifications/${id}/read`, { method: "PATCH" });
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, unread: false } : n)),
+      );
+    } catch (err) {
+      console.error("Failed to mark notification as read", err);
+    }
+  };
+
+  // Mark all as read
+  const handleMarkAllAsRead = async () => {
+    try {
+      await apiRequest("/notifications/read-all", { method: "POST" });
+      setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+    } catch (err) {
+      console.error("Failed to mark all notifications as read", err);
+    }
+  };
+
+  // Fetch Notifications
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setNotifications([]);
+      return;
+    }
+
+    apiRequest("/notifications/me")
+      .then((response) => {
+        const normalized = (response.notifications || []).map((item) => ({
+          ...item,
+          unread: Boolean(item.unread),
+          time: new Date(item.createdAt).toLocaleString(),
+        }));
+        setNotifications(normalized);
+      })
+      .catch(() => setNotifications([]));
+  }, [isAuthenticated]);
 
   // Filters
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -562,6 +606,8 @@ const Shop = () => {
     setIsCartOpen(false);
   };
 
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
   return (
     <div className="bq-shop-layout">
       <BoutiqueHeader
@@ -569,8 +615,18 @@ const Shop = () => {
         onLeftAction={() => setSidebarOpen(true)}
         leftAction="menu"
         cartCount={getCartCount()}
+        notificationCount={unreadCount}
+        onNotificationClick={() => setShowNotifications(true)}
         isAuthenticated={isAuthenticated}
         onCartClick={() => setIsCartOpen(true)}
+      />
+
+      <BoutiqueNotifications
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        notifications={notifications}
+        onNotificationClick={handleNotificationClick}
+        onMarkAllAsRead={handleMarkAllAsRead}
       />
 
       <main className="bq-shop-main">

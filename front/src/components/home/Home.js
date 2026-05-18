@@ -8,6 +8,7 @@ import { useUser } from "../../context/UserContext";
 import BoutiqueCart from "../common/boutique/BoutiqueCart";
 import BoutiqueFooter from "../common/boutique/BoutiqueFooter";
 import BoutiqueHeader from "../common/boutique/BoutiqueHeader";
+import BoutiqueNotifications from "../common/boutique/BoutiqueNotifications";
 import BoutiqueSideMenu from "../common/boutique/BoutiqueSideMenu";
 import { BQ_COLORS } from "../common/boutique/BoutiqueTheme";
 
@@ -15,7 +16,6 @@ import { BQ_COLORS } from "../common/boutique/BoutiqueTheme";
 import HomeBrands from "./HomeBrands";
 import HomeHero from "./HomeHero";
 import HomeInfo from "./HomeInfo";
-import NotificationsModal from "./NotificationsModal";
 
 function Home() {
   const navigate = useNavigate();
@@ -35,6 +35,28 @@ function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const previousNotificationIdsRef = useRef(new Set());
+
+  // Mark single notification as read
+  const handleNotificationClick = async (id) => {
+    try {
+      await apiRequest(`/notifications/${id}/read`, { method: "PATCH" });
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, unread: false } : n)),
+      );
+    } catch (err) {
+      console.error("Failed to mark notification as read", err);
+    }
+  };
+
+  // Mark all as read
+  const handleMarkAllAsRead = async () => {
+    try {
+      await apiRequest("/notifications/read-all", { method: "POST" });
+      setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+    } catch (err) {
+      console.error("Failed to mark all notifications as read", err);
+    }
+  };
 
   // Track scroll for header effects
   useEffect(() => {
@@ -170,10 +192,12 @@ function Home() {
         getCartTotal={getCartTotal}
       />
 
-      <NotificationsModal
+      <BoutiqueNotifications
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
         notifications={notifications}
+        onNotificationClick={handleNotificationClick}
+        onMarkAllAsRead={handleMarkAllAsRead}
       />
 
       <main className="bq-home-main">

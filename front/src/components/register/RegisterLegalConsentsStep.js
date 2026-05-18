@@ -78,7 +78,7 @@ export default function RegisterLegalConsentsStep({
       </div>
 
       <div className="bq-reg-actions">
-        <BoutiqueButton variant="cancel" onClick={onBack}>
+        <BoutiqueButton type="button" variant="cancel" onClick={onBack}>
           <X size={18} weight="bold" /> Cancel
         </BoutiqueButton>
         <BoutiqueButton type="submit" disabled={!allChecked}>

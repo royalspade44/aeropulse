@@ -1,12 +1,12 @@
 import {
-    ArrowLeft,
-    Bell,
-    List,
-    ShoppingCartSimple,
-    WarningDiamond
+  ArrowLeft,
+  Bell,
+  List,
+  ShoppingCartSimple,
+  WarningDiamond,
 } from "@phosphor-icons/react";
-import coldAirLogo from '../images/Cold Air Logo.jpg';
-import { BQ_COLORS, BQ_FONTS, BQ_GEOMETRY, BQ_SHADOWS } from './BoutiqueTheme';
+import coldAirLogo from "../images/Cold Air Logo.jpg";
+import { BQ_COLORS, BQ_FONTS, BQ_GEOMETRY, BQ_SHADOWS } from "./BoutiqueTheme";
 
 export default function BoutiqueHeader({
   variant = "text", // "text" for Shop, "logo" for Home
@@ -18,15 +18,19 @@ export default function BoutiqueHeader({
   notificationCount = 0,
   cartCount = 0,
   isAuthenticated = false,
-  scrolled = false
+  scrolled = false,
 }) {
   return (
-    <header className={`bq-header ${scrolled ? 'scrolled' : ''}`}>
+    <header className={`bq-header ${scrolled ? "scrolled" : ""}`}>
       <div className="bq-header-content">
         {/* LEFT: Action + Identity */}
         <div className="bq-header-left">
           <button className="bq-action-btn" onClick={onLeftAction}>
-            {leftAction === "back" ? <ArrowLeft size={18} weight="bold" /> : <List size={22} weight="bold" />}
+            {leftAction === "back" ? (
+              <ArrowLeft size={18} weight="bold" />
+            ) : (
+              <List size={22} weight="bold" />
+            )}
           </button>
 
           {variant === "logo" ? (
@@ -47,28 +51,41 @@ export default function BoutiqueHeader({
           <div className="bq-header-center">
             <div className="bq-status-pill">
               <WarningDiamond size={18} weight="bold" />
-              <span>Guest Mode. <strong>Login to checkout.</strong></span>
+              <span>
+                Guest Mode. <strong>Login to checkout.</strong>
+              </span>
             </div>
           </div>
         )}
 
         {/* RIGHT: Global Actions */}
         <div className="bq-header-right">
-          {onNotificationClick && (
-            <button className="bq-action-btn bq-notif-btn" onClick={onNotificationClick}>
+          {isAuthenticated && onNotificationClick && (
+            <button
+              className="bq-action-btn bq-notif-btn"
+              onClick={onNotificationClick}
+            >
               <Bell size={22} weight="bold" />
-              {notificationCount > 0 && <span className="bq-badge bq-badge--danger">{notificationCount}</span>}
+              {notificationCount > 0 && (
+                <span className="bq-badge bq-badge--danger">
+                  {notificationCount}
+                </span>
+              )}
             </button>
           )}
 
           <button className="bq-cart-trigger" onClick={onCartClick}>
             <ShoppingCartSimple size={22} weight="bold" />
-            {cartCount > 0 && <span className="bq-badge bq-badge--cart">{cartCount}</span>}
+            {cartCount > 0 && (
+              <span className="bq-badge bq-badge--cart">{cartCount}</span>
+            )}
           </button>
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         .bq-header {
           height: ${BQ_GEOMETRY.headerHeight};
           background: rgba(255, 255, 255, 0.9);
@@ -181,7 +198,9 @@ export default function BoutiqueHeader({
           .bq-header-center { display: none; }
           .bq-logo-sub { display: none; }
         }
-      ` }} />
+      `,
+        }}
+      />
     </header>
   );
 }

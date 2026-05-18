@@ -1,7 +1,6 @@
 import { ArrowLeft, Info, ShieldCheck } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { apiRequest } from "../../config/api";
 import { useUser } from "../../context/UserContext";
 import BoutiqueAuthHeader from "../common/boutique/BoutiqueAuthHeader";
 import BoutiqueAuthLayout from "../common/boutique/BoutiqueAuthLayout";
@@ -52,20 +51,6 @@ function Login() {
   useEffect(() => {
     setAuthMessage("");
   }, [location.search]);
-
-  useEffect(() => {
-    async function checkSession() {
-      try {
-        const response = await apiRequest("/auth/session");
-        if (response.session?.registrationProgress) {
-          navigate("/register", { replace: true });
-        }
-      } catch (err) {
-        // Ignore session check errors on login screen
-      }
-    }
-    checkSession();
-  }, [navigate]);
 
   const handleEmailChange = (email) => {
     setUser((prev) => ({ ...prev, email }));

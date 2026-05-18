@@ -265,6 +265,7 @@ const startRegistration = async (req, res) => {
   let finalUri = "";
   let verifiedCode = null;
 
+  // 1. Check for RESUME state in the session
   const progress = req.session.registrationProgress;
   if (
     progress &&
@@ -286,7 +287,13 @@ const startRegistration = async (req, res) => {
     finalUri = req.session.tempProvisioningUri;
   }
 
+  // 2. FRESH START: If no session state, proactively PURGE all database artifacts for this email (Technical Cascade)
   if (!finalSecret) {
+    console.log(
+      `[BOUTIQUE] Fresh start for ${email}. Purging existing database artifacts...`,
+    );
+    await OtpRequest.deleteMany({ email });
+
     const secret = speakeasy.generateSecret({
       length: 20,
       name: `AeroPulse:${email}`,
@@ -323,35 +330,35 @@ const startRegistration = async (req, res) => {
 const verifyRegistrationCode = async (req, res) => {
   const { email, code, secret } = req.body;
   const normalizedEmail = normalizeEmail(email);
-  const verifySecret = secret || req.session.tempRegistrationSecret;
 
-  if (!normalizedEmail || !code || !verifySecret) {
+  if (!normalizedEmail || !code || !secret) {
     return res.status(400).json({ message: "Data required." });
   }
 
   const isValid = speakeasy.totp.verify({
-    secret: verifySecret,
+    secret: secret,
     encoding: "base32",
     token: code,
     window: 1,
   });
   if (!isValid) return res.status(400).json({ message: "Invalid code." });
 
+  // Mark in database as verified
+  await OtpRequest.findOneAndUpdate(
+    { email: normalizedEmail, action: "register_email", verifiedAt: null },
+    { $set: { verifiedAt: new Date() } },
+    { sort: { createdAt: -1 } },
+  );
+
   req.session.registrationProgress = {
     email: normalizedEmail,
     stepIndex: 3,
     formData: {
       email: normalizedEmail,
-      registrationSecret: verifySecret,
-      provisioningUri:
-        req.body.provisioningUri || req.session.tempProvisioningUri,
+      registrationSecret: secret,
       verifiedCode: code,
     },
   };
-
-  delete req.session.tempRegistrationSecret;
-  delete req.session.tempProvisioningUri;
-  delete req.session.tempRegistrationEmail;
 
   return res.json({
     message: "Success",
@@ -368,23 +375,19 @@ const register = async (req, res) => {
     phone,
     password,
     messenger_handle,
-    address,
-    billingAddress,
+    locations = [],
     role,
     branch,
-    location,
   } = req.body;
   try {
     const normalizedEmail = normalizeEmail(email);
-    if (
-      !req.session.registrationProgress ||
-      normalizeEmail(req.session.registrationProgress.email) !== normalizedEmail
-    ) {
-      return res.status(403).json({ message: "Session expired." });
-    }
-
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
+
+    const primaryLoc = locations[0] || null;
+    const addressString = primaryLoc
+      ? `${primaryLoc.address.street}, ${primaryLoc.address.city}, ${primaryLoc.address.province}`.trim()
+      : "";
 
     const newUser = await User.create({
       name: `${name_first} ${name_last}`,
@@ -397,13 +400,21 @@ const register = async (req, res) => {
       messenger_handle,
       role: role || "customer",
       assignedBranch: branch || "",
-      address,
-      billingAddress,
-      location,
+      address: addressString,
+      billingAddress: primaryLoc ? primaryLoc.address : {},
+      location: primaryLoc || { address: {}, coordinates: {} },
+      addresses: locations.map((loc, idx) => ({
+        ...loc.address,
+        label: `Facility ${idx + 1}`,
+        isDefault: idx === 0,
+      })),
       accountStatus: "active",
     });
 
-    delete req.session.registrationProgress;
+    // Final database purge for this email after successful registration
+    await OtpRequest.deleteMany({ email: normalizedEmail });
+    if (req.session) req.session.destroy();
+
     const token = signAccessToken({ sub: newUser.id, role: newUser.role });
     return res.json({ success: true, token, user: newUser.toJSON() });
   } catch (err) {
@@ -412,7 +423,7 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password, branch } = req.body;
+  const { email, password } = req.body;
   try {
     const user = await User.findOne({ email: normalizeEmail(email) });
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
@@ -426,15 +437,37 @@ const login = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-  req.session = null;
-  res.json({ success: true });
+  console.log("[BOUTIQUE] Nuclear session & database purge initiated...");
+  try {
+    const email =
+      req.session?.registrationProgress?.email ||
+      req.session?.tempRegistrationEmail;
+    if (email) {
+      const deleted = await OtpRequest.deleteMany({
+        email: normalizeEmail(email),
+      });
+      console.log(
+        `[BOUTIQUE] Purged ${deleted.deletedCount} technical identifiers for ${email}.`,
+      );
+    }
+    if (req.session) {
+      req.session.destroy(() => {
+        res.clearCookie("aeropulse.sid");
+        return res.json({ success: true });
+      });
+    } else {
+      res.json({ success: true });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Reset failed." });
+  }
 };
 
 const getSession = async (req, res) => {
   return res.json({
     session: {
-      registrationProgress: req.session.registrationProgress || null,
-      cart: req.session.cart || [],
+      registrationProgress: req.session?.registrationProgress || null,
+      cart: req.session?.cart || [],
     },
   });
 };
@@ -485,15 +518,16 @@ const resetPassword = async (req, res) => {
 
 const resetPasswordWithCode = async (req, res) => {
   const { email, code, newPassword } = req.body;
+  const normalizedEmail = normalizeEmail(email);
   const verification = await verifyOtpRequest({
-    email: normalizeEmail(email),
+    email: normalizedEmail,
     action: "password_reset",
     channel: "email",
     code,
   });
   if (!verification.ok)
     return res.status(400).json({ message: "Invalid code." });
-  const user = await User.findOne({ email: normalizeEmail(email) });
+  const user = await User.findOne({ email: normalizedEmail });
   const salt = await bcrypt.genSalt(10);
   user.passwordHash = await bcrypt.hash(newPassword, salt);
   await user.save();

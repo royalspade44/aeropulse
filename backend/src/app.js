@@ -3,7 +3,7 @@ const fs = require("fs");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const cookieSession = require("cookie-session");
+const session = require("express-session");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const env = require("./config/env");
@@ -32,17 +32,24 @@ app.use(
   }),
 );
 app.use(morgan("dev"));
+
+// Switch to express-session for server-side persistence
+// This ensures server restarts wipe all sessions (default in-memory store)
 app.use(
-  cookieSession({
-    name: "session",
-    keys: [env.jwtSecret],
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    httpOnly: true,
-    secure: env.nodeEnv === "production",
-    sameSite: "lax",
-    signed: true,
+  session({
+    name: "aeropulse.sid",
+    secret: env.jwtSecret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
+      secure: env.nodeEnv === "production",
+      sameSite: "lax",
+    },
   }),
 );
+
 app.use(cookieParser(env.jwtSecret));
 app.use(express.json({ limit: "5mb" }));
 

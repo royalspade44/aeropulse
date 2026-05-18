@@ -23,7 +23,7 @@ router.post("/register/start", startRegistration);
 router.post("/register/verify", verifyRegistrationCode);
 router.post("/register", register);
 router.post("/login", login);
-router.post("/logout", requireAuth, logout);
+router.post("/logout", logout);
 router.get("/session", getSession);
 router.post("/session/registration", updateRegistrationProgress);
 router.post("/session/cart", updateCart);
