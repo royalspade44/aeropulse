@@ -163,10 +163,10 @@ export const UserProvider = ({ children }) => {
     document.documentElement.setAttribute("data-language", currentLanguage);
   }, [currentLanguage]);
 
-  const login = async (email, password) => {
+  const login = async (identifier, password) => {
     const result = await apiRequest("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ identifier, password }),
     });
     const userBranch =
       result.user?.activeBranch || result.user?.assignedBranch || "";

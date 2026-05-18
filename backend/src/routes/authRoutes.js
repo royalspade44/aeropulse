@@ -9,6 +9,7 @@ const {
   resetPassword,
   requestOtp,
   verifyOtp,
+  checkAliasAvailability,
   resetPasswordWithCode,
   logout,
   getSession,
@@ -29,6 +30,7 @@ router.post("/session/registration", updateRegistrationProgress);
 router.post("/session/cart", updateCart);
 router.post("/request-otp", requestOtp);
 router.post("/verify-otp", verifyOtp);
+router.get("/check-alias", checkAliasAvailability);
 router.post("/forgot-password", requestPasswordReset);
 router.post("/reset-password", resetPasswordWithCode);
 router.post("/reset-password/:token", resetPassword);

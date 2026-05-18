@@ -17,6 +17,7 @@ const OTP_TTL_MINUTES = Math.max(
 );
 
 const normalizeEmail = (email = "") => String(email).trim().toLowerCase();
+const normalizeIdentifier = (value = "") => String(value).trim().toLowerCase();
 const normalizePhone = (phone = "") => String(phone).replace(/\D/g, "");
 const canonicalizePhMobile = (phone = "") => {
   const digits = normalizePhone(phone);
@@ -25,6 +26,14 @@ const canonicalizePhMobile = (phone = "") => {
 };
 const isValidSixDigitCode = (value = "") =>
   /^\d{6}$/.test(String(value).trim());
+
+const toInternationalFormat = (phone = "") => {
+  const digits = String(phone).replace(/\D/g, "");
+  if (digits.startsWith("09") && digits.length === 11) {
+    return `639${digits.slice(2)}`;
+  }
+  return digits;
+};
 
 const generateOtpCode = () =>
   String(Math.floor(100000 + Math.random() * 900000)).padStart(6, "0");
@@ -53,6 +62,44 @@ const sendOtpMessage = async ({ recipient, channel, action, code }) => {
 
   if (channel === "sms") {
     console.log("[OTP] SMS code:", code, "for", recipient);
+
+    if (env.infobipApiKey) {
+      try {
+        const intlRecipient = toInternationalFormat(recipient);
+        const res = await fetch(
+          `https://${env.infobipBaseUrl}/sms/2/text/advanced`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `App ${env.infobipApiKey}`,
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              messages: [
+                {
+                  from: env.infobipSender,
+                  destinations: [{ to: intlRecipient }],
+                  text: message,
+                },
+              ],
+            }),
+          },
+        );
+
+        const data = await res.json();
+        if (res.ok) {
+          console.log(
+            `[INFOBIP] SMS dispatched to ${intlRecipient}. ID:`,
+            data.messages?.[0]?.messageId,
+          );
+        } else {
+          console.error(`[INFOBIP] Dispatch failed:`, data);
+        }
+      } catch (err) {
+        console.error("[INFOBIP] Error:", err.message);
+      }
+    }
     return;
   }
 
@@ -248,6 +295,24 @@ const verifyOtp = async (req, res) => {
   }
 };
 
+const checkAliasAvailability = async (req, res) => {
+  const alias = String(req.query.alias || "")
+    .trim()
+    .toLowerCase();
+  if (!alias) {
+    return res.status(400).json({ message: "Alias is required." });
+  }
+
+  try {
+    const existing = await User.findOne({
+      $or: [{ alias }, { username: alias }],
+    });
+    return res.json({ available: !existing });
+  } catch (err) {
+    return res.status(500).json({ message: "Error checking alias." });
+  }
+};
+
 const startRegistration = async (req, res) => {
   const email = normalizeEmail(req.body?.email);
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -384,6 +449,11 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
+    // Auto-generate alias from email if not provided (Technical Fallback)
+    const finalAlias = (alias || normalizedEmail.split("@")[0] || "")
+      .toLowerCase()
+      .trim();
+
     const primaryLoc = locations[0] || null;
     const addressString = primaryLoc
       ? `${primaryLoc.address.street}, ${primaryLoc.address.city}, ${primaryLoc.address.province}`.trim()
@@ -393,7 +463,7 @@ const register = async (req, res) => {
       name: `${name_first} ${name_last}`,
       name_first,
       name_last,
-      alias,
+      alias: finalAlias,
       email: normalizedEmail,
       phone: canonicalizePhMobile(phone),
       passwordHash,
@@ -423,9 +493,18 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { identifier, password } = req.body;
   try {
-    const user = await User.findOne({ email: normalizeEmail(email) });
+    const normalizedIdentifier = normalizeIdentifier(identifier);
+    // STRICT ALIAS LOGIN: Email is excluded to prioritize technical identity
+    const user = await User.findOne({
+      $or: [
+        { phone: normalizePhone(identifier) },
+        { alias: normalizedIdentifier },
+        { username: normalizedIdentifier },
+      ],
+    });
+
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -545,6 +624,7 @@ module.exports = {
   resetPassword,
   requestOtp,
   verifyOtp,
+  checkAliasAvailability,
   resetPasswordWithCode,
   getSession,
   updateRegistrationProgress,

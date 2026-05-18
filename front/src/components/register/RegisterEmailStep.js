@@ -206,7 +206,7 @@ export default function RegisterEmailStep({
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        .bq-reg-step { display: flex; flex-direction: column; gap: 24px; width: 100%; }
+        .bq-reg-step { display: flex; flex-direction: column; gap: 24px; width: 100%; height: 100%; }
         .bq-reg-header { margin-bottom: 8px; }
         .bq-reg-title { font-size: 24px; font-weight: 800; margin: 0; }
         .bq-reg-desc { font-size: 15px; margin-top: 8px; opacity: 0.8; }
@@ -233,7 +233,7 @@ export default function RegisterEmailStep({
           font-size: 14px; opacity: 0.8;
         }
 
-        .bq-reg-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+        .bq-reg-actions { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
       `,
         }}
       />

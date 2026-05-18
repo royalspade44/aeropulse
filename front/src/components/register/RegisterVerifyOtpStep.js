@@ -200,7 +200,7 @@ export default function RegisterVerifyOtpStep({
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        .bq-reg-step { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+        .bq-reg-step { display: flex; flex-direction: column; gap: 32px; width: 100%; height: 100%; }
         .bq-reg-header { margin-bottom: 8px; }
         .bq-reg-title { font-family: ${BQ_FONTS.heading}; font-size: 24px; font-weight: 800; color: ${BQ_COLORS.ink}; margin: 0; }
         .bq-reg-desc { font-size: 15px; color: ${BQ_COLORS.inkMuted}; margin-top: 8px; }
@@ -251,7 +251,7 @@ export default function RegisterVerifyOtpStep({
         .bq-match-indicator.error { color: ${BQ_COLORS.danger}; }
         .bq-match-indicator.faint { color: ${BQ_COLORS.inkFaint}; }
 
-        .bq-reg-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+        .bq-reg-actions { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
         .bq-reg-btn {
           padding: 14px 24px; border-radius: ${BQ_GEOMETRY.radiusPill};
           font-family: ${BQ_FONTS.heading}; font-weight: 800; font-size: 14px;

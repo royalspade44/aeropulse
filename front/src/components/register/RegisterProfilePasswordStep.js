@@ -3,13 +3,15 @@ import {
   Buildings,
   LockKey,
   ShieldCheck,
+  Spinner,
   User,
   UserCircle,
   WarningDiamond,
   X,
 } from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import zxcvbn from "zxcvbn";
+import { apiRequest } from "../../config/api";
 import { BRANCHES } from "../../domain/branches/branches";
 import { defaultAliasFromEmail } from "../../domain/register/defaultAliasFromEmail";
 import { validateProfileAndSecurityStep } from "../../domain/register/validateRegistrationProfile";
@@ -27,6 +29,7 @@ export default function RegisterProfilePasswordStep({
   onCancel,
 }) {
   const [localErrors, setLocalErrors] = useState({});
+  const [aliasStatus, setAliasStatus] = useState(null); // null, 'checking', 'available', 'taken'
 
   // Combine external and local errors
   const errors = { ...externalErrors, ...localErrors };
@@ -56,6 +59,49 @@ export default function RegisterProfilePasswordStep({
     return formData.email ? defaultAliasFromEmail(formData.email) : "juan.dc";
   }, [formData.email]);
 
+  /**
+   * INITIATE CHECK ON BLUR
+   * Only triggers when user leaves the field.
+   */
+  const handleAliasBlur = async () => {
+    const aliasToCheck = formData.alias || aliasPlaceholder;
+    if (!aliasToCheck || aliasToCheck.length < 2) {
+      setAliasStatus(null);
+      return;
+    }
+
+    setAliasStatus("checking");
+    try {
+      const res = await apiRequest(
+        `/auth/check-alias?alias=${encodeURIComponent(aliasToCheck)}`,
+      );
+      setAliasStatus(res.available ? "available" : "taken");
+    } catch (err) {
+      setAliasStatus(null);
+    }
+  };
+
+  /**
+   * RESET STATUS ON CHANGE
+   * Clears availability markers while typing to ensure state is accurate.
+   */
+  const handleAliasChange = (val) => {
+    onFieldChange("alias", val.toLowerCase().trim());
+    if (aliasStatus !== null) setAliasStatus(null);
+    if (localErrors.alias) {
+      setLocalErrors((prev) => {
+        const n = { ...prev };
+        delete n.alias;
+        return n;
+      });
+    }
+  };
+
+  // Perform initial check on mount for the auto-generated alias
+  useEffect(() => {
+    handleAliasBlur();
+  }, []);
+
   const passwordStrength = useMemo(() => {
     if (!formData.password)
       return { score: 0, label: "Empty", color: "#94a3b8" };
@@ -77,6 +123,15 @@ export default function RegisterProfilePasswordStep({
   const handleSubmit = (e) => {
     e.preventDefault();
     setLocalErrors({});
+
+    if (aliasStatus === "taken") {
+      setLocalErrors((prev) => ({
+        ...prev,
+        alias: "This alias is already taken. Please choose another.",
+      }));
+      return;
+    }
+
     const { errors: vErrors, valid } = validateProfileAndSecurityStep(formData);
     if (valid) onNext();
     else setLocalErrors(vErrors);
@@ -116,23 +171,44 @@ export default function RegisterProfilePasswordStep({
 
         <div className="full-width">
           <BoutiqueInput
-            label="Sign-In Alias (Optional)"
+            label="Sign-In Alias"
             icon={UserCircle}
             placeholder={aliasPlaceholder}
             value={formData.alias}
-            onChange={(e) => {
-              onFieldChange("alias", e.target.value);
-              if (localErrors.alias)
-                setLocalErrors((prev) => {
-                  const n = { ...prev };
-                  delete n.alias;
-                  return n;
-                });
-            }}
-            status={errors.alias ? "error" : null}
-            errorMessage={errors.alias}
-            hint="At least 6 characters, at most 36."
-          />
+            onChange={(e) => handleAliasChange(e.target.value)}
+            onBlur={handleAliasBlur}
+            status={
+              aliasStatus === "taken" || errors.alias
+                ? "error"
+                : aliasStatus === "available"
+                  ? "success"
+                  : null
+            }
+            errorMessage={
+              aliasStatus === "taken"
+                ? "This identifier is already in use."
+                : errors.alias
+            }
+            inlineAction={
+              aliasStatus === "checking" ? (
+                <Spinner className="bq-spin" size={16} />
+              ) : aliasStatus === "available" ? (
+                <ShieldCheck
+                  size={18}
+                  weight="fill"
+                  style={{ color: "#10b981" }}
+                />
+              ) : null
+            }
+            required
+          >
+            {/* Real-time Availability Indicator */}
+            {aliasStatus === "available" && (
+              <div className="bq-match-indicator success">
+                <ShieldCheck size={14} weight="fill" /> Username available
+              </div>
+            )}
+          </BoutiqueInput>
         </div>
 
         {detectedRole !== "customer" && (
@@ -267,7 +343,10 @@ export default function RegisterProfilePasswordStep({
         <BoutiqueButton type="button" variant="cancel" onClick={onCancel}>
           <X size={18} weight="bold" /> Cancel
         </BoutiqueButton>
-        <BoutiqueButton type="submit">
+        <BoutiqueButton
+          type="submit"
+          disabled={aliasStatus === "checking" || aliasStatus === "taken"}
+        >
           Continue <ArrowRight size={18} weight="bold" />
         </BoutiqueButton>
       </div>
@@ -275,7 +354,7 @@ export default function RegisterProfilePasswordStep({
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        .bq-reg-step { display: flex; flex-direction: column; gap: 24px; width: 100%; }
+        .bq-reg-step { display: flex; flex-direction: column; gap: 24px; width: 100%; height: 100%; }
         .bq-reg-header { margin-bottom: 8px; }
         .bq-reg-title { font-size: 24px; font-weight: 800; margin: 0; }
         .bq-reg-desc { font-size: 15px; margin-top: 8px; opacity: 0.8; }
@@ -293,12 +372,15 @@ export default function RegisterProfilePasswordStep({
         .bq-match-indicator.success { color: #10b981; }
         .bq-match-indicator.error { color: #ef4444; }
 
-        .bq-reg-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; border-top: 1px solid ${BQ_COLORS.border}; padding-top: 32px; }
+        .bq-reg-actions { display: flex; align-items: center; justify-content: space-between; margin-top: auto; border-top: 1px solid ${BQ_COLORS.border}; padding-top: 32px; }
 
         @media (max-width: 640px) {
           .bq-reg-form-grid { grid-template-columns: 1fr; }
           .bq-reg-form-grid .full-width { grid-column: span 1; }
         }
+
+        .bq-spin { animation: bq-spin 1s linear infinite; color: ${BQ_COLORS.accent}; }
+        @keyframes bq-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `,
         }}
       />

@@ -258,6 +258,7 @@ export default function Register() {
           __html: `
         .bq-reg-step-container {
           width: 100%;
+          height: 100%;
           animation: bq-step-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 

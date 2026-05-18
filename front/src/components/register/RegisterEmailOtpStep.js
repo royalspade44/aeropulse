@@ -111,7 +111,7 @@ export default function RegisterEmailOtpStep({
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        .bq-reg-step { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+        .bq-reg-step { display: flex; flex-direction: column; gap: 32px; width: 100%; height: 100%; }
         .bq-reg-header { margin-bottom: 8px; }
         .bq-reg-title { font-family: ${BQ_FONTS.heading}; font-size: 24px; font-weight: 800; color: ${BQ_COLORS.ink}; margin: 0; }
         .bq-reg-desc { font-size: 15px; color: ${BQ_COLORS.inkMuted}; margin-top: 8px; }
@@ -119,7 +119,7 @@ export default function RegisterEmailOtpStep({
           background: ${BQ_COLORS.bgAlt}; padding: 12px 20px; border-radius: ${BQ_GEOMETRY.radiusMd};
           font-size: 14px; color: ${BQ_COLORS.inkMuted};
         }
-        .bq-reg-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+        .bq-reg-actions { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
         .bq-reg-btn {
           padding: 14px 24px; border-radius: ${BQ_GEOMETRY.radiusPill};
           font-family: ${BQ_FONTS.heading}; font-weight: 800; font-size: 14px;

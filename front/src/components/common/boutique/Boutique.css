@@ -88,6 +88,15 @@
     font-size: 15px;
 }
 
+.bq-btn:disabled {
+    background: #71717a !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    transform: none !important;
+    border-color: #71717a !important;
+}
+
 /* BOUTIQUE TECHNICAL CARD */
 .bq-tech-card {
     display: inline-flex;

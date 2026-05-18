@@ -100,8 +100,10 @@ export default function BoutiqueSideMenu({
             <button
               className="bq-nav-item bq-logout-btn"
               onClick={() => {
-                onLogout();
-                onClose();
+                if (window.confirm("Are you sure you want to sign out?")) {
+                  onLogout();
+                  onClose();
+                }
               }}
             >
               <SignOut size={24} weight="bold" />

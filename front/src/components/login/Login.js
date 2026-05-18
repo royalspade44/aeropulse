@@ -19,7 +19,7 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [user, setUser] = useState({ email: "", password: "" });
+  const [user, setUser] = useState({ identifier: "", password: "" });
   const [errors, setErrors] = useState({});
   const [authMessage, setAuthMessage] = useState("");
   const [lockoutInfo, setLockoutInfo] = useState(null);
@@ -52,9 +52,9 @@ function Login() {
     setAuthMessage("");
   }, [location.search]);
 
-  const handleEmailChange = (email) => {
-    setUser((prev) => ({ ...prev, email }));
-    if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
+  const handleIdentifierChange = (identifier) => {
+    setUser((prev) => ({ ...prev, identifier }));
+    if (errors.identifier) setErrors((prev) => ({ ...prev, identifier: "" }));
   };
 
   const handlePasswordChange = (password) => {
@@ -64,14 +64,14 @@ function Login() {
 
   const authenticateUser = async () => {
     setErrors({});
-    if (!user.email || !user.password) {
+    if (!user.identifier || !user.password) {
       alert("Please fill in all fields.");
       return;
     }
 
     setLoading(true);
     try {
-      const loggedInUser = await login(user.email, user.password);
+      const loggedInUser = await login(user.identifier, user.password);
       const activeBranch =
         loggedInUser?.activeBranch || loggedInUser?.assignedBranch || "";
       if (activeBranch) localStorage.setItem("activeBranch", activeBranch);
@@ -127,10 +127,10 @@ function Login() {
         )}
 
         <LoginForm
-          email={user.email}
+          identifier={user.identifier}
           password={user.password}
           errors={errors}
-          onEmailChange={handleEmailChange}
+          onIdentifierChange={handleIdentifierChange}
           onPasswordChange={handlePasswordChange}
           onSubmit={authenticateUser}
           loading={loading}

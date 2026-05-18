@@ -1,12 +1,12 @@
-import { ArrowRight, EnvelopeSimple, LockKey } from "@phosphor-icons/react";
+import { ArrowRight, LockKey, UserCircle } from "@phosphor-icons/react";
 import BoutiqueInput from "../common/boutique/BoutiqueInput";
 import { BQ_COLORS, BQ_GEOMETRY } from "../common/boutique/BoutiqueTheme";
 
 export default function LoginForm({
-  email,
+  identifier,
   password,
   errors,
-  onEmailChange,
+  onIdentifierChange,
   onPasswordChange,
   onSubmit,
   loading,
@@ -21,15 +21,14 @@ export default function LoginForm({
   return (
     <form className="bq-login-step" onSubmit={handleSubmit}>
       <BoutiqueInput
-        label="Email Address"
-        icon={EnvelopeSimple}
-        type="email"
-        placeholder="you@example.com"
-        value={email}
-        onChange={(e) => onEmailChange(e.target.value)}
+        label="Sign-In Alias"
+        icon={UserCircle}
+        placeholder="juan.dc"
+        value={identifier}
+        onChange={(e) => onIdentifierChange(e.target.value)}
         disabled={disabled}
-        status={errors.email ? "error" : null}
-        errorMessage={errors.email}
+        status={errors.identifier ? "error" : null}
+        errorMessage={errors.identifier}
         required
       />
 

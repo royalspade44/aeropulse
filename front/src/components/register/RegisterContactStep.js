@@ -17,7 +17,8 @@ import BoutiqueVerifyInput from "../common/boutique/BoutiqueVerifyInput";
  * Heuristic for Messenger handles: Alphanumeric and dots, min 3 chars.
  */
 const validateMessengerHeuristic = (val) => {
-  if (!val || val.length < 3)
+  if (!val) return { valid: true }; // Optional field
+  if (val.length < 3)
     return { valid: false, reason: "Minimum 3 characters required" };
   if (!/^[a-zA-Z0-9.]+$/.test(val))
     return {
@@ -33,7 +34,8 @@ export default function RegisterContactStep({
   onNext,
   onBack,
 }) {
-  const isComplete = formData.phoneVerified && formData.messengerVerified;
+  // Messenger is now optional; only phone is required for progression
+  const isComplete = formData.phoneVerified;
 
   return (
     <div className="bq-reg-step bq-fade-in">
@@ -45,7 +47,7 @@ export default function RegisterContactStep({
       </div>
 
       <div className="bq-reg-contact-fields">
-        {/* PHONE VERIFICATION */}
+        {/* PHONE VERIFICATION - MANDATORY */}
         <BoutiqueVerifyInput
           label="Phone Number"
           icon={Phone}
@@ -62,9 +64,9 @@ export default function RegisterContactStep({
           validator={validatePhMobileHeuristic}
         />
 
-        {/* MESSENGER VERIFICATION */}
+        {/* MESSENGER VERIFICATION - OPTIONAL */}
         <BoutiqueVerifyInput
-          label="FB Messenger Handle"
+          label="FB Messenger Handle (Optional)"
           icon={MessengerLogo}
           placeholder="username"
           value={formData.messengerHandle}

@@ -14,7 +14,7 @@ const addressSchema = new mongoose.Schema(
     postalCode: { type: String, default: "", trim: true },
     isDefault: { type: Boolean, default: false },
   },
-  { _id: true }
+  { _id: true },
 );
 
 const billingAddressSchema = new mongoose.Schema(
@@ -25,7 +25,7 @@ const billingAddressSchema = new mongoose.Schema(
     barangay: { type: String, default: "", trim: true },
     street: { type: String, default: "", trim: true },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const userSchema = new mongoose.Schema(
@@ -33,7 +33,13 @@ const userSchema = new mongoose.Schema(
     name: { type: String, trim: true },
     name_first: { type: String, required: true, trim: true },
     name_last: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
     username: {
       type: String,
       unique: true,
@@ -43,6 +49,13 @@ const userSchema = new mongoose.Schema(
       minlength: 2,
       maxlength: 30,
       match: /^[a-z0-9_.-]+$/,
+    },
+    alias: {
+      type: String,
+      unique: true,
+      sparse: true,
+      lowercase: true,
+      trim: true,
     },
     phone: { type: String, unique: true, sparse: true, trim: true },
     passwordHash: { type: String },
@@ -132,14 +145,18 @@ const userSchema = new mongoose.Schema(
         postalCode: { type: String, default: "", trim: true },
       },
       capturedAt: { type: Date },
-      source: { type: String, enum: ["gps", "manual", "ip"], default: "manual" },
+      source: {
+        type: String,
+        enum: ["gps", "manual", "ip"],
+        default: "manual",
+      },
     },
     isDeleted: { type: Boolean, default: false, index: true },
     deletedAt: { type: Date, default: null },
 
     isFirstLogin: { type: Boolean, default: false }, // For staff onboarding
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 userSchema.set("toJSON", {

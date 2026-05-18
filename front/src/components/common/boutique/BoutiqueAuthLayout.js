@@ -68,6 +68,7 @@ export default function BoutiqueAuthLayout({ children }) {
         /* The real container that keeps inputs at a readable width */
         .bq-auth-form-constraint {
           width: 100%;
+          height: 100%;
           max-width: 480px;
           display: flex;
           flex-direction: column;
